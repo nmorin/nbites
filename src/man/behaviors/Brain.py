@@ -267,7 +267,6 @@ class Brain(object):
                             Constants.FIELD_WHITE_BOTTOM_SIDELINE_Y,
                             Constants.HEADING_UP)
 
-
     #@todo: HACK HACK HACK Mexico 2012 to make sure we still re-converge properly even if
     #we get manually positioned
     #should make this nicer (or at least the locations)

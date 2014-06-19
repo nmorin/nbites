@@ -32,7 +32,7 @@ convertStateFormatPenaltyShots = { STATE_INITIAL :  'penaltyShotsGameSet',
 class GameController():
     """
     The GameController's job is to update its own state to reflect the current
-    gameState according to self.brain.interface.gameState. It should only 
+    gameState according to self.brain.interface.gameState. It should only
     report the gameState, not do anything with that information. It is left up
     to the player FSA how to respond, for example see GameControllerStates.py.
     """

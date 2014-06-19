@@ -23,6 +23,6 @@ class SoccerPlayer(SoccerFSA.SoccerFSA):
         self.setName('pKicker')
         self.currentState = 'fallController' # initial state
 
-        self.brain.fallController.enabled = True 
+        self.brain.fallController.enabled = False
         self.roleSwitching = False
         self.role = brain.playerNumber
