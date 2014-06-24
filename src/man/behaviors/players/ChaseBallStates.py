@@ -14,6 +14,7 @@ import noggin_constants as nogginConstants
 import time
 
 DRIBBLE_ON_KICKOFF = False
+USE_MOTION_KICKS = False
 
 @superState('gameControllerResponder')
 @stay
@@ -23,14 +24,15 @@ def approachBall(player):
     if player.firstFrame():
         player.buffBoxFiltered = CountTransition(playOffTransitions.ballNotInBufferedBox,
                                                  0.8, 10)
-        player.brain.tracker.trackBall()
         player.inKickingState = False
+        player.motionKick = False
+        player.brain.tracker.trackBall()
         if player.shouldKickOff:
-            player.brain.nav.chaseBall(Navigator.QUICK_SPEED, fast = True)
+            player.brain.nav.chaseBall(Navigator.MEDIUM_SPEED, fast = True)
         elif player.penaltyKicking:
             return player.goNow('prepareForPenaltyKick')
         else:
-            player.brain.nav.chaseBall(fast = True)
+            player.brain.nav.chaseBall(Navigator.QUICK_SPEED, fast = True)
 
     if (transitions.shouldPrepareForKick(player) or
         player.brain.nav.isAtPosition()):
@@ -71,7 +73,11 @@ def prepareForKick(player):
         # Ball has moved away. Go get it!
         return player.goLater('chase')
 
-    player.kick = prepareForKick.decider.closeToGoal()
+    player.inKickingState = True
+    if USE_MOTION_KICKS:
+        player.kick = prepareForKick.decider.motionKicks()
+    else:
+        player.kick = prepareForKick.decider.normalKicks()
 
     if not player.shouldKickOff or DRIBBLE_ON_KICKOFF:
         if dr_trans.shouldDribble(player):
@@ -189,8 +195,7 @@ def positionForKick(player):
     if player.firstFrame():
         player.brain.tracker.lookStraightThenTrack()
         player.brain.nav.destinationWalkTo(positionForKick.kickPose,
-                                           Navigator.SLOW_SPEED,
-                                           True)
+                                           Navigator.GRADUAL_SPEED)
     elif player.brain.ball.vis.on: # don't update if we don't see the ball
         player.brain.nav.updateDestinationWalkDest(positionForKick.kickPose)
 
