@@ -51,7 +51,6 @@ def goToPosition(nav):
 
         MAX_TURN = .5
 
-        BOOK_IT_DISTANCE_THRESHOLD = 60
         BOOK_IT_TURN_THRESHOLD = 23
 
         if relDest.relH >= HEADING_ADAPT_CUTOFF:
@@ -81,25 +80,18 @@ def goToPosition(nav):
                                     DISTANCE_ADAPT_CUTOFF,
                                     goToPosition.speed)
 
-        if fabs(relDest.dist) > BOOK_IT_DISTANCE_THRESHOLD:
-            if fabs(relDest.relH) > BOOK_IT_TURN_THRESHOLD:
-                if relDest.relH > 0: velH = MAX_TURN
-                if relDest.relH < 0: velH = -MAX_TURN
-                velX = 0
-                velY = 0
-                goToPosition.bookingIt = False
-            else:
-                velY = 0
-                goToPosition.bookingIt = True
-        else:
+        if fabs(relDest.relH) > BOOK_IT_TURN_THRESHOLD:
+            if relDest.relH > 0: velH = MAX_TURN
+            if relDest.relH < 0: velH = -MAX_TURN
+            velX = 0
+            velY = 0
             goToPosition.bookingIt = False
+        else:
+            velY = 0
+            goToPosition.bookingIt = True
 
         goToPosition.speeds = (velX, velY, velH)
-
-        if ((goToPosition.speeds != goToPosition.lastSpeeds)
-            or not nav.brain.interface.motionStatus.walk_is_active):
-            helper.setSpeed(nav, goToPosition.speeds)
-        goToPosition.lastSpeeds = goToPosition.speeds
+        helper.setSpeed(nav, goToPosition.speeds)
 
     else:
         if goToPosition.adaptive:
@@ -194,13 +186,13 @@ def destinationWalkingTo(nav):
         dest = destinationWalkingTo.destQueue.popleft()
         helper.setDestination(nav, dest, 
                               destinationWalkingTo.speed, 
-                              destinationWalkingTo.pedantic)
+                              destinationWalkingTo.kick)
         destinationWalkingTo.enqueAZeroVector = True
         return nav.stay()
     elif destinationWalkingTo.enqueAZeroVector:
         helper.setDestination(nav, RelRobotLocation(0,0,0), 
                               destinationWalkingTo.speed, 
-                              destinationWalkingTo.pedantic)
+                              destinationWalkingTo.kick)
         destinationWalkingTo.enqueAZeroVector = False
 
     return nav.stay()
@@ -245,19 +237,6 @@ def walking(nav):
 walking.speeds = constants.ZERO_SPEEDS     # current walking speeds
 walking.lastSpeeds = constants.ZERO_SPEEDS # useful for knowing if speeds changed
 walking.transitions = {}
-
-# State to be called by walkAndKick in navigator.py
-def walkingAndKicking(nav):
-    """
-    State to be used for velocity walking AND motion kicking.
-    """
-
-    if ((walking.speeds != walking.lastSpeeds)
-        or not nav.brain.interface.motionStatus.walk_is_active):
-        helper.createAndSendMotionKickVector(nav, *walking.speeds)
-    walking.lastSpeeds = walking.speeds
-
-    return Transition.getNextState(nav, walking)
 
 ### Stopping States ###
 def stopped(nav):
