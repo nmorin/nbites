@@ -53,6 +53,13 @@ class SoccerPlayer(SoccerFSA.SoccerFSA):
 
             }
 
+        VisualGoalieStates.walkFromPenalty.transitions = {
+            Transition.CountTransition(GoalieTransitions.reachedMyDestination,
+                                       Transition.ALL_OF_THE_TIME,
+                                       Transition.INSTANT)
+            : VisualGoalieStates.spinAtGoal
+            }
+
         VisualGoalieStates.spinAtGoal.transitions = {
             Transition.CountTransition(GoalieTransitions.facingForward,
                                        Transition.SOME_OF_THE_TIME,

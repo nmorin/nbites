@@ -32,6 +32,20 @@ def walkToGoal(player):
     return Transition.getNextState(player, walkToGoal)
 
 @superState('gameControllerResponder')
+def walkFromPenalty(player):
+    if player.firstFrame():
+        player.brain.tracker.repeatBasicPan()
+        player.returningFromPenalty = False
+        player.brain.nav.goTo(Location(FIELD_WHITE_LEFT_SIDELINE_X,
+                                       CENTER_FIELD_Y),
+                              precision = nav.GENERAL_AREA,
+                              speed = nav.QUICK_SPEED,
+                              avoidObstacles = True,
+                              fast = True, pb = False)
+
+    return Transition.getNextState(player, walkFromPenalty)
+
+@superState('gameControllerResponder')
 def spinAtGoal(player):
     if player.firstFrame():
         spinAtGoal.home = RelRobotLocation(0, 0, 0)
