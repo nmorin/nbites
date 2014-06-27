@@ -38,7 +38,7 @@ def walkFromPenalty(player):
         player.returningFromPenalty = False
         player.brain.nav.goTo(Location(FIELD_WHITE_LEFT_SIDELINE_X,
                                        CENTER_FIELD_Y),
-                              precision = nav.GENERAL_AREA,
+                              precision = nav.PLAYBOOK,
                               speed = nav.QUICK_SPEED,
                               avoidObstacles = True,
                               fast = True, pb = False)
@@ -60,6 +60,22 @@ def spinAtGoal(player):
         player.brain.tracker.lookToAngle(0.0)
 
     return Transition.getNextState(player, spinAtGoal)
+
+@superState('gameControllerResponder')
+def reorient(player):
+    if player.firstFrame():
+        reorient.position = RelRobotLocation(0, 0, 20.0)
+        reorient.h = 0.0
+        player.brain.tracker.repeatBasicPan()
+
+    print "hello here!"
+    
+
+    player.brain.nav.goTo(reorient.position,
+                          nav.CLOSE_ENOUGH,
+                          nav.CAREFUL_SPEED)
+
+    return Transition.getNextState(player, reorient)
 
 @superState('gameControllerResponder')
 def backUpForDangerousBall(player):
