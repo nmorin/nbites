@@ -87,17 +87,17 @@ def spinAtGoal(player):
 @superState('gameControllerResponder')
 def reorient(player):
     if player.firstFrame():
-        reorient.position = RelRobotLocation(0.0, 0.0, 180.0)
-        reorient.h = 0.0
+        #reorient.position = RelRobotLocation(0.0, 0.0, 180.0)
+        #reorient.h = 0.0
         player.zeroHeads()
-        reorient.position.relH = 180.0
+        #reorient.position.relH = 180.0
 
     #player.brain.nav.goTo(reorient.position,
     #                      nav.CLOSE_ENOUGH,
     #                      nav.CAREFUL_SPEED)
     #player.brain.nav.updateDest(reorient.position)
 
-    player.setWalk(0, 0, 30.0)
+    player.setWalk(0, 0, 20.0)
 
     return Transition.getNextState(player, reorient)
 

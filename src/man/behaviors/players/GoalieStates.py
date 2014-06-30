@@ -75,7 +75,7 @@ def gamePlaying(player):
         player.inKickingState = False
         player.brain.fallController.enabled = True
         player.penaltyKicking = False
-        player.brain.nav.
+        player.brain.nav.stand()
 
     # Wait until the sensors are calibrated before moving.
     if (not player.brain.motion.calibrated):
@@ -83,7 +83,6 @@ def gamePlaying(player):
 
     if (player.lastDiffState == 'gamePenalized' and
         player.lastStateTime > 10):
-        print "Going to 'afterpenalty'"
         return player.goLater('afterPenalty')
 
     if player.lastDiffState == 'afterPenalty' or player.lastDiffState == 'determineRole':
@@ -91,7 +90,8 @@ def gamePlaying(player):
         return player.goLater('walkFromPenalty')
 
     if player.lastDiffState == 'fallen':
-        return player.goLater('spinAtGoal')
+        #return player.goLater('spinAtGoal')
+        return player.goLater('reorient')
 
     return player.goLater('watch')
 
