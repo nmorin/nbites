@@ -92,10 +92,12 @@ def reorient(player):
         player.zeroHeads()
         reorient.position.relH = 180.0
 
-    player.brain.nav.goTo(reorient.position,
-                          nav.CLOSE_ENOUGH,
-                          nav.CAREFUL_SPEED)
-    player.brain.nav.updateDest(reorient.position)
+    #player.brain.nav.goTo(reorient.position,
+    #                      nav.CLOSE_ENOUGH,
+    #                      nav.CAREFUL_SPEED)
+    #player.brain.nav.updateDest(reorient.position)
+
+    player.setWalk(0, 0, 30.0)
 
     return Transition.getNextState(player, reorient)
 
@@ -202,7 +204,7 @@ def returnToGoal(player):
         if fabs(correctedDest.relH) < 5:
             correctedDest.relH = 0.0
 
-        player.brain.nav.walkTo(correctedDest)
+        player.brain.nav.destinationWalkTo(correctedDest)
 
     return Transition.getNextState(player, returnToGoal)
 
