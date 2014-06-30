@@ -75,7 +75,7 @@ def gamePlaying(player):
         player.inKickingState = False
         player.brain.fallController.enabled = True
         player.penaltyKicking = False
-        player.brain.nav.stand()
+        player.brain.nav.
 
     # Wait until the sensors are calibrated before moving.
     if (not player.brain.motion.calibrated):
@@ -241,7 +241,7 @@ def fixMyself(player):
     if player.firstFrame():
         player.brain.tracker.trackBall()
         dest = correct(average(player.homeDirections))
-        player.brain.nav.walkTo(dest)
+        player.brain.nav.destinationWalkTo(dest)
 
     return Transition.getNextState(player, fixMyself)
 
@@ -249,7 +249,7 @@ def fixMyself(player):
 def moveForward(player):
     if player.firstFrame():
         player.brain.tracker.trackBall()
-        player.brain.nav.walkTo(RelRobotLocation(30, 0, 0))
+        player.brain.nav.destinationWalkTo(RelRobotLocation(30, 0, 0))
 
     return Transition.getNextState(player, moveForward)
 
@@ -257,7 +257,7 @@ def moveForward(player):
 def moveBackwards(player):
     if player.firstFrame():
         player.brain.tracker.trackBall()
-        player.brain.nav.walkTo(RelRobotLocation(-30, 0, 0))
+        player.brain.nav.destinationWalkTo(RelRobotLocation(-30, 0, 0))
 
     return Transition.getNextState(player, moveBackwards)
 

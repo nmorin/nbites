@@ -283,6 +283,13 @@ def getGoalLine(player):
                 return vision.bottom_line(i)
     return None
 
+def checkForPost(player):
+    vision = player.brain.interface.visionField
+    return vision.goal_post_l.visual_detection.on or vision.goal_post_r.visual_detection.on
+
+def betweenPosts(player):
+    vision = player.brain.interface.visionField
+
 def checkIfOnGoalLine(player):
     line = getGoalLine(player)
     if not line:
@@ -290,8 +297,7 @@ def checkIfOnGoalLine(player):
 
     dist = line.visual_detection.distance
 
-    if dist < 8.0:
-        print "FOUNDONE"
+    if dist < 5.0:
         return True
 
     return False
