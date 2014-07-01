@@ -242,7 +242,7 @@ def fixMyself(player):
     if player.firstFrame():
         player.brain.tracker.trackBall()
         dest = correct(average(player.homeDirections))
-        player.brain.nav.walkTo(dest)
+        player.brain.nav.walkTo(dest, nav.MEDIUM_SPEED)
 
     return Transition.getNextState(player, fixMyself)
 
@@ -250,7 +250,7 @@ def fixMyself(player):
 def moveForward(player):
     if player.firstFrame():
         player.brain.tracker.trackBall()
-        player.brain.nav.walkTo(RelRobotLocation(30, 0, 0))
+        player.brain.nav.walkTo(RelRobotLocation(30, 0, 0), nav.MEDIUM_SPEED)
 
     return Transition.getNextState(player, moveForward)
 
@@ -258,7 +258,7 @@ def moveForward(player):
 def moveBackwards(player):
     if player.firstFrame():
         player.brain.tracker.trackBall()
-        player.brain.nav.walkTo(RelRobotLocation(-30, 0, 0))
+        player.brain.nav.walkTo(RelRobotLocation(-30, 0, 0), nav.MEDIUM_SPEED)
 
     return Transition.getNextState(player, moveBackwards)
 
