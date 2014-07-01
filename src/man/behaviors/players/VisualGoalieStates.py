@@ -204,7 +204,8 @@ def returnToGoal(player):
         if fabs(correctedDest.relH) < 5:
             correctedDest.relH = 0.0
 
-        player.brain.nav.destinationWalkTo(correctedDest)
+
+        player.brain.nav.walkTo(correctedDest, nav.MEDIUM_SPEED)
 
     return Transition.getNextState(player, returnToGoal)
 
