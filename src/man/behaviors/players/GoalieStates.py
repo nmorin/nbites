@@ -8,7 +8,7 @@ from ..headTracker import HeadMoves
 import GoalieConstants as constants
 import math
 
-SAVING = True
+SAVING = False
 
 @superState('gameControllerResponder')
 def gameInitial(player):
@@ -178,6 +178,13 @@ def watchWithCornerChecks(player):
         player.brain.tracker.trackBall()
         player.brain.nav.stand()
         player.returningFromPenalty = False
+        watchWithCornerChecks.counter = 21
+
+    watchWithCornerChecks.counter += 1
+    if watchWithCornerChecks.counter > 20:
+        watchWithCornerChecks.x1 = player.ball.rel_x
+        watchWithCornerChecks.y1 = player.ball.rel_y
+        watchWithCornerChecks.counter = 0
 
     if player.counter > 200:
         return player.goLater('watch')
@@ -428,3 +435,23 @@ def squat(player):
         player.executeMove(SweetMoves.GOALIE_SQUAT)
 
     return player.stay()
+
+def predictBallPath(player):
+    if player.firstFrame():
+        predictBallPath.count = 0
+        predictBallPath.firstX = player.brain.ball.rel_x
+        predictBallPath.firstY = player.brain.ball.rel_y
+    predictBallPath.count += 1
+    ball = player.brain.ball
+
+    x = ball.rel_x
+    y = ball.rel_y
+
+    if ball.vis.frames_off > 10:
+        return -1
+
+    predictBallPath.m = (y - predictBallPath.firstY) / (x - predictBallPath.firstX)
+    predictBallPath.b = y - m * predictBallPath.x
+    dest = predictBallPath.b
+    print "Ball will intercept the y-axis at " + str(dest)
+    return dest

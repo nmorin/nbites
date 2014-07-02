@@ -356,9 +356,29 @@ def shouldSquat(player):
 
     return (ball.mov_vel_x < -4.0 and
             ball.mov_speed > 8.0 and
-            abs(ball.rel_y_intersect_dest) < 40.0 and
+            abs(ball.rel_y_intersect_dest) < 20.0 and
             ball.distance < 150.0 and
             sightOk)
+
+def predictBallPath(player):
+    if player.firstFrame():
+        predictBallPath.count = 0
+        predictBallPath.firstX = player.brain.ball.rel_x
+        predictBallPath.firstY = player.brain.ball.rel_y
+    predictBallPath.count += 1
+    ball = player.brain.ball
+
+    x = ball.rel_x
+    y = ball.rel_y
+
+    if ball.vis.frames_off > 10:
+        return -1
+
+    predictBallPath.m = (y - predictBallPath.firstY) / (x - predictBallPath.firstX)
+    predictBallPath.b = y - m * predictBallPath.x
+    dest = predictBallPath.b
+    print "Ball will intercept the y-axis at " + str(dest)
+    return dest
 
 def shouldClearDangerousBall(player):
     # ball must be visible
