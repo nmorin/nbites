@@ -180,11 +180,20 @@ def watchWithCornerChecks(player):
         player.returningFromPenalty = False
         watchWithCornerChecks.counter = 21
 
-    watchWithCornerChecks.counter += 1
     if watchWithCornerChecks.counter > 20:
-        watchWithCornerChecks.x1 = player.ball.rel_x
-        watchWithCornerChecks.y1 = player.ball.rel_y
+        watchWithCornerChecks.x1 = player.brain.ball.rel_x
+        watchWithCornerChecks.y1 = player.brain.ball.rel_y
         watchWithCornerChecks.counter = 0
+
+    if player.brain.ball.vis.on:
+        x = player.brain.ball.rel_x
+        y = player.brain.ball.rel_y
+        if x != watchWithCornerChecks.x1:
+            m = (y - watchWithCornerChecks.y1) / (x - watchWithCornerChecks.x1)
+            b = y - m * x
+            watchWithCornerChecks.counter += 1
+    if watchWithCornerChecks.counter % 5 == 0:
+        print "Ball will intercept the y-axis at " + str(b)
 
     if player.counter > 200:
         return player.goLater('watch')
@@ -213,6 +222,22 @@ def watch(player):
         player.brain.tracker.trackBall()
         player.brain.nav.stand()
         player.returningFromPenalty = False
+        watch.counter = 21
+
+    if watch.counter > 20:
+        watch.x1 = player.brain.ball.rel_x
+        watch.y1 = player.brain.ball.rel_y
+        watch.counter = 0
+
+    if player.brain.ball.vis.on:
+        x = player.brain.ball.rel_x
+        y = player.brain.ball.rel_y
+        if x != watch.x1:
+            m = (y - watch.y1) / (x - watch.x1)
+            b = y - m * x
+            watch.counter += 1
+            if watch.counter % 5 == 0:
+                print "Ball will intercept the y-axis at " + str(b)
 
     return Transition.getNextState(player, watch)
 
