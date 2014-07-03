@@ -236,6 +236,29 @@ def facingSideways(player):
     else:
         return False
 
+def notBetweenPosts(player):
+    vision = player.brain.interface.visionField
+
+    lgp = vision.goal_post_l
+    rgp = vision.goal_post_r
+
+def facingGoalPost(player):
+    vision = player.brain.interface.visionField
+    lgp = vision.goal_post_l
+    rgp = vision.goal_post_r
+    if not (lgp.visual_detection.on or rgp.visual_dection.on) and checkPosts.looking:
+        if checkPosts.lastLook = constants.RIGHT:
+            checkPosts.on[0] = False
+        elif checkPosts.lastLook = constants.LEFT:
+            checkPosts.on[1] = False
+        return False
+    else:
+        if checkPosts.lastLook = constants.RIGHT:
+            checkPosts.on[0] = True
+        elif checkPosts.lastLook = constants.LEFT:
+            checkPosts.on[1] = True
+        return True
+
 def facingBackwards(player):
     return player.brain.interface.visionField.visual_field_edge.distance_m < 110.0
 
