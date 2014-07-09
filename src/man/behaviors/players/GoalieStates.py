@@ -220,14 +220,15 @@ def watch(player):
             m = (y - watch.y1) / (x - watch.x1)
             b = y - m * x
             watch.counter += 1
-            if watch.counter % 5 == 0:
-                print ""
-                print "First x,y is : " + str(watch.x1) + "," + str(watch.y1)
-                print "Now x,y is : " + str(x) + "," + str(y)
-                print "M is: " + str(m)
-                print "My position is: " + str(player.brain.loc.x) + "," + str(player.brain.loc.y)
-                print "Ball will intercept the y-axis at " + str(b)
+            #if watch.counter % 5 == 0:
+            #    print ""
+            #    print "First x,y is : " + str(watch.x1) + "," + str(watch.y1)
+            #    print "Now x,y is : " + str(x) + "," + str(y)
+            #    print "M is: " + str(m)
+            #    print "My position is: " + str(player.brain.loc.x) + "," + str(player.brain.loc.y)
+            #    print "Ball will intercept the y-axis at " + str(b)
 
+    return player.goLater('spinAtPost')
     return Transition.getNextState(player, watch)
 
 def average(locations):
@@ -283,27 +284,66 @@ def moveBackwards(player):
 
     return Transition.getNextState(player, moveBackwards)
 
+#############################################################################################
+
 @superState('gameControllerResponder')
-def checkPosts(player):
+def checkLeftPost(player):
     if player.firstFrame():
-        checkPosts.lastLook = constants.RIGHT
-        player.brain.tracker.rightPan()
-        checkPosts.looking = True
+        player.brain.tracker.lookToAngle(constants.EXPECTED_LEFT_GOALPOST_BEARING)
 
-    if not player.brain.tracker.brain.motion.head_is_active:
-        checkPosts.looking = False
+    return Transition.getNextState(player, checkLeftPost)
 
-    if checkPosts.lastLook is constants.RIGHT and not checkPosts.looking:
-        player.brain.tracker.lookToAngle(EXPECTED_LEFT_GOALPOST_BEARING)
-        checkPosts.lastLook = constants.LEFT
-        checkPosts.looking = True
+@superState('gameControllerResponder')
+def checkRightPost(player):
+    if player.firstFrame():
+        player.brain.tracker.lookToAngle(constants.EXPECTED_RIGHT_GOALPOST_BEARING)
+    return Transition.getNextState(player, checkRightPost)
 
-    if checkPosts.lastLook is constants.LEFT and not checkPosts.looking:
-        player.brain.tracker.lookToAngle(EXPECTED_RIGHT_GOALPOST_BEARING)
-        checkPosts.lastLook = constants.RIGHT
-        checkPosts.looking = True
+@superState('gameControllerResponder')
+def faceStraight(player):
+    if player.firstFrame():
+        player.brain.tracker.lookToAngle(0.0)
+        faceStraight.counter = 0
+    faceStraight.counter += 1
 
-    return Transition.getNextState(player, checkPosts)
+    if not player.brain.tracker.brain.motion.head_is_active and faceStraight.counter > 20:
+        if player.lastDiffState == 'checkRightPost':
+            return player.goLater('checkLeftPost')
+        elif player.lastDiffState == 'checkLeftPost':
+            return player.goLater('checkRightPost')
+    return player.stay()
+
+@superState('gameControllerResponder')
+def spinAtPost(player):
+    if player.firstFrame():
+        player.brain.nav.stop()
+        spinAtPost.counter = 0
+        player.zeroHeads()
+        spinAtPost.post = 0
+        if player.lastDiffState == 'checkRightPost':
+            spinAtPost.post = constants.RIGHT
+            #player.brain.tracker.lookToAngle(constants.EXPECTED_RIGHT_GOALPOST_BEARING)
+        elif player.lastDiffState == 'checkLeftPost':
+            spinAtPost.post = constants.LEFT
+            #player.brain.tracker.lookToAngle(constants.EXPECTED_LEFT_GOALPOST_BEARING)
+        elif player.lastDiffState == 'approachPost':
+            if VisualStates.changePost.post == constants.RIGHT:
+                print "RIGHT!"
+                spinAtPost.post = constants.RIGHT
+            else:
+                print "left"
+                spinAtPost.post = constants.LEFT
+
+    spinAtPost.counter += 1
+    if spinAtPost.counter > 50:
+        if spinAtPost.post == constants.RIGHT:
+            player.setWalk(0, 0, 15.0)
+        else:
+            player.setWalk(0, 0, -15.0)
+    return Transition.getNextState(player, spinAtPost)
+
+#############################################################################################
+
 
 @superState('gameControllerResponder')
 def kickBall(player):
@@ -315,20 +355,19 @@ def kickBall(player):
         if player.lastDiffState == 'clearIt':
             VisualStates.returnToGoal.kickPose = \
                 RelRobotLocation(player.brain.interface.odometry.x,
-                                 player.brain.interface.odometry.y,
-                                 player.brain.interface.odometry.h)
+                                 0.0,
+                                 0.0)
         #otherwise add to previously saved odo
         else:
             VisualStates.returnToGoal.kickPose.relX += \
                 player.brain.interface.odometry.x
-            VisualStates.returnToGoal.kickPose.relY += \
-                player.brain.interface.odometry.y
-            VisualStates.returnToGoal.kickPose.relH += \
-                player.brain.interface.odometry.h
+            #VisualStates.returnToGoal.kickPose.relY += \
+            #    player.brain.interface.odometry.y
+            #VisualStates.returnToGoal.kickPose.relH += \
+            #    player.brain.interface.odometry.h
 
         player.brain.tracker.trackBall()
         player.brain.nav.stop()
-        print "IN KICKBALL"
     if player.counter is 20:
         player.executeMove(player.kick.sweetMove)
 
@@ -471,23 +510,3 @@ def squat(player):
         player.executeMove(SweetMoves.GOALIE_SQUAT)
 
     return player.stay()
-
-def predictBallPath(player):
-    if player.firstFrame():
-        predictBallPath.count = 0
-        predictBallPath.firstX = player.brain.ball.rel_x
-        predictBallPath.firstY = player.brain.ball.rel_y
-    predictBallPath.count += 1
-    ball = player.brain.ball
-
-    x = ball.rel_x
-    y = ball.rel_y
-
-    if ball.vis.frames_off > 10:
-        return -1
-
-    predictBallPath.m = (y - predictBallPath.firstY) / (x - predictBallPath.firstX)
-    predictBallPath.b = y - m * predictBallPath.x
-    dest = predictBallPath.b
-    print "Ball will intercept the y-axis at " + str(dest)
-    return dest

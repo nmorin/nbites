@@ -56,6 +56,51 @@ def getRightGoalboxCorner(player):
                     return vision.bottom_corner(i)
 
     return None
+#############################################################################################
+def getLeftGoalT(player):
+    vision = player.brain.interface.visionField
+
+    # check top corners first
+    for i in range(0, vision.visual_corner_size()):
+        for j in range(0, vision.visual_corner(i).poss_id_size()):
+            if (vision.visual_corner(i).poss_id(j) ==
+                vision.visual_corner(i).corner_id.BLUE_GOAL_LEFT_T):
+                if (vision.visual_corner(i).orientation > 0):
+                    return vision.visual_corner(i)
+
+    # also look in bottom camera
+    for i in range(0, vision.bottom_corner_size()):
+        for j in range(0, vision.bottom_corner(i).poss_id_size()):
+            if (vision.bottom_corner(i).poss_id(j) ==
+                vision.bottom_corner(i).corner_id.BLUE_GOAL_LEFT_T):
+                # HACK
+                if (vision.bottom_corner(i).orientation < 0):
+                    return vision.bottom_corner(i)
+
+    return None
+
+def getRightGoalT(player):
+    vision = player.brain.interface.visionField
+
+    # check top corners first
+    for i in range(0, vision.visual_corner_size()):
+        for j in range(0, vision.visual_corner(i).poss_id_size()):
+            if (vision.visual_corner(i).poss_id(j) ==
+                vision.visual_corner(i).corner_id.BLUE_GOAL_RIGHT_T):
+                if (vision.visual_corner(i).orientation > 0):
+                    return vision.visual_corner(i)
+
+    # also look in bottom camera
+    for i in range(0, vision.bottom_corner_size()):
+        for j in range(0, vision.bottom_corner(i).poss_id_size()):
+            if (vision.bottom_corner(i).poss_id(j) ==
+                vision.bottom_corner(i).corner_id.BLUE_GOAL_RIGHT_T):
+                # HACK
+                if (vision.bottom_corner(i).orientation < 0):
+                    return vision.bottom_corner(i)
+
+    return None
+#############################################################################################
 
 # Rel X of corner from robot
 def getCornerRelX(alpha, corner):
@@ -235,29 +280,175 @@ def facingSideways(player):
         return True
     else:
         return False
-
-def notBetweenPosts(player):
+#############################################################################################
+def seesPost(player, post):
     vision = player.brain.interface.visionField
-
-    lgp = vision.goal_post_l
-    rgp = vision.goal_post_r
-
-def facingGoalPost(player):
-    vision = player.brain.interface.visionField
-    lgp = vision.goal_post_l
-    rgp = vision.goal_post_r
-    if not (lgp.visual_detection.on or rgp.visual_dection.on) and checkPosts.looking:
-        if checkPosts.lastLook = constants.RIGHT:
-            checkPosts.on[0] = False
-        elif checkPosts.lastLook = constants.LEFT:
-            checkPosts.on[1] = False
-        return False
+    if post == constants.LEFT:
+        post = vision.goal_post_l
     else:
-        if checkPosts.lastLook = constants.RIGHT:
-            checkPosts.on[0] = True
-        elif checkPosts.lastLook = constants.LEFT:
-            checkPosts.on[1] = True
+        post = vision.goal_post_r
+
+    if post.width < 5.0:
+        return False
+
+    return (math.fabs(post.visual_detection.bearing) < 10.0)
+
+def centerUsingPosts(player):
+    vision = player.brain.interface.visionField
+    lgp = vision.goal_post_l
+    rgp = vision.goal_post_r
+
+    if (lgp.width > 5.0 and lgp.width != 0.0) and \
+            (rgp.width > 5.0 and rgp.width != 0.0):
+        # Can see both own goalposts
+        rdist = rgp.visual_detection.distance
+        ldist = lgp.visual_detection.distance
+        VisualGoalieStates.centerWithPosts.avg = (rdist + ldist) * .5
+
         return True
+    return False
+
+def positionPost(player):
+    vision = player.brain.interface.visionField
+    lgp = vision.goal_post_l
+    rgp = vision.goal_post_r
+    if not seesPost(player, constants.LEFT) and not seesPost(player, constants.RIGHT):
+        return False
+    if lgp.width != 0 and lgp.width > 5.0:
+        post = lgp
+    else:
+        post = rgp
+    if post.visual_detection.distance == 0.0:
+        return False
+    ltcorner = getLeftGoalT(player)
+    rtcorner = getRightGoalT(player)
+    corner = 0
+    if not ltcorner and not rtcorner:
+        return False
+    if not ltcorner:
+        print "RIGHT CORNER"
+        corner = rtcorner
+        VisualGoalieStates.positionWithPost.corner = constants.RIGHT
+    elif not rtcorner:
+        print "LEFT CORNER"
+        VisualGoalieStates.positionWithPost.corner = constants.LEFT
+        corner = ltcorner
+    if not corner:
+        return False
+    if player.lastDiffState == 'approachPost':
+        return False
+
+    VisualGoalieStates.positionWithPost.postDist = post.visual_detection.distance
+    print "corner dist = " + str(corner.visual_detection.distance)
+    print "Post dist = " + str(post.visual_detection.distance)
+    print "post bearing = " + str(post.visual_detection.bearing)
+    print "corner bearing = " + str(corner.visual_detection.bearing)
+
+    if corner.visual_detection.distance > post.visual_detection.distance:
+        print "POST IS CLOSER"
+        VisualGoalieStates.positionWithPost.tCornerCloserThanPost = False
+    else:
+        print "CORNER IS CLOSER"
+        VisualGoalieStates.positionWithPost.tCornerCloserThanPost = True
+    return True
+
+def postButNoT(player):
+    vision = player.brain.interface.visionField
+    lgp = vision.goal_post_l
+    rgp = vision.goal_post_r
+
+    if seesPost(player, constants.LEFT):
+        VisualGoalieStates.approachPost.post = constants.LEFT
+        print "sees the left post!" 
+        return True
+    elif seesPost(player, constants.RIGHT):
+        VisualGoalieStates.approachPost.post = constants.RIGHT
+        print "sees the right post!"
+        return True
+    else:
+        return False
+
+
+
+
+
+    if not seesPost(player, constants.LEFT) and not seesPost(player, constants.RIGHT):
+        return False
+    #if lgp.width != 0 and lgp.width > 5.0:
+    #    post = lgp
+    #    VisualGoalieStates.approachPost.post = constants.LEFT
+    #else:
+    #    post = rgp
+    #    VisualGoalieStates.approachPost.post = constants.RIGHT
+    #if post.visual_detection.distance == 0.0:
+    #    return False
+    if player.lastDiffState == 'approachPost':
+        return False
+
+    if math.fabs(lgp.visual_detection.bearing) > math.fabs(rgp.visual_detection.bearing)\
+            and rgp.visual_detection.bearing != 0.0:
+        VisualGoalieStates.approachPost.post = constants.RIGHT
+        print "RIGHT POST"
+        return True
+    elif math.fabs(lgp.visual_detection.bearing) < math.fabs(rgp.visual_detection.bearing)\
+            and lgp.visual_detection.bearing != 0.0:
+        VisualGoalieStates.approachPost.post = constants.LEFT
+        print "LEFT POST"
+        return True
+    return False
+
+#def shouldApproachPost(player):
+#    vision = player.brain.interface.visionField
+#    lgp = vision.goal_post_l
+#    rgp = vision.goal_post_r
+#    if seesPost(player):
+#        if lgp.visual_detection.distance > constants.MAX_POST_DIST or \
+#                rgp.visual_detection.distance > constants.MAX_POST_DIST:
+#            return True
+#    return False
+
+def prettyClose(player):
+    vision = player.brain.interface.visionField
+    lgp = vision.goal_post_l.visual_detection
+    rgp = vision.goal_post_r.visual_detection
+    maxDist = 45.0
+    if (lgp.distance != 0.0 and lgp.distance < maxDist) or \
+            (rgp.distance != 0.0 and rgp.distance < maxDist):
+        print "right dist = " + str(rgp.distance)
+        print "left dist = " + str(lgp.distance)
+        return True
+    return False
+
+def zeroBoth(player):
+    vision = player.brain.interface.visionField
+    lgp = vision.goal_post_l.visual_detection
+    rgp = vision.goal_post_r.visual_detection
+    if (lgp.distance == 0.0 and rgp.distance == 0.0):
+        print "ZERO BOTH"
+        return True
+    return False
+
+def changePost(player):
+    vision = player.brain.interface.visionField
+    lgp = vision.goal_post_l.visual_detection
+    rgp = vision.goal_post_r.visual_detection
+    if VisualGoalieStates.approachPost.counter < 200:
+        return False
+    if (VisualGoalieStates.approachPost.post == constants.LEFT and lgp.distance < 70.0\
+            and lgp.distance != 0.0) or (lgp.distance == 0.0):
+        VisualGoalieStates.changePost.post = constants.RIGHT
+        return True
+    elif VisualGoalieStates.approachPost.post == constants.RIGHT and rgp.distance < 70.0\
+            and rgp.distance != 0.0:
+        VisualGoalieStates.changePost.post = constants.LEFT
+        return True
+    return False
+
+def goToChangePost(player):
+    post = VisualGoalieStates.changePost.post
+    return player.lastDiffState == 'approachPost' and seesPost(player, post)
+
+#############################################################################################
 
 def facingBackwards(player):
     return player.brain.interface.visionField.visual_field_edge.distance_m < 110.0

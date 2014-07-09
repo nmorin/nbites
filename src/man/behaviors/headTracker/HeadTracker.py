@@ -160,6 +160,10 @@ class HeadTracker(FSA.FSA):
     def snapToCorner(self):
         self.switchTo('snapToCorner')
 
+    def trackPost(self, post):
+        TrackingStates.trackPost.post = post
+        self.switchTo('trackPost')
+
     def lookStraightThenTrack(self):
         """
         Look straight. Once the ball is seen, begin tracking it.

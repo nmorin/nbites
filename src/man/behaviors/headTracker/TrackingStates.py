@@ -233,3 +233,37 @@ def afterKickScan(tracker):
         tracker.performHeadMove(constants.KICK_DICT[tracker.kickName])
 
     return tracker.stay()
+
+def trackPost(tracker):
+    if tracker.firstFrame():
+        trackPost.counter = 0
+    if not tracker.brain.motion.head_is_active:
+        trackPost.counter += 1
+    vision = tracker.brain.interface.visionField
+    if trackPost.post == 1:
+        post = vision.goal_post_l.visual_detection
+    else:
+        post = vision.goal_post_r.visual_detection
+
+    if not tracker.brain.motion.head_is_active:
+        tracker.helper.executeHeadMove(tracker.helper.lookToAngle(post.bearing))
+    return tracker.stay()
+
+
+"""
+    if rgp.distance > lgp.distance:
+        post = rgp
+    else:
+        post = lgp
+    if rgp.bearing == 0.0 and lgp.bearing != 0.0:
+        post = lgp
+    elif rgp.bearing != 0.0 and lgp.bearing == 0.0:
+        post = rgp
+
+    if post.bearing != 0.0:
+        look = True
+    else:
+        look = False
+    if look:
+        tracker.helper.executeHeadMove(tracker.helper.lookToAngle(post.bearing))
+"""
