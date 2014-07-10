@@ -288,10 +288,10 @@ def seesPost(player, post):
     else:
         post = vision.goal_post_r
 
-    if post.width < 5.0:
+    if post.width < 8.0:
         return False
 
-    return (math.fabs(post.visual_detection.bearing) < 10.0)
+    return (math.fabs(post.visual_detection.bearing_deg) < 15.0)
 
 def centerUsingPosts(player):
     vision = player.brain.interface.visionField
@@ -354,15 +354,20 @@ def positionPost(player):
 
 def postButNoT(player):
     vision = player.brain.interface.visionField
-    lgp = vision.goal_post_l
-    rgp = vision.goal_post_r
+    lgp = vision.goal_post_l.visual_detection
+    rgp = vision.goal_post_r.visual_detection
+    if player.lastDiffState == 'approachPost':
+        return False
 
     if seesPost(player, constants.LEFT):
         VisualGoalieStates.approachPost.post = constants.LEFT
-        print "sees the left post!" 
+        VisualGoalieStates.approachPost.firstDist = lgp.distance
+        print "sees the left post!"
         return True
     elif seesPost(player, constants.RIGHT):
         VisualGoalieStates.approachPost.post = constants.RIGHT
+        VisualGoalieStates.approachPost.firstDist = rgp.distance
+
         print "sees the right post!"
         return True
     else:
@@ -370,32 +375,6 @@ def postButNoT(player):
 
 
 
-
-
-    if not seesPost(player, constants.LEFT) and not seesPost(player, constants.RIGHT):
-        return False
-    #if lgp.width != 0 and lgp.width > 5.0:
-    #    post = lgp
-    #    VisualGoalieStates.approachPost.post = constants.LEFT
-    #else:
-    #    post = rgp
-    #    VisualGoalieStates.approachPost.post = constants.RIGHT
-    #if post.visual_detection.distance == 0.0:
-    #    return False
-    if player.lastDiffState == 'approachPost':
-        return False
-
-    if math.fabs(lgp.visual_detection.bearing) > math.fabs(rgp.visual_detection.bearing)\
-            and rgp.visual_detection.bearing != 0.0:
-        VisualGoalieStates.approachPost.post = constants.RIGHT
-        print "RIGHT POST"
-        return True
-    elif math.fabs(lgp.visual_detection.bearing) < math.fabs(rgp.visual_detection.bearing)\
-            and lgp.visual_detection.bearing != 0.0:
-        VisualGoalieStates.approachPost.post = constants.LEFT
-        print "LEFT POST"
-        return True
-    return False
 
 #def shouldApproachPost(player):
 #    vision = player.brain.interface.visionField
@@ -432,10 +411,21 @@ def changePost(player):
     vision = player.brain.interface.visionField
     lgp = vision.goal_post_l.visual_detection
     rgp = vision.goal_post_r.visual_detection
-    if VisualGoalieStates.approachPost.counter < 200:
+    if VisualGoalieStates.approachPost.counter < 60:
         return False
-    if (VisualGoalieStates.approachPost.post == constants.LEFT and lgp.distance < 70.0\
-            and lgp.distance != 0.0) or (lgp.distance == 0.0):
+
+    if VisualGoalieStates.approachPost.dest.relX < 0.0:
+        if lgp.bearing != 0.0:
+            GoalieStates.approachPost.lastPostDist = lgp.distance
+        else:
+            GoalieStates.approachPost.lastPostDist = rgp.distance
+        print "Went halfway! Switching"
+        return True
+    else:
+        return False
+
+    if (VisualGoalieStates.approachPost.post == constants.LEFT and lgp.distance < 80.0\
+            and lgp.distance != 0.0):
         VisualGoalieStates.changePost.post = constants.RIGHT
         return True
     elif VisualGoalieStates.approachPost.post == constants.RIGHT and rgp.distance < 70.0\
@@ -446,7 +436,32 @@ def changePost(player):
 
 def goToChangePost(player):
     post = VisualGoalieStates.changePost.post
-    return player.lastDiffState == 'approachPost' and seesPost(player, post)
+    rgp = player.brain.interface.visionField.goal_post_r.visual_detection
+    lgp = player.brain.interface.visionField.goal_post_l.visual_detection
+    print "left dist = " + str(lgp.distance)
+    print "right dist = " + str(rgp.distance)
+    maxdist = VisualGoalieStates.approachPost.lastPostDist + 15.0
+    #if post == constants.RIGHT:
+    #    postMessage = player.brain.interface.visionField.goal_post_r.visual_detection
+    #else:
+    #    postMessage = player.brain.interface.visionField.goal_post_l.visual_detection
+    return player.lastDiffState == 'approachPost' and (seesPost(player, constants.RIGHT) or seesPost(player, constants.LEFT)) and GoalieStates.spinAtPost.counter > 40 and (rgp.distance > maxdist or lgp.distance > maxdist)
+
+def endChangePost(player):
+    vision = player.brain.interface.visionField
+    rgp = player.brain.interface.visionField.goal_post_r.visual_detection
+    lgp = player.brain.interface.visionField.goal_post_l.visual_detection
+    #post = VisualGoalieStates.changePost.post
+    #if post == constants.RIGHT:
+    #    post = vision.goal_post_r.visual_detection
+    #else:
+    #    post = vision.goal_post_l.visual_detection
+    if lgp.distance < constants.CENTER_TO_POST and lgp.distance != 0.0:
+        return True
+    elif rgp.distance < constants.CENTER_TO_POST and rgp.distance != 0.0:
+        return True
+    else:
+        return False
 
 #############################################################################################
 

@@ -246,7 +246,7 @@ def trackPost(tracker):
         post = vision.goal_post_r.visual_detection
 
     if not tracker.brain.motion.head_is_active:
-        tracker.helper.executeHeadMove(tracker.helper.lookToAngle(post.bearing))
+        tracker.helper.executeHeadMove(tracker.helper.lookToAngle(post.bearing_deg))
     return tracker.stay()
 
 

@@ -285,7 +285,7 @@ def moveBackwards(player):
     return Transition.getNextState(player, moveBackwards)
 
 #############################################################################################
-
+"""
 @superState('gameControllerResponder')
 def checkLeftPost(player):
     if player.firstFrame():
@@ -312,7 +312,7 @@ def faceStraight(player):
         elif player.lastDiffState == 'checkLeftPost':
             return player.goLater('checkRightPost')
     return player.stay()
-
+"""
 @superState('gameControllerResponder')
 def spinAtPost(player):
     if player.firstFrame():
@@ -328,18 +328,22 @@ def spinAtPost(player):
             #player.brain.tracker.lookToAngle(constants.EXPECTED_LEFT_GOALPOST_BEARING)
         elif player.lastDiffState == 'approachPost':
             if VisualStates.changePost.post == constants.RIGHT:
-                print "RIGHT!"
                 spinAtPost.post = constants.RIGHT
             else:
-                print "left"
                 spinAtPost.post = constants.LEFT
 
     spinAtPost.counter += 1
-    if spinAtPost.counter > 50:
+    if spinAtPost.counter > 30:
         if spinAtPost.post == constants.RIGHT:
             player.setWalk(0, 0, 15.0)
         else:
             player.setWalk(0, 0, -15.0)
+
+    if spinAtPost.counter > 300:
+        if player.lastDiffState == 'approachPost':
+            player.setWalk(10.0, 0, 0)
+
+
     return Transition.getNextState(player, spinAtPost)
 
 #############################################################################################
