@@ -107,7 +107,7 @@ class SoccerPlayer(SoccerFSA.SoccerFSA):
             #: VisualGoalieStates.centerWithPosts,
             Transition.CountTransition(GoalieTransitions.goToChangePost,
                                        Transition.MOST_OF_THE_TIME,
-                                       Transition.OK_PRECISION)
+                                       Transition.LOW_PRECISION)
             : VisualGoalieStates.changePost,
 
             #Transition.CountTransition(GoalieTransitions.positionPost,

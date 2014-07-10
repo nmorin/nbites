@@ -34,6 +34,7 @@ def walkToGoal(player):
 @superState('gameControllerResponder')
 def spinAtGoal(player):
     if player.firstFrame():
+        player.brain.nav.stop()
         #spinAtGoal.home = RelRobotLocation(0, 0, 0)
         ## Decide which way to rotate based on the way we came from
         #if player.side == RIGHT:
@@ -44,7 +45,8 @@ def spinAtGoal(player):
         #                      nav.CLOSE_ENOUGH, nav.CAREFUL_SPEED)
 
         player.brain.tracker.lookToAngle(0.0)
-    player.setWalk(0, 0, 20.0)
+    if player.brain.nav.isStopped():
+        player.setWalk(0, 0, 20.0)
 
     return Transition.getNextState(player, spinAtGoal)
 
@@ -294,20 +296,29 @@ def changePost(player):
         post = lgp
     else:
         post = rgp
-
+    if post.bearing_deg < 0:
+        y = -10.0
+    else:
+        y = 5.0
+    y = 0.0
     x = post.distance
-    if player.firstFrame:
+    if player.firstFrame():
+        changePost.counter = 0
         changePost.firstx = x
-        print "post dist at first is: " = str(x)
+        print "post dist at first is: " + str(x)
         player.brain.tracker.trackPost(changePost.post)
-        dest = RelRobotLocation(x, y, 0.0)
-        player.brain.nav.goTo(dest, nav.CLOSE_ENOUGH, nav.MEDIUM_SPEED)
+        changePost.dest = RelRobotLocation(x, y, 0.0)
+        player.brain.nav.goTo(changePost.dest, nav.CLOSE_ENOUGH, nav.MEDIUM_SPEED)
+    changePost.counter += 1
 
     if post.distance != 0.0:
-        dest.relX = changePost.firstx - post.distance
+        changePost.dest.relX = post.distance
+        changePost.dest.relH = post.bearing_deg
+        #changePost.dest
     #dest.relY = y
     return Transition.getNextState(player, changePost)
 changePost.post = 0
+changePost.newPost = -1
 
 @superState('gameControllerResponder')
 def approachPost(player):
@@ -316,30 +327,33 @@ def approachPost(player):
     rgp = vision.goal_post_r.visual_detection
 
     if lgp.bearing != 0.0:
-        post = lgp
+        approachPost.targetpost = lgp
+        changePost.newPost = LEFT
     else:
-        post = rgp
+        changePost.newPost = RIGHT
+        approachPost.targetpost = rgp
+    y = 0.0
 
     if player.firstFrame():
         player.stand()
-        player.brain.tracker.trackPost(approachPost.post)
-        approachPost.dist = approachPost.firstDist * .5
-        approachPost.dest = RelRobotLocation(approachPost.dist,
+        approachPost.counter = 0
+        player.brain.tracker.trackPost(approachPost.targetpost)
+        approachPost.dist = approachPost.firstDist * .5 + 10.0
+        approachPost.dest = RelRobotLocation(approachPost.targetpost.distance,
                                 y,
-                                post.bearing_deg)
+                                approachPost.targetpost.bearing_deg)
         player.brain.nav.goTo(approachPost.dest,
                               nav.CLOSE_ENOUGH,
-                              nav.MEDIUM_SPEED)
-    if post.distance != 0.0:
-        approachPost.dest.relX = post.distance - approachPost.dist
-    if post.bearing != 0.0:
-        approachPost.dest.relH = post.bearing_deg
+                              nav.BRISK_SPEED)
+    if approachPost.targetpost.distance != 0.0:
+        approachPost.dest.relX = approachPost.targetpost.distance
+        approachPost.dest.relH = approachPost.targetpost.bearing_deg
     approachPost.dest.relY = y
     approachPost.counter += 1
     #print "post dist = " + str(post.distance)
     #print "y = " + str(y)
     if approachPost.counter % 10 == 0:
-        print "distance = " + str(post.distance)
+        print "distance = " + str(approachPost.targetpost.distance)
 
     return Transition.getNextState(player, approachPost)
 approachPost.lastPostDist = -1.0
