@@ -300,13 +300,13 @@ def spinAtPost(player):
 
     spinAtPost.counter += 1
     if spinAtPost.counter > 25:
-        #if spinAtPost.post == constants.RIGHT:
-        #    player.setWalk(0, 0, -20.0)
-        #else:
-        player.setWalk(0, 0, -20.0)
+        if spinAtPost.post == constants.RIGHT:
+            player.setWalk(0, 0, 20.0)
+        else:
+            player.setWalk(0, 0, 20.0)
 
 
-    if spinAtPost.counter > 250:
+    if spinAtPost.counter > 300:
         return player.goLater('spinAtGoal')
 
     return Transition.getNextState(player, spinAtPost)

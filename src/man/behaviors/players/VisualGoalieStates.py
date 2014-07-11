@@ -35,6 +35,7 @@ def walkToGoal(player):
 def spinAtGoal(player):
     if player.firstFrame():
         player.brain.nav.stop()
+        spinAtGoal.counter = 0
         #spinAtGoal.home = RelRobotLocation(0, 0, 0)
         ## Decide which way to rotate based on the way we came from
         #if player.side == RIGHT:
@@ -45,6 +46,9 @@ def spinAtGoal(player):
         #                      nav.CLOSE_ENOUGH, nav.CAREFUL_SPEED)
 
         player.brain.tracker.lookToAngle(0.0)
+    spinAtGoal.counter += 1
+    if spinAtGoal.counter > 200:
+            return player.goLater('watchWithCornerChecks')
     if player.brain.nav.isStopped():
         player.setWalk(0, 0, 20.0)
 
@@ -241,7 +245,7 @@ def changePost(player):
 
 @superState('gameControllerResponder')
 def approachPost(player):
-
+    y = 0.0
     rgp = player.brain.interface.visionField.goal_post_r.visual_detection
     lgp = player.brain.interface.visionField.goal_post_l.visual_detection
     if lgp.bearing != 0.0:
@@ -250,8 +254,8 @@ def approachPost(player):
     else:
         approachPost.post = RIGHT
         approachPost.targetpost = rgp
-
-    y = 0.0
+        if approachPost.targetpost.distance < 120:
+                y = -10.0
 
     if player.firstFrame():
         player.stand()
@@ -268,8 +272,8 @@ def approachPost(player):
         approachPost.dest.relH = approachPost.targetpost.bearing_deg
     approachPost.dest.relY = y
     approachPost.counter += 1
-    if approachPost.counter % 10 == 0:
-        print "distance = " + str(approachPost.targetpost.distance)
+    # if approachPost.counter % 10 == 0:
+        # print "distance = " + str(approachPost.targetpost.distance)
 
     return Transition.getNextState(player, approachPost)
 approachPost.lastPostDist = -1.0
