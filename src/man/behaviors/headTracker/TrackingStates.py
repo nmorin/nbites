@@ -248,22 +248,3 @@ def trackPost(tracker):
     if not tracker.brain.motion.head_is_active:
         tracker.helper.executeHeadMove(tracker.helper.lookToAngle(post.bearing_deg))
     return tracker.stay()
-
-
-"""
-    if rgp.distance > lgp.distance:
-        post = rgp
-    else:
-        post = lgp
-    if rgp.bearing == 0.0 and lgp.bearing != 0.0:
-        post = lgp
-    elif rgp.bearing != 0.0 and lgp.bearing == 0.0:
-        post = rgp
-
-    if post.bearing != 0.0:
-        look = True
-    else:
-        look = False
-    if look:
-        tracker.helper.executeHeadMove(tracker.helper.lookToAngle(post.bearing))
-"""

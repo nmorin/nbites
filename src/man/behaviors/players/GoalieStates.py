@@ -285,34 +285,6 @@ def moveBackwards(player):
     return Transition.getNextState(player, moveBackwards)
 
 #############################################################################################
-"""
-@superState('gameControllerResponder')
-def checkLeftPost(player):
-    if player.firstFrame():
-        player.brain.tracker.lookToAngle(constants.EXPECTED_LEFT_GOALPOST_BEARING)
-
-    return Transition.getNextState(player, checkLeftPost)
-
-@superState('gameControllerResponder')
-def checkRightPost(player):
-    if player.firstFrame():
-        player.brain.tracker.lookToAngle(constants.EXPECTED_RIGHT_GOALPOST_BEARING)
-    return Transition.getNextState(player, checkRightPost)
-
-@superState('gameControllerResponder')
-def faceStraight(player):
-    if player.firstFrame():
-        player.brain.tracker.lookToAngle(0.0)
-        faceStraight.counter = 0
-    faceStraight.counter += 1
-
-    if not player.brain.tracker.brain.motion.head_is_active and faceStraight.counter > 20:
-        if player.lastDiffState == 'checkRightPost':
-            return player.goLater('checkLeftPost')
-        elif player.lastDiffState == 'checkLeftPost':
-            return player.goLater('checkRightPost')
-    return player.stay()
-"""
 @superState('gameControllerResponder')
 def spinAtPost(player):
     if player.firstFrame():
@@ -320,28 +292,22 @@ def spinAtPost(player):
         spinAtPost.counter = 0
         player.zeroHeads()
         spinAtPost.post = 0
-        if player.lastDiffState == 'checkRightPost':
-            spinAtPost.post = constants.RIGHT
-            #player.brain.tracker.lookToAngle(constants.EXPECTED_RIGHT_GOALPOST_BEARING)
-        elif player.lastDiffState == 'checkLeftPost':
-            spinAtPost.post = constants.LEFT
-            #player.brain.tracker.lookToAngle(constants.EXPECTED_LEFT_GOALPOST_BEARING)
-        elif player.lastDiffState == 'approachPost':
-            if VisualStates.changePost.post == constants.RIGHT:
-                spinAtPost.post = constants.RIGHT
-            else:
+        if player.lastDiffState == 'approachPost':
+            if VisualStates.approachPost.post == constants.RIGHT:
                 spinAtPost.post = constants.LEFT
+            else:
+                spinAtPost.post = constants.RIGHT
 
     spinAtPost.counter += 1
-    if spinAtPost.counter > 30:
-        if spinAtPost.post == constants.RIGHT:
-            player.setWalk(0, 0, 20.0)
-        else:
-            player.setWalk(0, 0, -20.0)
+    if spinAtPost.counter > 25:
+        #if spinAtPost.post == constants.RIGHT:
+        #    player.setWalk(0, 0, -20.0)
+        #else:
+        player.setWalk(0, 0, -20.0)
+
 
     if spinAtPost.counter > 250:
         return player.goLater('spinAtGoal')
-
 
     return Transition.getNextState(player, spinAtPost)
 

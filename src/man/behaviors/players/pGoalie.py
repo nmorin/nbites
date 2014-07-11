@@ -79,86 +79,23 @@ class SoccerPlayer(SoccerFSA.SoccerFSA):
             : PenaltyStates.afterPenalty
             }
 ######################################################################################################
-        """GoalieStates.checkLeftPost.transitions = {
-            Transition.CountTransition(GoalieTransitions.seesPost,
-                                       Transition.ALL_OF_THE_TIME,
-                                       Transition.INSTANT)
-            : GoalieStates.faceStraight,
-            Transition.CountTransition(GoalieTransitions.noPost,
-                                        Transition.MOST_OF_THE_TIME,
-                                        Transition.OK_PRECISION)
-            : GoalieStates.spinAtPost
-            }
-
-        GoalieStates.checkRightPost.transitions = {
-            Transition.CountTransition(GoalieTransitions.seesPost,
-                                       Transition.MOST_OF_THE_TIME,
-                                       Transition.OK_PRECISION)
-            : GoalieStates.watch,
-            Transition.CountTransition(GoalieTransitions.noPost,
-                                        Transition.MOST_OF_THE_TIME,
-                                        Transition.OK_PRECISION)
-            : GoalieStates.spinAtPost
-            }"""
         GoalieStates.spinAtPost.transitions = {
-            #Transition.CountTransition(GoalieTransitions.centerUsingPosts,
-            #                           Transition.ALL_OF_THE_TIME,
-            #                           Transition.INSTANT)
-            #: VisualGoalieStates.centerWithPosts,
             Transition.CountTransition(GoalieTransitions.goToChangePost,
                                        Transition.MOST_OF_THE_TIME,
                                        Transition.LOW_PRECISION)
             : VisualGoalieStates.changePost,
 
-            #Transition.CountTransition(GoalieTransitions.positionPost,
-            #                           Transition.ALL_OF_THE_TIME,
-            #                           Transition.INSTANT)
-            #: VisualGoalieStates.positionWithPost,
-
-            Transition.CountTransition(GoalieTransitions.postButNoT,
+            Transition.CountTransition(GoalieTransitions.approachPost,
                                        Transition.ALL_OF_THE_TIME,
                                        Transition.INSTANT)
             : VisualGoalieStates.approachPost
             }
         VisualGoalieStates.approachPost.transitions = {
-            #Transition.CountTransition(GoalieTransitions.centerUsingPosts,
-            #                           Transition.ALL_OF_THE_TIME,
-            #                           Transition.INSTANT)
-            #: VisualGoalieStates.centerWithPosts,
-            #Transition.CountTransition(GoalieTransitions.positionPost,
-            #                           Transition.ALL_OF_THE_TIME,
-            #                           Transition.INSTANT)
-            #: VisualGoalieStates.positionWithPost,
             Transition.CountTransition(GoalieTransitions.changePost,
                                        Transition.MOST_OF_THE_TIME,
                                        Transition.OK_PRECISION)
             : GoalieStates.spinAtPost
             }
-        VisualGoalieStates.positionWithPost.transitions = {
-            #Transition.CountTransition(GoalieTransitions.centerUsingPosts,
-            #                           Transition.ALL_OF_THE_TIME,
-            #                           Transition.INSTANT)
-            #: VisualGoalieStates.centerWithPosts,
-            Transition.CountTransition(GoalieTransitions.prettyClose,
-                                       Transition.MOST_OF_THE_TIME,
-                                       Transition.OK_PRECISION)
-            : VisualGoalieStates.spinAtGoal,
-            Transition.CountTransition(GoalieTransitions.zeroBoth,
-                                       Transition.MOST_OF_THE_TIME,
-                                       Transition.HIGH_PRECISION)
-            : VisualGoalieStates.spinAtGoal,
-            Transition.CountTransition(GoalieTransitions.reachedMyDestination,
-                                       Transition.MOST_OF_THE_TIME,
-                                       Transition.OK_PRECISION)
-            : VisualGoalieStates.spinAtGoal
-            }
-        VisualGoalieStates.centerWithPosts.transitions = {
-            Transition.CountTransition(GoalieTransitions.reachedMyDestination,
-                                       Transition.MOST_OF_THE_TIME,
-                                       Transition.OK_PRECISION)
-            : GoalieStates.watch
-            }
-
         VisualGoalieStates.changePost.transitions = {
             Transition.CountTransition(GoalieTransitions.endChangePost,
                                        Transition.MOST_OF_THE_TIME,
