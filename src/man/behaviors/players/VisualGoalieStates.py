@@ -254,16 +254,21 @@ def approachPost(player):
     else:
         approachPost.post = RIGHT
         approachPost.targetpost = rgp
-        # if approachPost.targetpost.distance < 120:
-        #         y = -10.0
+        if approachPost.targetpost.distance < 120:
+             y = -20.0
 
     if player.firstFrame():
         player.stand()
         approachPost.counter = 0
-        player.brain.tracker.trackPost(approachPost.post)
+        player.zeroHeads()
+        # player.brain.tracker.trackPost(approachPost.post)
         approachPost.dest = RelRobotLocation(approachPost.targetpost.distance, y,
                                 approachPost.targetpost.bearing_deg)
-        player.brain.nav.goTo(approachPost.dest, nav.CLOSE_ENOUGH, nav.BRISK_SPEED)
+        if player.post % 2 == 0:
+            speed = nav.MEDIUM_SPEED
+        else:
+            speed = nav.BRISK_SPEED
+        player.brain.nav.goTo(approachPost.dest, nav.CLOSE_ENOUGH, speed)
 
     if approachPost.targetpost.distance != 0.0:
         approachPost.dest.relX = approachPost.targetpost.distance

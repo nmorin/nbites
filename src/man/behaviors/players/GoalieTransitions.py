@@ -288,7 +288,7 @@ def seesPost(player, post):
     else:
         post = vision.goal_post_r
 
-    if post.width < 8.0:
+    if post.width < 6.0:
         return False
 
     return (math.fabs(post.visual_detection.bearing_deg) < 15.0 \
@@ -329,9 +329,9 @@ def changePost(player):
         return False
 
     check = VisualGoalieStates.approachPost.targetpost.distance -\
-        (VisualGoalieStates.approachPost.firstDist * .5 + 20.0)
+        (VisualGoalieStates.approachPost.firstDist * .5)
 
-    if check < 0.0 or VisualGoalieStates.approachPost.targetpost.distance < 85.0:
+    if check < 0.0 or VisualGoalieStates.approachPost.targetpost.distance < 95.0:
         VisualGoalieStates.approachPost.lastPostDist = VisualGoalieStates.approachPost.targetpost.distance
         print "Went halfway! Switching"
         print "Check = " + str(check)
@@ -342,17 +342,27 @@ def changePost(player):
 # returns to approachPost but with different target
 def goToChangePost(player):
     if player.post % 2 != 0:
-            return False
+        return False
+    maxdist = VisualGoalieStates.approachPost.lastPostDist + 15.0
     rgp = player.brain.interface.visionField.goal_post_r.visual_detection
     lgp = player.brain.interface.visionField.goal_post_l.visual_detection
-    maxdist = VisualGoalieStates.approachPost.lastPostDist + 15.0
+    if rgp.distance != 0.0:
+            goToChangePost.rdist = rgp.distance
+    if lgp.distance != 0.0:
+            goToChangePost.ldist = lgp.distance
+    if (goToChangePost.ldist != 0.0 and goToChangePost.rdist != 0.0) \
+        and (math.fabs(goToChangePost.ldist - constants.CENTER_TO_POST) < 30 \
+        and math.fabs(goToChangePost.rdist - constants.CENTER_TO_POST) < 30):
+        return True
     return player.lastDiffState == 'approachPost'\
         and (seesPost(player, constants.RIGHT) or seesPost(player, constants.LEFT))\
         and GoalieStates.spinAtPost.counter > 26\
         and (rgp.distance > maxdist or lgp.distance > maxdist)
+goToChangePost.rdist = 0
+goToChangePost.ldist = 0
 
 def endChangePost(player):
-    if player.post % 2 != 0:
+    if player.post % 2 != 0 or VisualGoalieStates.approachPost.counter < 60:
         return False
     vision = player.brain.interface.visionField
     rgp = player.brain.interface.visionField.goal_post_r.visual_detection
@@ -361,8 +371,6 @@ def endChangePost(player):
     maxdist = constants.CENTER_TO_POST - 10.0
     if lgp.distance == 0.0 and rgp.distance == 0.0 and VisualGoalieStates.approachPost.counter >200:
         return True
-    elif lgp.distance != 0.0 and rgp.distance != 0.0:
-        return False
     elif (lgp.distance < maxdist and lgp.distance != 0.0) \
         or (rgp.distance < maxdist and rgp.distance != 0.0):
         return True
