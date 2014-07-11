@@ -248,25 +248,23 @@ def approachPost(player):
     y = 0.0
     rgp = player.brain.interface.visionField.goal_post_r.visual_detection
     lgp = player.brain.interface.visionField.goal_post_l.visual_detection
-    if lgp.bearing != 0.0:
+    if lgp.bearing != 0.0 and lgp.distance > rgp.distance:
         approachPost.post = LEFT
         approachPost.targetpost = lgp
     else:
         approachPost.post = RIGHT
         approachPost.targetpost = rgp
-        if approachPost.targetpost.distance < 120:
-                y = -10.0
+        # if approachPost.targetpost.distance < 120:
+        #         y = -10.0
 
     if player.firstFrame():
         player.stand()
         approachPost.counter = 0
-        player.brain.tracker.trackPost(approachPost.targetpost)
-        approachPost.dest = RelRobotLocation(approachPost.targetpost.distance,
-                                y,
+        player.brain.tracker.trackPost(approachPost.post)
+        approachPost.dest = RelRobotLocation(approachPost.targetpost.distance, y,
                                 approachPost.targetpost.bearing_deg)
-        player.brain.nav.goTo(approachPost.dest,
-                              nav.CLOSE_ENOUGH,
-                              nav.BRISK_SPEED)
+        player.brain.nav.goTo(approachPost.dest, nav.CLOSE_ENOUGH, nav.BRISK_SPEED)
+
     if approachPost.targetpost.distance != 0.0:
         approachPost.dest.relX = approachPost.targetpost.distance
         approachPost.dest.relH = approachPost.targetpost.bearing_deg

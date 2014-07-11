@@ -38,7 +38,7 @@ class SoccerPlayer(SoccerFSA.SoccerFSA):
         self.brain.fallController.enabled = True
         self.roleSwitching = False
         self.penalized = False
-        self.post = RIGHT
+        self.post = 0
 
         ### ALL TRANSITIONS ARE DEFINED HERE ############
         ### Their conditions are in GoalieTransitions ###
@@ -83,7 +83,7 @@ class SoccerPlayer(SoccerFSA.SoccerFSA):
             Transition.CountTransition(GoalieTransitions.goToChangePost,
                                        Transition.MOST_OF_THE_TIME,
                                        Transition.LOW_PRECISION)
-            : VisualGoalieStates.changePost,
+            : VisualGoalieStates.approachPost,
 
             Transition.CountTransition(GoalieTransitions.approachPost,
                                        Transition.ALL_OF_THE_TIME,
@@ -94,7 +94,11 @@ class SoccerPlayer(SoccerFSA.SoccerFSA):
             Transition.CountTransition(GoalieTransitions.changePost,
                                        Transition.MOST_OF_THE_TIME,
                                        Transition.OK_PRECISION)
-            : GoalieStates.spinAtPost
+            : GoalieStates.spinAtPost,
+            Transition.CountTransition(GoalieTransitions.endChangePost,
+                                        Transition.MOST_OF_THE_TIME,
+                                        Transition.OK_PRECISION)
+            : VisualGoalieStates.spinAtGoal
             }
         VisualGoalieStates.changePost.transitions = {
             Transition.CountTransition(GoalieTransitions.endChangePost,
