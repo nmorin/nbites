@@ -259,11 +259,11 @@ class Brain(object):
                             Constants.FIELD_WHITE_BOTTOM_SIDELINE_Y,
                             Constants.HEADING_UP)
         elif self.playerNumber == 4:
-            self.resetLocTo(Constants.MIDFIELD_X * .5,
+            self.resetLocTo(Constants.MIDFIELD_X * .66,
                             Constants.FIELD_WHITE_TOP_SIDELINE_Y,
                             Constants.HEADING_DOWN)
         elif self.playerNumber == 5:
-            self.resetLocTo(Constants.MIDFIELD_X * .5,
+            self.resetLocTo(Constants.MIDFIELD_X * .66,
                             Constants.FIELD_WHITE_BOTTOM_SIDELINE_Y,
                             Constants.HEADING_UP)
 
