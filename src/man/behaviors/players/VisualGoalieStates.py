@@ -69,16 +69,19 @@ def clearIt(player):
         player.brain.tracker.trackBall()
         if clearIt.dangerousSide == -1:
             print "Player ball angle = " + str(player.ballAngle)
-            if player.ballAngle < -20.0:
+
+            if player.ballAngle < -10.0:
                 player.side = RIGHT
-                player.kick = kicks.RIGHT_SIDE_KICK
-            elif player.ballAngle > 20.0:
+                player.kick = kicks.RIGHT_SHORT_STRAIGHT_KICK
+            elif player.ballAngle > 10.0:
                 player.side = LEFT
-                player.kick = kicks.LEFT_SIDE_KICK
+                player.kick = LEFT_SHORT_STRAIGHT_KICK
             elif player.brain.ball.rel_y < 0.0:
+                clearIt.near = True
                 player.side = RIGHT
                 player.kick = kicks.RIGHT_SHORT_STRAIGHT_KICK
             else:
+                clearIt.near = True
                 player.side = LEFT
                 player.kick = kicks.LEFT_SHORT_STRAIGHT_KICK
 
@@ -96,8 +99,14 @@ def clearIt(player):
             player.kick = kicks.LEFT_SIDE_KICK
 
         kickPose = player.kick.getPosition()
-        clearIt.ballDest = RelRobotLocation(player.brain.ball.rel_x -
-                                            kickPose[0],
+        # if player.brain.ball.rel_x < 90.0:
+        #     clearIt.near = True
+        #     clearIt.xDest = player.brain.ball.rel_x - kickPose[0]
+        # else:
+        #     print "makeing clearit xdest = to 5!"
+        #     clearIt.xDest = 5.0
+
+        clearIt.ballDest = RelRobotLocation(player.brain.ball.rel_x - kickPose[0],
                                             player.brain.ball.rel_y -
                                             kickPose[1],
                                             0.0)
@@ -116,11 +125,25 @@ def clearIt(player):
                               adaptive = False)
 
     kickPose = player.kick.getPosition()
+    # if player.brain.ball.rel_x < 90.0:
+    #     clearIt.near = True
+    #     clearIt.xDest = player.brain.ball.rel_x - kickPose[0]
+
     clearIt.ballDest.relX = player.brain.ball.rel_x - kickPose[0]
     clearIt.ballDest.relY = player.brain.ball.rel_y - kickPose[1]
-    # clearIt.ballDest.relH = 0.0
+
+
+    if fabs(clearIt.ballDest.relX) < 70.0 and fabs(clearIt.ballDest.relY) < 70.0 \
+        and not clearIt.near:
+        print "CHANGING HEADING"  
+        clearIt.ballDest.relH = - player.ballAngle
+        clearIt.count += 1
+        if clearIt.count > 70:
+            clearIt.ballDest.relH = 0.0
 
     return Transition.getNextState(player, clearIt)
+clearIt.near = False
+clearIt.count = 0
 
 @superState('gameControllerResponder')
 def didIKickIt(player):
@@ -135,11 +158,11 @@ def spinToFaceBall(player):
     if player.brain.ball.bearing_deg < 0.0:
         player.side = RIGHT
         #facingDest.relH = -90
-        facingDest.relH = player.brain.ball.bearing_deg - 10.0
+        facingDest.relH = player.brain.ball.bearing_deg
     else:
         player.side = LEFT
         #facingDest.relH = 90
-        facingDest.relH = player.brain.ball.bearing_deg + 10.0
+        facingDest.relH = player.brain.ball.bearing_deg
     player.brain.nav.goTo(facingDest,
                           nav.CLOSE_ENOUGH,
                           nav.CAREFUL_SPEED)
@@ -159,6 +182,10 @@ def waitToFaceField(player):
 @superState('gameControllerResponder')
 def returnToGoal(player):
     if player.firstFrame():
+        if player.side == RIGHT:
+            y = -20
+        else:
+            y = 20
         if player.lastDiffState == 'didIKickIt':
             returnToGoal.correctedDest =(RelRobotLocation(0.0, 0.0, 0.0 ) -
                             returnToGoal.kickPose)
@@ -166,8 +193,8 @@ def returnToGoal(player):
         else:
             returnToGoal.correctedDest = (RelRobotLocation(0.0, 0.0, 0.0) -
                                         RelRobotLocation(player.brain.interface.odometry.x,
-                                              - player.brain.interface.odometry.y,
-                                              0.0))
+                                              0.0,
+                                              player.brain.interface.odometry.h))
 
         if fabs(returnToGoal.correctedDest.relX) < 5:
             returnToGoal.correctedDest.relX = 0.0
@@ -182,10 +209,10 @@ def returnToGoal(player):
 
         player.brain.nav.walkTo(returnToGoal.correctedDest, nav.GRADUAL_SPEED)
 
-    # returnToGoal.correctedDest.relY = player.brain.interface.odometry.y
-    # returnToGoal.correctedDest.relX = player.brain.interface.odometry.x
-    returnToGoal.correctedDest.relY = 0.0
-    # returnToGoal.correctedDest.relH = 0.0
+    # if player.side == RIGHT:
+    #     returnToGoal.correctedDest.relY = -20.0
+    # else:
+    #     returnToGoal.correctedDest.relY = 20.0
 
 
     return Transition.getNextState(player, returnToGoal)
