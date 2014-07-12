@@ -206,29 +206,7 @@ def watch(player):
         player.brain.tracker.trackBall()
         player.brain.nav.stand()
         player.returningFromPenalty = False
-        watch.counter = 21
 
-    if watch.counter > 20:
-        watch.x1 = player.brain.ball.x
-        watch.y1 = player.brain.ball.y
-        watch.counter = 0
-
-    if player.brain.ball.vis.on:
-        x = player.brain.ball.x
-        y = player.brain.ball.y
-        if x != watch.x1:
-            m = (y - watch.y1) / (x - watch.x1)
-            b = y - m * x
-            watch.counter += 1
-            #if watch.counter % 5 == 0:
-            #    print ""
-            #    print "First x,y is : " + str(watch.x1) + "," + str(watch.y1)
-            #    print "Now x,y is : " + str(x) + "," + str(y)
-            #    print "M is: " + str(m)
-            #    print "My position is: " + str(player.brain.loc.x) + "," + str(player.brain.loc.y)
-            #    print "Ball will intercept the y-axis at " + str(b)
-
-    return player.goLater('spinAtPost')
     return Transition.getNextState(player, watch)
 
 def average(locations):
