@@ -198,13 +198,28 @@ def returnToGoal(player):
         player.brain.nav.stand()
         player.returningFromPenalty = False
         returnToGoal.c = 0
-    returnToGoal.c += 1
 
-    # if returnToGoal.c < 10:
-    dest = RelRobotLocation(-90, -18, .09)
-    player.brain.nav.destinationWalkTo(dest)
+        player.brain.interface.motionRequest.reset_odometry = True
+        player.brain.interface.motionRequest.timestamp = int(player.brain.time * 1000)
+
+        print "Odometry y = " + str(returnToGoal.kickPose.relY)
+        print "Odometry x = " + str(returnToGoal.kickPose.relX)
+        print "Odometry H = " + str(returnToGoal.kickPose.relH)
+
+    returnToGoal.c += 1
+    if returnToGoal.c < 10:
+        returnToGoal.dest = RelRobotLocation(-returnToGoal.kickPose.relX, 
+                                            -returnToGoal.kickPose.relY,
+                                            -returnToGoal.kickPose.relH)
+        player.brain.nav.destinationWalkTo(returnToGoal.dest)
+
+    if player.brain.interface.odometry.x + fabs(returnToGoal.kickPose.relX) < 10.0:
+        print "WAS TRUE"
+        player.brain.nav.stand()
+        return player.goLater('watch')
 
     return player.stay()
+
 
 """
     if player.firstFrame():

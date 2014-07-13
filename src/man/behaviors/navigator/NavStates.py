@@ -190,18 +190,15 @@ def destinationWalkingTo(nav):
     State to be used for destination walking.
     """
     if nav.firstFrame():
-        print "1"
         destinationWalkingTo.enqueAZeroVector = False
 
     if len(destinationWalkingTo.destQueue) > 0:
-        print "2"
         dest = destinationWalkingTo.destQueue.popleft()
         helper.setDestination(nav, dest, 
                               destinationWalkingTo.speed, 
                               destinationWalkingTo.kick)
         destinationWalkingTo.enqueAZeroVector = True
     elif destinationWalkingTo.enqueAZeroVector:
-        print "3"
         helper.setDestination(nav, RelRobotLocation(0,0,0), 
                               destinationWalkingTo.speed, 
                               destinationWalkingTo.kick)
