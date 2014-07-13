@@ -90,7 +90,9 @@ def gamePlaying(player):
         return player.goLater('walkToGoal')
 
     if player.lastDiffState == 'fallen':
-        return player.goLater('spinAtGoal')
+        return player.goLater('spinAtPost')
+        # return player.goLater('spinAtGoal')
+#TODO test this spinatpost stuff
 
     return player.goLater('watch')
 
@@ -306,16 +308,16 @@ def kickBall(player):
         if player.lastDiffState == 'clearIt':
             VisualStates.returnToGoal.kickPose = \
                 RelRobotLocation(player.brain.interface.odometry.x,
-                                 0.0,
-                                 0.0)
+                                 player.brain.interface.odometry.y,
+                                 player.brain.interface.odometry.h)
         #otherwise add to previously saved odo
         else:
             VisualStates.returnToGoal.kickPose.relX += \
                 player.brain.interface.odometry.x
-            #VisualStates.returnToGoal.kickPose.relY += \
-            #    player.brain.interface.odometry.y
-            #VisualStates.returnToGoal.kickPose.relH += \
-            #    player.brain.interface.odometry.h
+            VisualStates.returnToGoal.kickPose.relY += \
+               player.brain.interface.odometry.y
+            VisualStates.returnToGoal.kickPose.relH += \
+               player.brain.interface.odometry.h
 
         player.brain.tracker.trackBall()
         player.brain.nav.stop()
