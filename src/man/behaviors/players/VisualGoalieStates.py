@@ -172,7 +172,6 @@ def spinToFaceBall(player):
                           nav.CAREFUL_SPEED)
     spinToFaceBall.count += 1
 
-
     player.brain.interface.motionRequest.reset_odometry = True
     player.brain.interface.motionRequest.timestamp = int(player.brain.time * 1000)
     clearIt.odoDelay = True
@@ -195,6 +194,22 @@ def waitToFaceField(player):
 @superState('gameControllerResponder')
 def returnToGoal(player):
     if player.firstFrame():
+        player.brain.tracker.trackBall()
+        player.brain.nav.stand()
+        player.returningFromPenalty = False
+        returnToGoal.c = 0
+    returnToGoal.c += 1
+
+    # if returnToGoal.c < 10:
+    dest = RelRobotLocation(-90, -18, .09)
+    player.brain.nav.destinationWalkTo(dest)
+
+    return player.stay()
+
+"""
+    if player.firstFrame():
+        returnToGoal.c = 0
+        player.brain.nav.stand()
 
         if clearIt.near:
             y = - player.brain.interface.odometry.y
@@ -246,8 +261,12 @@ def returnToGoal(player):
     # print "Odometry x = " + str(player.brain.interface.odometry.x)
     # print "Odometry H = " + str(player.brain.interface.odometry.h)
 
-
+    return player.stay()
     return Transition.getNextState(player, returnToGoal)
+
+
+
+"""
 
 @superState('gameControllerResponder')
 def repositionAfterWhiff(player):
