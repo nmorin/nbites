@@ -1,6 +1,7 @@
 import RoleConstants as role
 import ClaimTransitions as claimTransitions
 import SharedTransitions as shared
+import ChaseBallConstants as chaseConstants
 
 def ballInBox(player):
     """
@@ -8,11 +9,12 @@ def ballInBox(player):
     """
     ball = player.brain.ball
 
-    if ball.x > player.box[0][0] and ball.y > player.box[0][1] and \
-            ball.x < player.box[0][0] + player.box[1] and \
-            ball.y < player.box[0][1] + player.box[2] and ball.vis.frames_on > 0:
-        return True
-    return False
+    if ball.vis.frames_on > chaseConstants.BALL_ON_THRESH:
+        if role.isChaser(player.role):
+            return True
+        return (ball.x > player.box[0][0] and ball.y > player.box[0][1] and
+                ball.x < player.box[0][0] + player.box[1] and
+                ball.y < player.box[0][1] + player.box[2])
 
 def ballNotInBox(player):
     """
@@ -20,7 +22,7 @@ def ballNotInBox(player):
     """
     return not ballInBox(player)
 
-def ballInBufferedBox(player):
+def ballNotInBufferedBox(player):
     """
     A transition which allows a stretching of a box so that the box isn't
     so ridged. Intended use is for in approachBall, ensuring that we don't loop
@@ -28,18 +30,12 @@ def ballInBufferedBox(player):
     """
     ball = player.brain.ball
     buf = role.boxBuffer
-
-    if ball.x > player.box[0][0] - buf and ball.y > player.box[0][1] - buf and \
+    inBox = (ball.x > player.box[0][0] - buf and ball.y > player.box[0][1] - buf and \
             ball.x < player.box[0][0] + player.box[1] + buf and \
-            ball.y < player.box[0][1] + player.box[2] + buf and ball.vis.frames_on > 2:
-        return True
-    return False
+            ball.y < player.box[0][1] + player.box[2] + buf)
 
-def ballNotInBufferedBox(player):
-    """
-    Simple negation of ballInBufferedBox
-    """
-    return not ballInBufferedBox(player)
+    return (ball.vis.frames_off > chaseConstants.BALL_OFF_THRESH or 
+            (not inBox and not role.isChaser(player.role)))
 
 def tooFarFromHome(threshold):
     """
@@ -59,6 +55,7 @@ def tooFarFromHome(threshold):
 
 def shouldApproachBall(player):
     if ballNotInBox(player):
+        player.claimedBall = False
         return False
 
     if claimTransitions.shouldCedeClaim(player):
@@ -67,13 +64,12 @@ def shouldApproachBall(player):
     return True
 
 def shouldFindSharedBall(player):
-    # Transition returns true if shared ball is on, and cannot see ball
-
-    if shared.ballOffForNFrames(60) and player.brain.sharedBall.frames_on > 30:
-        return True
-    return False
+    return (player.brain.sharedBall.ball_on and
+            player.brain.sharedBall.reliability >= 2)
 
 def shouldStopLookingForSharedBall(player):
-    if player.brain.sharedBall.frames_off > 60:
-        return True
-    return False
+    return not shouldFindSharedBall(player)
+
+def shouldBeSupporter(player):
+    return (player.brain.ball.vis.frames_on > chaseConstants.BALL_ON_THRESH and 
+            claimTransitions.shouldCedeClaim(player))
