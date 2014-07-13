@@ -209,6 +209,10 @@ def watch(player):
         player.brain.nav.stand()
         player.returningFromPenalty = False
 
+        # dest = RelRobotLocation(-90, -18, .09)
+        # player.brain.nav.destinationWalkTo(dest)
+
+    # return player.stay()
     return Transition.getNextState(player, watch)
 
 def average(locations):

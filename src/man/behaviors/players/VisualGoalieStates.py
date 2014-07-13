@@ -203,12 +203,16 @@ def returnToGoal(player):
         else:
             y = - player.brain.interface.odometry.y + 20
 
+        # newDest = RelRobotLocation(-returnToGoal.kickPose.relX, -returnToGoal.kickPose.relY,
+                                    # -returnToGoal.kickPose.relH)
+        newDest = RelRobotLocation(-90, -18, .09)
+
         if player.lastDiffState == 'didIKickIt':
             print "IN HERE!"
-            returnToGoal.correctedDest =(RelRobotLocation(0.0, 0.0, 0.0 ) -
-                            RelRobotLocation(returnToGoal.kickPose.relX,
-                                            returnToGoal.kickPose.relY,#- player.brain.interface.odometry.y,
-                                            0.0)) #player.brain.interface.odometry.h))
+            returnToGoal.correctedDest =(RelRobotLocation(0.0, 0.0, 0.0 ) - returnToGoal.kickPose)
+                            # RelRobotLocation(returnToGoal.kickPose.relX,
+                            #                 returnToGoal.kickPose.relY,#- player.brain.interface.odometry.y,
+                             #               0.0)) #player.brain.interface.odometry.h))
             # returnToGoal.correctedDest =(RelRobotLocation(0.0, 0.0, 0.0 ) -
                             # returnToGoal.kickPose)
             print "Kick pose is: " + str(returnToGoal.kickPose)
@@ -230,7 +234,8 @@ def returnToGoal(player):
         print "Odometry x = " + str(returnToGoal.kickPose.relX)
         print "Odometry H = " + str(returnToGoal.kickPose.relH)
 
-        player.brain.nav.walkTo(returnToGoal.correctedDest, nav.GRADUAL_SPEED)
+        # player.brain.nav.destinationWalkTo(returnToGoal.correctedDest, nav.GRADUAL_SPEED)
+        player.brain.nav.destinationWalkTo(newDest)
 
     # if player.side == RIGHT:
     #     returnToGoal.correctedDest.relY = -20.0
