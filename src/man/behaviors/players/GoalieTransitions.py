@@ -545,7 +545,7 @@ def shouldClearDangerousBall(player):
     if player.brain.ball.vis.frames_off > 10:
         return False
 
-    if (math.fabs(player.brain.ball.bearing_deg) > 70.0 and
+    if (math.fabs(player.brain.ball.bearing_deg) > 75.0 and
         player.brain.ball.distance < 50.0):
         if player.brain.ball.bearing_deg < 0:
             VisualGoalieStates.clearIt.dangerousSide = constants.RIGHT
