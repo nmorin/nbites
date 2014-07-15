@@ -3,6 +3,7 @@ Game controller states for pBrunswick, our soccer player.
 """
 
 import noggin_constants as nogginConstants
+from . import RoleConstants as roleConstants
 from math import fabs
 from ..util import *
 from .. import SweetMoves
