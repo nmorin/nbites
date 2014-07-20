@@ -161,9 +161,8 @@ def returnToGoal(player):
         player.brain.nav.destinationWalkTo(returnToGoal.dest)
 
     if player.brain.interface.odometry.x + fabs(returnToGoal.kickPose.relX) < 10.0:
-        print "WAS TRUE"
         player.brain.nav.stand()
-        return player.goLater('watch')
+        return player.goLater('watchWithCornerChecks')
 
     return player.stay()
 
