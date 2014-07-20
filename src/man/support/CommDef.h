@@ -6,7 +6,7 @@
 #include "Common.h"
 
 #define IP_TARGET "255.255.255.255"
-#define TEAM_PORT 19801
+#define TEAM_PORT 19901
 
 #define UDP_BUF_SIZE 1024
 #define TCP_BUF_SIZE 1048576 // 1MB for the Nao's
