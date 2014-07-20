@@ -128,6 +128,7 @@ PROF_EXIT(P_COMM_TO_SOCKET);
 void TeamConnect::receive(portals::OutPortal<messages::WorldModel>* modelOuts [NUM_PLAYERS_PER_TEAM],
                           int player, int team)
 {
+#ifndef USE_SPL_COMM
     char packet[sizeof(SPLStandardMessage)];
     int result;
     int playerNum;
@@ -228,6 +229,7 @@ void TeamConnect::receive(portals::OutPortal<messages::WorldModel>* modelOuts [N
 
         modelOuts[playerNum-1]->setMessage(model);
     } while (result > 0);
+#endif
 }
 
 bool TeamConnect::verify(SPLStandardMessage* splMessage, int seqNumber, int64_t timestamp, llong recvdtime,
