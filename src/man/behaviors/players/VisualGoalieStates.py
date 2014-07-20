@@ -59,25 +59,6 @@ def clearIt(player):
     if player.firstFrame():
         player.brain.tracker.trackBall()
         if clearIt.dangerousSide == -1:
-            print "Player ball angle = " + str(player.ballAngle)
-
-            # if player.ballAngle < -10.0:
-            #     clearIt.near = False
-            #     player.side = RIGHT
-            #     player.kick = kicks.RIGHT_SHORT_STRAIGHT_KICK
-            # elif player.ballAngle > 10.0:
-            #     clearIt.near = False
-            #     player.side = LEFT
-            #     player.kick = kicks.LEFT_SHORT_STRAIGHT_KICK
-            # elif player.brain.ball.rel_y < 0.0:
-            #     clearIt.near = True
-            #     player.side = RIGHT
-            #     player.kick = kicks.RIGHT_SHORT_STRAIGHT_KICK
-            # else:
-            #     clearIt.near = True
-            #     player.side = LEFT
-            #     player.kick = kicks.LEFT_SHORT_STRAIGHT_KICK
-
             if player.brain.ball.rel_y < 0.0:
                 player.side = RIGHT
                 player.kick = kicks.RIGHT_SHORT_STRAIGHT_KICK
@@ -239,15 +220,10 @@ def changePost(player):
     else:
         post = rgp
         tpost = RIGHT
-    #if post.bearing_deg < 0:
-    #    y = -10.0
-    #else:
-    #    y = 5.0
     y = 0.0
     x = post.distance
     if player.firstFrame():
         changePost.counter = 0
-        #print "post dist at first is: " + str(x)
         player.brain.tracker.trackPost(tpost)
         changePost.dest = RelRobotLocation(x, y, 0.0)
         player.brain.nav.goTo(changePost.dest, nav.CLOSE_ENOUGH, nav.MEDIUM_SPEED)
@@ -277,7 +253,6 @@ def approachPost(player):
         player.stand()
         approachPost.counter = 0
         player.zeroHeads()
-        # player.brain.tracker.trackPost(approachPost.post)
         approachPost.dest = RelRobotLocation(approachPost.targetpost.distance, y,
                                 approachPost.targetpost.bearing_deg)
         if player.post % 2 == 0:
@@ -291,8 +266,6 @@ def approachPost(player):
         approachPost.dest.relH = approachPost.targetpost.bearing_deg
     approachPost.dest.relY = y
     approachPost.counter += 1
-    # if approachPost.counter % 10 == 0:
-        # print "distance = " + str(approachPost.targetpost.distance)
 
     return Transition.getNextState(player, approachPost)
 approachPost.lastPostDist = -1.0

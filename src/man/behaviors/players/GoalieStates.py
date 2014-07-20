@@ -274,8 +274,6 @@ def moveBackwards(player):
 def spinAtPost(player):
     if player.firstFrame():
         player.post += 1
-        print "player.post = " + str(player.post)
-        print "mod =" + str(player.post % 2)
         player.brain.nav.stop()
         spinAtPost.counter = 0
         player.zeroHeads()

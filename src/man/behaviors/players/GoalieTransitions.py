@@ -305,15 +305,10 @@ def approachPost(player):
     if seesPost(player, constants.LEFT):
         VisualGoalieStates.approachPost.post = constants.LEFT
         VisualGoalieStates.approachPost.firstDist = lgp.distance
-        print "sees the left post!"
-        print "half distance = " + str(VisualGoalieStates.approachPost.firstDist)
         return True
     elif seesPost(player, constants.RIGHT):
         VisualGoalieStates.approachPost.post = constants.RIGHT
         VisualGoalieStates.approachPost.firstDist = rgp.distance
-
-        print "sees the right post!"
-        print "half distance = " + str(VisualGoalieStates.approachPost.firstDist)
         return True
     else:
         return False
@@ -333,8 +328,6 @@ def changePost(player):
 
     if check < 0.0 or VisualGoalieStates.approachPost.targetpost.distance < 95.0:
         VisualGoalieStates.approachPost.lastPostDist = VisualGoalieStates.approachPost.targetpost.distance
-        print "Went halfway! Switching"
-        print "Check = " + str(check)
         return True
     else:
         return False
