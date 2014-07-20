@@ -333,6 +333,76 @@ GOALIE_SQUAT_STAND_UP = ( ((0.0, 55.0, 0.0, -0),
                            0.8,0, stiff.STANDUP_STIFFNESSES)
                           )
 
+#MEGAN AND NIKKI TEST ROLL OUT
+GOALIE_DIVE_NEW_LEFT = ( (INITIAL_POS[0][0],
+                       (-5.10,3,-55,115,-60,-3),
+                       (-5.10,-3,-55,115,-60,3),
+                       INITIAL_POS[0][3],
+                       0.3, 0, stiff.GOALIE_DIVE_RIGHT_STIFFNESSES),
+                      #squats down
+
+                      ((0, 70, 0, 0),
+                       (-5.27,-2.63,-38.85,88.24,-45.88,-9.84),
+                       (-5.27,-16.43,-63.46,123.23,-59.76,-11.07),
+                       (0, -70, 0, 0),
+                       0.3, 1, stiff.GOALIE_DIVE_RIGHT_STIFFNESSES),
+                      #arms out leans to one side
+
+                      ((0, 0, 0, 0),
+                       (-5.27,-2.63,-38.85,60.24,-45.88,-9.84),
+                       (-5.27,-16.43,-63.46,123.23,-59.76,-11.07),
+                       (-85.25,-60.65,-28.22,51.77),
+                       0.2, 1, stiff.GOALIE_DIVE_RIGHT_STIFFNESSES),
+                      #falls over and puts arms in final position
+
+                      ((0, 0, 0, 0),
+                       (-5.27,-2.63,-38.85,60.24,-45.88,-9.84),
+                       (-5.27,-16.43,-63.46,123.23,-59.76,-11.07),
+                       (-85.25,-60.65,-28.22,51.77),
+                       0.1, 1, stiff.GOALIE_GROUND_STIFFNESSES),
+                      #removes stiffnesses so lies flat
+
+                      ((28.30,-20.92,0.35,-1.58),
+                       (-10.58,0,0,16.52,50.01,-10.81),
+                       (-10.58,0,0,9.93,43.86,-10.54),
+                       (-58.53,-2.20,-52.74,5.01),
+                       0.3, 1, stiff.GOALIE_DIVE_RIGHT_STIFFNESSES),
+                      #extend legs and arm
+
+                      ((19.6, 46.8, 2.5, -1.6),
+                       #(-10.0, 0.1, -1.4, 17.7, 30.1, -10.7),
+                       #(0.0, 5.3, -6.4, 13.8, 30.1, -9.1),
+                       (-8.3, 12.0, 4.3, 17.7, 30.1, -10.8),
+                       (0.0, 7.4, -36.0, 15.1, 30.1, -4.1),
+                       (-61.3, 2.6, -51.7, 6.4),
+                       .5, 1, stiff.GOALIE_DIVE_RIGHT_STIFFNESSES),
+                      #move shoulder and leg
+
+                      ((60.8, 20.9, -4.5, -2.7),
+                       (-12.2, 9.7, 17.3, 17.7, 29.9, -10.3),
+                       #(-9.9, 10.2, -17.7, 42.7, 30.1, 5.5),
+                       (0.0, -12.0, -10.0, 11.4, 35.4, 17.8),
+                       (-91.1, 0.8, -51.4, 7.6),
+                       .4, 1, stiff.GOALIE_DIVE_RIGHT_STIFFNESSES),
+                       # rolling onto back
+
+                      ((105.1, 22.7, -13.0, -18.2),
+                       (-11.7, 13.8, 6.8, 17.1, 43.4, 5.8),
+                       (0.0, -8.9, 3.8, 10.7, 29.9, -1.4),
+                       #(-88.3, -34.2, -51.7, 12.5),
+                       (-29.6, -41.3, -7.2, 47.1),
+                       .4, 1, stiff.GOALIE_DIVE_RIGHT_STIFFNESSES),
+                        # still rolling onto back
+
+                      ((103.4, 22.2, -23.9, -17.9),
+                       (-10.4, 12.9, 1.2, 17.0, 30.1, 5.5),
+                       (0.0, -8.9, 12.1, -4.9, 34.6, -2.1),
+                       (96.8, -26.5, -53.3, 2.7),
+                       .5, 1, stiff.GOALIE_DIVE_RIGHT_STIFFNESSES),
+                       #move arm back
+
+                         )
+
 #Fast dive to the right
 GOALIE_DIVE_RIGHT = ( (INITIAL_POS[0][0],
                        (-5.10,3,-55,115,-60,-3),
@@ -372,6 +442,8 @@ GOALIE_DIVE_RIGHT = ( (INITIAL_POS[0][0],
 
 #same as GOALIE_DIVE_RIGHT except dives left
 GOALIE_DIVE_LEFT = mirrorMove(GOALIE_DIVE_RIGHT)
+
+GOALIE_DIVE_NEW_RIGHT = mirrorMove(GOALIE_DIVE_NEW_LEFT)
 
 #Rolls goalie over onto back towards goal so she can get up
 GOALIE_ROLL_OUT_RIGHT = ( ((0,70.92,0,0),
@@ -1308,3 +1380,22 @@ CELEBRATE = (
 
 	INITIAL_POS_KEYFRAME,
 	)
+
+
+MUSCLES = (
+
+    # Raise arms
+    ((-89.6, 12.2, -5.0, -3.1),
+     (0.0,  0.0,  -22.3, 43.5, -21.2, 0.0),
+     (0.0,  0.0,  -22.3, 43.5, -21.2, 0.0),
+     (-89.6, -12.2, 5.0, 3.1),
+     1.8,0,stiff.NORMAL_STIFFNESSES),
+
+    # Show dem muscles
+    ((-89.4, 60.9, -5.2, -66.1),
+     (0.0,  0.0,  -22.3, 43.5, -21.2, 0.0),
+     (0.0,  0.0,  -22.3, 43.5, -21.2, 0.0),
+     (-89.4, -60.9, 5.2, 66.1),
+     0.8,0,stiff.NORMAL_STIFFNESSES),
+
+    )
