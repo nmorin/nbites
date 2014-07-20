@@ -3,6 +3,7 @@ Here we house all of the state methods used for chasing the ball
 """
 import ChaseBallTransitions as transitions
 import ChaseBallConstants as constants
+import RoleConstants as roleConstants
 import DribbleTransitions as dr_trans
 import PlayOffBallTransitions as playOffTransitions
 from ..navigator import Navigator
@@ -22,11 +23,13 @@ def approachBall(player):
     if player.firstFrame():
         player.buffBoxFiltered = CountTransition(playOffTransitions.ballNotInBufferedBox,
                                                  0.8, 10)
-        player.inKickingState = False
-        player.motionKick = False
         player.brain.tracker.trackBall()
         if player.shouldKickOff:
-            player.brain.nav.chaseBall(Navigator.MEDIUM_SPEED, fast = True)
+            if player.inKickOffPlay:
+                return player.goNow('giveAndGo')
+            else:
+                return player.goNow('positionAndKickBall')
+
         elif player.penaltyKicking:
             return player.goNow('prepareForPenaltyKick')
         else:
@@ -46,7 +49,7 @@ def positionAndKickBall(player):
     """
     Superstate used to position for kick and kick the ball when close enough.
     """
-    player.inKickingState = True
+    pass
 
 @superState('positionAndKickBall')
 def prepareForKick(player):
@@ -67,6 +70,21 @@ def prepareForKick(player):
     if not player.shouldKickOff or DRIBBLE_ON_KICKOFF:
         if dr_trans.shouldDribble(player):
             return player.goNow('decideDribble')
+    if not player.inKickOffPlay:
+        if player.shouldKickOff or player.brain.gameController.timeSincePlaying < 10:
+            print "Overriding kick decider for kickoff!"
+            player.shouldKickOff = False
+            player.kick = player.decider.motionKicksAsap()
+        else:
+            # if transitions.shouldChangeKickingStrategy(player):
+            #     print "Time for some heroics!"
+            #     player.kick = player.decider.timeForSomeHeroics()
+            # else:
+            player.kick = player.decider.obstacleAware(roleConstants.isDefender(player.role))
+        player.inKickingState = True
+
+    elif player.finishedPlay:
+        player.inKickOffPlay = False
 
     return player.goNow('orbitBall')
 

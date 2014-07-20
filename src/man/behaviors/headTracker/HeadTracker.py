@@ -174,6 +174,9 @@ class HeadTracker(FSA.FSA):
         """
         self.switchTo('lookStraightThenTrack')
 
+    def lookStraight(self):
+        self.repeatHeadMove(HeadMoves.FIXED_PITCH_LOOK_STRAIGHT)
+
     ################### Misc. API #####################
 
     # TODO: update for current kicks (in constants.KICK_DICT)
