@@ -56,6 +56,18 @@ class SoccerPlayer(SoccerFSA.SoccerFSA):
 
             }
 
+        VisualGoalieStates.walkFromPenalty.transitions = {
+            Transition.CountTransition(GoalieTransitions.reachedMyDestination,
+                                       Transition.ALL_OF_THE_TIME,
+                                       Transition.INSTANT)
+            : VisualGoalieStates.reorient,
+
+            Transition.CountTransition(GoalieTransitions.checkIfOnGoalLine,
+                                       Transition.MOST_OF_THE_TIME,
+                                       Transition.OK_PRECISION)
+            : VisualGoalieStates.reorient
+            }
+
         VisualGoalieStates.spinAtGoal.transitions = {
             Transition.CountTransition(GoalieTransitions.facingForward,
                                        Transition.SOME_OF_THE_TIME,
@@ -71,6 +83,14 @@ class SoccerPlayer(SoccerFSA.SoccerFSA):
                                        Transition.SOME_OF_THE_TIME,
                                        Transition.OK_PRECISION)
             : VisualGoalieStates.backUpForDangerousBall
+            }
+
+        VisualGoalieStates.reorient.transitions = {
+            Transition.CountTransition(GoalieTransitions.facingForward,
+                                       Transition.SOME_OF_THE_TIME,
+                                       Transition.LOW_PRECISION)
+            : GoalieStates.watchWithCornerChecks
+
             }
 
         VisualGoalieStates.waitToFaceField.transitions = {

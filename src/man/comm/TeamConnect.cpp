@@ -151,8 +151,8 @@ void TeamConnect::receive(portals::OutPortal<messages::WorldModel>* modelOuts [N
         portals::Message<messages::TeamPacket> teamMessage(0);
         if (!teamMessage.get()->ParseFromArray(splMessage.data, splMessage.numOfDataBytes))
         {
-
-            std::cerr << "Failed to parse GPB from socket in TeamConnect. " << "numOfDataBytes" << splMessage.numOfDataBytes << std::endl;
+            //std::cerr << "Failed to parse GPB from socket in TeamConnect. "
+            //          << "Got a packet of size " << result << std::endl;
         }
 
         if (!verify(&splMessage, teamMessage.get()->sequence_number(), teamMessage.get()->timestamp(), recvdtime, player, team))

@@ -402,6 +402,46 @@ def atGoalArea(player):
                 and player.brain.ygrp.on
                 and not player.brain.ygrp.distance == 0.0))
 
+def getGoalLine(player):
+    # Returns the endline
+
+    vision = player.brain.interface.visionField
+
+    # check lines in top and bottom cameras
+    for i in range(0, vision.visual_line_size()):
+        for j in range(0, vision.visual_line(i).possibilities_size()):
+            if (vision.visual_line(i).possibilities(j) ==
+                vision.visual_line(i).line_id.BLUE_GOAL_ENDLINE):
+                #print "Found top endline!"
+                return vision.visual_line(i)
+
+    for i in range(0, vision.bottom_line_size()):
+        for j in range(0, vision.bottom_line(i).possibilities_size()):
+            if (vision.bottom_line(i).possibilities(j) ==
+                vision.bottom_line(i).line_id.BLUE_GOAL_ENDLINE):
+                #print "Found bottom endline!"
+                return vision.bottom_line(i)
+    return None
+
+def checkForPost(player):
+    vision = player.brain.interface.visionField
+    return vision.goal_post_l.visual_detection.on or vision.goal_post_r.visual_detection.on
+
+def betweenPosts(player):
+    vision = player.brain.interface.visionField
+
+def checkIfOnGoalLine(player):
+    line = getGoalLine(player)
+    if not line:
+        return False
+
+    dist = line.visual_detection.distance
+
+    if dist < 5.0:
+        return True
+
+    return False
+
 def facingForward(player):
     """
     Checks if a robot is facing the cross, which is more or less forward

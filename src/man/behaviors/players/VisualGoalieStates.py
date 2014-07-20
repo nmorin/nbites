@@ -11,7 +11,8 @@ import GoalieTransitions
 from objects import RelRobotLocation, RelLocation, Location, RobotLocation
 from noggin_constants import (LINE_CROSS_OFFSET, GOALBOX_DEPTH, GOALBOX_WIDTH,
                               FIELD_WHITE_LEFT_SIDELINE_X, CENTER_FIELD_Y,
-                              HEADING_LEFT)
+                              HEADING_LEFT, MIDFIELD_Y, BLUE_GOALBOX_RIGHT_X,
+                              BLUE_GOALBOX_TOP_Y, BLUE_GOALBOX_BOTTOM_Y)
 
 #from vision import cornerID as IDs
 from math import fabs, degrees, radians, sin, cos
@@ -32,6 +33,41 @@ def walkToGoal(player):
     return Transition.getNextState(player, walkToGoal)
 
 @superState('gameControllerResponder')
+def walkFromPenalty(player):
+
+    if player.firstFrame():
+        player.brain.tracker.repeatBasicPan()
+        player.returningFromPenalty = False
+        walkFromPenalty.check = True
+        goalCenter = Location(FIELD_WHITE_LEFT_SIDELINE_X,
+                                       CENTER_FIELD_Y)
+        if player.brain.loc.y < MIDFIELD_Y:
+            goalCorner = Location(BLUE_GOALBOX_RIGHT_X,
+                              BLUE_GOALBOX_BOTTOM_Y)
+            walkFromPenalty.goalOnRight = False
+        else:
+            goalCorner = Location(BLUE_GOALBOX_RIGHT_X,
+                               BLUE_GOALBOX_TOP_Y)
+            walkFromPenalty.goalOnRight = True
+        player.brain.nav.goTo(goalCorner,
+                              precision = nav.PLAYBOOK,
+                              speed = nav.QUICK_SPEED,
+                              avoidObstacles = True,
+                              fast = True, pb = False)
+    if ((walkFromPenalty.goalOnRight and player.brain.loc.y < (BLUE_GOALBOX_TOP_Y + 10.0)) or \
+    (not walkFromPenalty.goalOnRight and player.brain.loc.y > (BLUE_GOALBOX_BOTTOM_Y - 10.0))) \
+    and walkFromPenalty.check:
+        player.brain.nav.goTo(Location(FIELD_WHITE_LEFT_SIDELINE_X,
+                                             CENTER_FIELD_Y),
+                              precision = nav.ALRIGHT,
+                              speed = nav.QUICK_SPEED,
+                              avoidObstacles = True,
+                              fast = True, pb = False)
+        walkFromPenalty.check = False
+
+    return Transition.getNextState(player, walkFromPenalty)
+
+@superState('gameControllerResponder')
 def spinAtGoal(player):
     if player.firstFrame():
         player.brain.nav.stop()
@@ -44,6 +80,15 @@ def spinAtGoal(player):
         player.setWalk(0, 0, 20.0)
 
     return Transition.getNextState(player, spinAtGoal)
+
+@superState('gameControllerResponder')
+def reorient(player):
+    if player.firstFrame():
+        player.zeroHeads()
+
+    player.setWalk(0, 0, 20.0)
+
+    return Transition.getNextState(player, reorient)
 
 @superState('gameControllerResponder')
 def backUpForDangerousBall(player):
@@ -148,10 +193,6 @@ def returnToGoal(player):
 
         player.brain.interface.motionRequest.reset_odometry = True
         player.brain.interface.motionRequest.timestamp = int(player.brain.time * 1000)
-
-        print "Odometry y = " + str(returnToGoal.kickPose.relY)
-        print "Odometry x = " + str(returnToGoal.kickPose.relX)
-        print "Odometry H = " + str(returnToGoal.kickPose.relH)
 
     returnToGoal.c += 1
     if returnToGoal.c < 10:

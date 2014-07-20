@@ -37,6 +37,7 @@ def getNextState(fsa, state):
         if transition.checkCondition(fsa):
 
             if DEBUG:
+                print "True transition was!!! :" + str(transition)
                 fsa.printf(fsa.name + " switching to " + targetState.__name__ +
                            " from " + state.__name__ + " after " + str(transition))
             targetState.incomingTransition = transition
