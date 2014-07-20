@@ -105,8 +105,8 @@ class KickDecider(object):
         self.brain.player.motionKick = False
 
         self.kicks = []
-        self.kicks.append(kicks.LEFT_BIG_KICK)
-        self.kicks.append(kicks.RIGHT_BIG_KICK)
+        # self.kicks.append(kicks.LEFT_BIG_KICK)
+        # self.kicks.append(kicks.RIGHT_BIG_KICK)
         self.kicks.append(kicks.LEFT_KICK)
         self.kicks.append(kicks.RIGHT_KICK)
 
