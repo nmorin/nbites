@@ -106,20 +106,27 @@ def didIKickIt(player):
 @superState('gameControllerResponder')
 def spinToFaceBall(player):
     facingDest = RelRobotLocation(0.0, 0.0, 0.0)
+    player.ballAngle = player.brain.ball.bearing_deg
     if player.brain.ball.bearing_deg < 0.0:
         player.side = RIGHT
-        facingDest.relH = -90
+        facingDest.relH = player.brain.ball.bearing_deg
     else:
         player.side = LEFT
-        facingDest.relH = 90
+        facingDest.relH = player.brain.ball.bearing_deg
     player.brain.nav.goTo(facingDest,
                           nav.CLOSE_ENOUGH,
                           nav.CAREFUL_SPEED)
+    spinToFaceBall.count += 1
+
+    player.brain.interface.motionRequest.reset_odometry = True
+    player.brain.interface.motionRequest.timestamp = int(player.brain.time * 1000)
+    clearIt.odoDelay = True
 
     if player.counter > 180:
         return player.goLater('spinAtGoal')
 
     return Transition.getNextState(player, spinToFaceBall)
+spinToFaceBall.count = 0
 
 @superState('gameControllerResponder')
 def waitToFaceField(player):
