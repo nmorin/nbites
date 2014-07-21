@@ -164,19 +164,16 @@ def walkFromPenalty(player):
                               speed = nav.MEDIUM_SPEED,
                               fast = True)
 
-    if ((walkFromPenalty.goalOnRight and player.brain.loc.y < (BLUE_GOALBOX_TOP_Y + 10.0)) or \
-    (not walkFromPenalty.goalOnRight and player.brain.loc.y > (BLUE_GOALBOX_BOTTOM_Y - 10.0))) \
-    and walkFromPenalty.check:
+    if player.brain.loc.y > (BLUE_GOALBOX_BOTTOM_Y - 15.0) and walkFromPenalty.check:
         print "I'm heading towards the goal!"
         player.brain.nav.goTo(Location(FIELD_WHITE_LEFT_SIDELINE_X,
                                              CENTER_FIELD_Y),
-                              precision = nav.GRAINY,
-                              speed = nav.QUICK_SPEED,
-                              avoidObstacles = True,
-                              fast = True, pb = False)
+                              precision = nav.ALRIGHT,
+                              speed = nav.MEDIUM_SPEED,
+                              fast = True)
         walkFromPenalty.check = False
 
-    print "My loc is: ({0},{1})".format(player.brain.loc.x, player.brain.loc.y)
+    # print "My loc is: ({0},{1})".format(player.brain.loc.x, player.brain.loc.y)
 
 
     return Transition.getNextState(player, walkFromPenalty)
