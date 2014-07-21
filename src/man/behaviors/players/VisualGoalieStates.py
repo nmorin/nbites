@@ -82,15 +82,6 @@ def spinAtGoal(player):
     return Transition.getNextState(player, spinAtGoal)
 
 @superState('gameControllerResponder')
-def reorient(player):
-    if player.firstFrame():
-        player.zeroHeads()
-
-    player.setWalk(0, 0, 20.0)
-
-    return Transition.getNextState(player, reorient)
-
-@superState('gameControllerResponder')
 def backUpForDangerousBall(player):
     if player.firstFrame():
         player.brain.tracker.trackBall()
