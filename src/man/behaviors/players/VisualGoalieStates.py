@@ -74,30 +74,28 @@ def clearIt(player):
             player.kick = kicks.LEFT_SIDE_KICK
 
         kickPose = player.kick.getPosition()
-        clearIt.ballDest = RelRobotLocation(player.brain.ball.rel_x -
-                                            kickPose[0],
+        clearIt.ballDest = RelRobotLocation(player.brain.ball.rel_x - kickPose[0],
                                             player.brain.ball.rel_y -
                                             kickPose[1],
                                             0.0)
 
-        # reset odometry
-        player.brain.interface.motionRequest.reset_odometry = True
-        player.brain.interface.motionRequest.timestamp = int(player.brain.time * 1000)
-        clearIt.odoDelay = True
         return Transition.getNextState(player, clearIt)
 
     if clearIt.odoDelay:
         clearIt.odoDelay = False
         player.brain.nav.goTo(clearIt.ballDest,
                               nav.CLOSE_ENOUGH,
-                              nav.FAST_SPEED,
+                              nav.MEDIUM_SPEED,
                               adaptive = False)
 
     kickPose = player.kick.getPosition()
+
     clearIt.ballDest.relX = player.brain.ball.rel_x - kickPose[0]
     clearIt.ballDest.relY = player.brain.ball.rel_y - kickPose[1]
 
     return Transition.getNextState(player, clearIt)
+clearIt.near = False
+clearIt.count = 0
 
 @superState('gameControllerResponder')
 def didIKickIt(player):
