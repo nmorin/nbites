@@ -82,12 +82,13 @@ def gamePlaying(player):
     if (not player.brain.motion.calibrated):
         return player.stay()
 
-    if player.penalized:
-        player.penalized = False
+    if (player.lastDiffState == 'gamePenalized' and
+        player.lastStateTime > 10):
         return player.goLater('afterPenalty')
 
-    if player.lastDiffState == 'afterPenalty':
-        return player.goLater('walkToGoal')
+    if player.lastDiffState == 'afterPenalty' or player.lastDiffState == 'determineRole':
+        print "Walking from penalty!"
+        return player.goLater('walkFromPenalty')
 
     if player.lastDiffState == 'fallen':
         return player.goLater('spinAtGoal')
