@@ -11,7 +11,8 @@ import GoalieTransitions
 from objects import RelRobotLocation, RelLocation, Location, RobotLocation
 from noggin_constants import (LINE_CROSS_OFFSET, GOALBOX_DEPTH, GOALBOX_WIDTH,
                               FIELD_WHITE_LEFT_SIDELINE_X, CENTER_FIELD_Y,
-                              HEADING_LEFT)
+                              HEADING_LEFT, MIDFIELD_Y, BLUE_GOALBOX_RIGHT_X,
+                              BLUE_GOALBOX_BOTTOM_Y, BLUE_GOALBOX_TOP_Y)
 
 #from vision import cornerID as IDs
 from math import fabs, degrees, radians, sin, cos
@@ -142,18 +143,22 @@ def walkFromPenalty(player):
             goalCorner = Location(BLUE_GOALBOX_RIGHT_X,
                               BLUE_GOALBOX_BOTTOM_Y)
             walkFromPenalty.goalOnRight = False
+            print "I am on the left side of the field"
         else:
             goalCorner = Location(BLUE_GOALBOX_RIGHT_X,
                                BLUE_GOALBOX_TOP_Y)
             walkFromPenalty.goalOnRight = True
+            print "I'm on the right"
+        print "Goal corner is at:"
+        print goalCorner
         player.brain.nav.goTo(goalCorner,
                               precision = nav.PLAYBOOK,
-                              speed = nav.QUICK_SPEED,
-                              avoidObstacles = True,
-                              fast = True, pb = False)
+                              speed = nav.GRADUAL_SPEED)
+
     if ((walkFromPenalty.goalOnRight and player.brain.loc.y < (BLUE_GOALBOX_TOP_Y + 10.0)) or \
     (not walkFromPenalty.goalOnRight and player.brain.loc.y > (BLUE_GOALBOX_BOTTOM_Y - 10.0))) \
     and walkFromPenalty.check:
+        print "I'm heading towards the goal!"
         player.brain.nav.goTo(Location(FIELD_WHITE_LEFT_SIDELINE_X,
                                              CENTER_FIELD_Y),
                               precision = nav.GRAINY,
@@ -161,6 +166,9 @@ def walkFromPenalty(player):
                               avoidObstacles = True,
                               fast = True, pb = False)
         walkFromPenalty.check = False
+
+    print "My loc is: ({0},{1})".format(player.brain.loc.x, player.brain.loc.y)
+
 
     return Transition.getNextState(player, walkFromPenalty)
 

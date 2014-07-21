@@ -70,6 +70,7 @@ def gameSet(player):
 
 @superState('gameControllerResponder')
 def gamePlaying(player):
+    return player.goLater('walkFromPenalty')
     if player.firstFrame():
         player.inKickingState = False
         player.brain.fallController.enabled = True
