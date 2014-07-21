@@ -2,6 +2,7 @@ from . import SoccerFSA
 from . import FallControllerStates
 from . import RoleSwitchingStates
 from . import GameControllerStates
+from . import CommMonitorStates
 from . import GoalieStates
 from . import VisualGoalieStates
 from . import GoalieTransitions
@@ -22,6 +23,7 @@ class SoccerPlayer(SoccerFSA.SoccerFSA):
         self.addStates(GameControllerStates)
         self.addStates(GoalieStates)
         self.addStates(VisualGoalieStates)
+        self.addStates(CommMonitorStates)
         self.addStates(PenaltyStates)
         self.setName('pGoalie')
         self.currentState = 'fallController' # initial state
