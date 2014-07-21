@@ -130,6 +130,41 @@ def waitToFaceField(player):
     return Transition.getNextState(player, waitToFaceField)
 
 @superState('gameControllerResponder')
+def walkFromPenalty(player):
+
+    if player.firstFrame():
+        player.brain.tracker.repeatBasicPan()
+        player.returningFromPenalty = False
+        walkFromPenalty.check = True
+        goalCenter = Location(FIELD_WHITE_LEFT_SIDELINE_X,
+                                       CENTER_FIELD_Y)
+        if player.brain.loc.y < MIDFIELD_Y:
+            goalCorner = Location(BLUE_GOALBOX_RIGHT_X,
+                              BLUE_GOALBOX_BOTTOM_Y)
+            walkFromPenalty.goalOnRight = False
+        else:
+            goalCorner = Location(BLUE_GOALBOX_RIGHT_X,
+                               BLUE_GOALBOX_TOP_Y)
+            walkFromPenalty.goalOnRight = True
+        player.brain.nav.goTo(goalCorner,
+                              precision = nav.PLAYBOOK,
+                              speed = nav.QUICK_SPEED,
+                              avoidObstacles = True,
+                              fast = True, pb = False)
+    if ((walkFromPenalty.goalOnRight and player.brain.loc.y < (BLUE_GOALBOX_TOP_Y + 10.0)) or \
+    (not walkFromPenalty.goalOnRight and player.brain.loc.y > (BLUE_GOALBOX_BOTTOM_Y - 10.0))) \
+    and walkFromPenalty.check:
+        player.brain.nav.goTo(Location(FIELD_WHITE_LEFT_SIDELINE_X,
+                                             CENTER_FIELD_Y),
+                              precision = nav.GRAINY,
+                              speed = nav.QUICK_SPEED,
+                              avoidObstacles = True,
+                              fast = True, pb = False)
+        walkFromPenalty.check = False
+
+    return Transition.getNextState(player, walkFromPenalty)
+
+@superState('gameControllerResponder')
 def returnToGoal(player):
     if player.firstFrame():
         if player.lastDiffState == 'didIKickIt':
