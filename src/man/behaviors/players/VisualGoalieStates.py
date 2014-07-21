@@ -184,25 +184,27 @@ def walkFromPenalty(player):
 @superState('gameControllerResponder')
 def returnToGoal(player):
     if player.firstFrame():
-        if player.lastDiffState == 'didIKickIt':
-            correctedDest =(RelRobotLocation(0.0, 0.0, 0.0 ) -
-                            returnToGoal.kickPose)
-        else:
-            correctedDest = (RelRobotLocation(0.0, 0.0, 0.0) -
-                             RelRobotLocation(player.brain.interface.odometry.x,
-                                              player.brain.interface.odometry.y,
-                                              0.0))
+        player.brain.tracker.trackBall()
+        player.brain.nav.stand()
+        player.returningFromPenalty = False
+        returnToGoal.c = 0
 
-        if fabs(correctedDest.relX) < 5:
-            correctedDest.relX = 0.0
-        if fabs(correctedDest.relY) < 5:
-            correctedDest.relY = 0.0
-        if fabs(correctedDest.relH) < 5:
-            correctedDest.relH = 0.0
+        player.brain.interface.motionRequest.reset_odometry = True
+        player.brain.interface.motionRequest.timestamp = int(player.brain.time * 1000)
 
-        player.brain.nav.walkTo(correctedDest)
+    # send message to navigator for ten frames to make sure it gets it HACK
+    returnToGoal.c += 1
+    if returnToGoal.c < 10:
+        returnToGoal.dest = RelRobotLocation(-returnToGoal.kickPose.relX,
+                                            -returnToGoal.kickPose.relY,
+                                            -returnToGoal.kickPose.relH)
+        player.brain.nav.destinationWalkTo(returnToGoal.dest)
 
-    return Transition.getNextState(player, returnToGoal)
+    if player.brain.interface.odometry.x + fabs(returnToGoal.kickPose.relX) < 10.0:
+        player.brain.nav.stand()
+        return player.goLater('watchWithCornerChecks')
+
+    return player.stay()
 
 @superState('gameControllerResponder')
 def repositionAfterWhiff(player):
