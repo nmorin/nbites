@@ -137,23 +137,27 @@ def walkFromPenalty(player):
         player.brain.tracker.repeatBasicPan()
         player.returningFromPenalty = False
         walkFromPenalty.check = True
+        walkFromPenalty.goalOnRight = False
         goalCenter = Location(FIELD_WHITE_LEFT_SIDELINE_X,
                                        CENTER_FIELD_Y)
-        if player.brain.loc.y < MIDFIELD_Y:
-            goalCorner = Location(BLUE_GOALBOX_RIGHT_X,
+        # if player.brain.loc.y < MIDFIELD_Y:
+        #     goalCorner = Location(BLUE_GOALBOX_RIGHT_X,
+        #                       BLUE_GOALBOX_BOTTOM_Y)
+        #     walkFromPenalty.goalOnRight = False
+        #     print "I am on the left side of the field"
+        # else:
+        #     goalCorner = Location(BLUE_GOALBOX_RIGHT_X,
+        #                        BLUE_GOALBOX_TOP_Y)
+        #     walkFromPenalty.goalOnRight = True
+        #     print "I'm on the right"
+        goalCorner = Location(BLUE_GOALBOX_RIGHT_X,
                               BLUE_GOALBOX_BOTTOM_Y)
-            walkFromPenalty.goalOnRight = False
-            print "I am on the left side of the field"
-        else:
-            goalCorner = Location(BLUE_GOALBOX_RIGHT_X,
-                               BLUE_GOALBOX_TOP_Y)
-            walkFromPenalty.goalOnRight = True
-            print "I'm on the right"
         print "Goal corner is at:"
         print goalCorner
         player.brain.nav.goTo(goalCorner,
                               precision = nav.PLAYBOOK,
-                              speed = nav.GRADUAL_SPEED)
+                              speed = nav.MEDIUM_SPEED,
+                              fast = True)
 
     if ((walkFromPenalty.goalOnRight and player.brain.loc.y < (BLUE_GOALBOX_TOP_Y + 10.0)) or \
     (not walkFromPenalty.goalOnRight and player.brain.loc.y > (BLUE_GOALBOX_BOTTOM_Y - 10.0))) \

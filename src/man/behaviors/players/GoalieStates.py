@@ -7,6 +7,8 @@ from .. import SweetMoves
 from ..headTracker import HeadMoves
 import GoalieConstants as constants
 import math
+import noggin_constants as Constants
+
 
 SAVING = True
 
@@ -37,12 +39,19 @@ def gameReady(player):
         player.penaltyKicking = False
         player.stand()
         player.brain.tracker.lookToAngle(0)
+        player.brain.resetLocTo(Constants.BLUE_GOALBOX_MIDPOINT_X,
+                            Constants.FIELD_WHITE_BOTTOM_SIDELINE_Y,
+                            Constants.HEADING_UP)
         if player.lastDiffState != 'gameInitial':
             return player.goLater('spinToWalkOffField')
+
+
 
     # Wait until the sensors are calibrated before moving.
     if(not player.brain.motion.calibrated):
         return player.stay()
+    return player.goLater('walkFromPenalty')
+
 
     return player.stay()
 
