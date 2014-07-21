@@ -6,6 +6,7 @@ from . import GoalieStates
 from . import VisualGoalieStates
 from . import GoalieTransitions
 from . import PenaltyStates
+from . import CommMonitorStates
 from ..util import Transition
 
 import noggin_constants as NogginConstants
@@ -23,6 +24,7 @@ class SoccerPlayer(SoccerFSA.SoccerFSA):
         self.addStates(GoalieStates)
         self.addStates(VisualGoalieStates)
         self.addStates(PenaltyStates)
+        self.addStates(CommMonitorStates)
         self.setName('pGoalie')
         self.currentState = 'fallController' # initial state
 
