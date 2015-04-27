@@ -23,6 +23,7 @@
 #include "FallStatus.pb.h"
 #include "BatteryState.pb.h"
 #include "AudioCommand.pb.h"
+#include "DebugConfig.h"
 
 namespace man{
 namespace guardian{

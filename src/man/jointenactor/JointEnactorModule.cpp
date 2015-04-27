@@ -34,7 +34,11 @@ void JointEnactorModule::start()
     try
     {
         // Get the DCM proxy.
+#ifdef ROBOT_V5
+        dcmProxy_ = broker_->getSpecialisedProxy<AL::DCMProxy>("DCM");
+#else
         dcmProxy_ = broker_->getDcmProxy();
+#endif
     }
     catch (AL::ALError& e)
     {

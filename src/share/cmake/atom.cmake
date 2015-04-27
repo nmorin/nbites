@@ -22,6 +22,8 @@ endif()
 
 set( OE_SYSROOT "${TOOLCHAIN_DIR}/sysroot/" )
 
+
+
 set( CMAKE_CROSSCOMPILING   TRUE  )
 set( CMAKE_SYSTEM_NAME      Linux )
 set( CMAKE_SYSTEM_VERSION   1     )

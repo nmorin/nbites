@@ -27,6 +27,7 @@
 #include "RoboGrams.h"
 
 #include "PMotion.pb.h"
+#include "DebugConfig.h"
 
 namespace man
 {

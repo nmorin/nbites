@@ -297,7 +297,11 @@ void ImageTranscriber::assertCameraSettings() {
     int sharpness = getControlSetting(V4L2_CID_SHARPNESS);
     int gain = getControlSetting(V4L2_CID_GAIN);
     int exposure = getControlSetting(V4L2_CID_EXPOSURE);
+#ifdef ROBOT_V5
+    int whitebalance = getControlSetting(V4L2_CID_WHITE_BALANCE_TEMPERATURE);
+#else
     int whitebalance = getControlSetting(V4L2_CID_DO_WHITE_BALANCE);
+#endif
     int fade = getControlSetting(V4L2_MT9M114_FADE_TO_BLACK);
 
     //std::cerr << "Done checking driver settings" << std::endl;

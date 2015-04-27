@@ -115,7 +115,11 @@ void WalkingEngine::init()
 		cout << "Could not find jointCalibration.cfg!" << endl;
 	}
 
+#ifdef ROBOT_V5
+	InMapFile massCalibrationStream(ModuleBase::config_path + "massCalibrationV5.cfg");
+#else
 	InMapFile massCalibrationStream(ModuleBase::config_path + "massCalibration.cfg");
+#endif
 	if (massCalibrationStream.exists()) {
 		massCalibrationStream >> theMassCalibrationBH;
 	} else {

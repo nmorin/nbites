@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include "DebugConfig.h"
 
 class Camera {
 
@@ -55,7 +56,10 @@ public:
             TOP_WHITE_BALANCE,
             TOP_FADE_TO_BLACK
         };
+#ifdef ROBOT_V5
+#else
         return topSettings;
+#endif
     }
 
     static const Settings& getBottomSettings() {
