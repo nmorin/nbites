@@ -15,7 +15,7 @@
 #include "InertialState.pb.h"
 #include "Images.h"
 #include "RoboGrams.h"
- #include "DebugConfig.h"
+#include "DebugConfig.h"
 
 namespace portals {
 

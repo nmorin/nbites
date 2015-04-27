@@ -213,6 +213,9 @@ void ImageTranscriber::initSettings()
     setControlSetting(V4L2_CID_SATURATION, settings.saturation);
     setControlSetting(V4L2_CID_HUE, settings.hue);
     setControlSetting(V4L2_CID_SHARPNESS, settings.sharpness);
+#ifdef ROBOT_V5
+    setControlSetting(V4L2_CID_GAMMA, settings.gamma);
+#endif
 
     // Auto white balance, exposure,  and backlight comp off!
     setControlSetting(V4L2_CID_AUTO_WHITE_BALANCE,
@@ -220,12 +223,20 @@ void ImageTranscriber::initSettings()
     setControlSetting(V4L2_CID_BACKLIGHT_COMPENSATION,
                       settings.backlight_compensation);
     setControlSetting(V4L2_CID_EXPOSURE_AUTO, settings.auto_exposure);
+#ifdef ROBOT_V5
+    setControlSetting(V4L2_CID_DO_WHITE_BALANCE, 0);
+#endif
 
     setControlSetting(V4L2_CID_EXPOSURE, settings.exposure);
     setControlSetting(V4L2_CID_GAIN, settings.gain);
 
     // This is actually just the white balance setting!
+#ifdef ROBOT_V5
+    setControlSetting(V4L2_CID_WHITE_BALANCE_TEMPERATURE,
+                       settings.white_balance);
+#else
     setControlSetting(V4L2_CID_DO_WHITE_BALANCE, settings.white_balance);
+#endif
     setControlSetting(V4L2_MT9M114_FADE_TO_BLACK, settings.fade_to_black);
 }
 
