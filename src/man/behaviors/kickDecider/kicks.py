@@ -91,8 +91,16 @@ ZELLVARRO_RIGHT_KICK = Kick("Zellvarro_Left_Kick",
                       dist = 300,
                       move=SweetMoves.ZELLVARRO_RIGHT_KICK)
 
-LEFT_KICK = ZELLVARRO_LEFT_KICK
-RIGHT_KICK = ZELLVARRO_RIGHT_KICK
+if not Constants.ROBOT_V5:
+    LEFT_KICK = ZELLVARRO_LEFT_KICK
+    RIGHT_KICK = ZELLVARRO_RIGHT_KICK
+    M_LEFT_SIDE = Kick("M_Left_Side", x = 13.4, y = -2.76, h = 90, dist = 100)
+    M_RIGHT_SIDE = Kick("M_Right_Side", x = 13.4, y = 2.76, h = -90, dist = 100)
+else:
+    LEFT_KICK = LEFT_SHORT_STRAIGHT_KICK
+    RIGHT_KICK = RIGHT_SHORT_STRAIGHT_KICK
+    M_LEFT_SIDE = Kick("M_Left_Side", x = 13, y = -2.8, h = 90, dist = 70)
+    M_RIGHT_SIDE = Kick("M_Right_Side", x = 13, y = 2.8, h = -90, dist = 70)
 
 # Motion kicks
 M_LEFT_STRAIGHT =  Kick("M_Left_Straight", x = 14, y = 3.6, dist = 70)
@@ -100,9 +108,6 @@ M_RIGHT_STRAIGHT =  Kick("M_Right_Straight", x = 14, y = -3.6, dist = 70)
 
 M_LEFT_CHIP_SHOT =  Kick("M_Left_Chip_Shot", x = 12.3, y = -.3, h = 45, dist = 70)
 M_RIGHT_CHIP_SHOT =  Kick("M_Right_Chip_Shot", x = 12.3, y = .3, h = -45, dist = 70)
-
-M_LEFT_SIDE = Kick("M_Left_Side", x = 13.4, y = -2.76, h = 90, dist = 100)
-M_RIGHT_SIDE = Kick("M_Right_Side", x = 13.4, y = 2.76, h = -90, dist = 100)
 
 # Not used 04-19-13
 LEFT_SHORT_SIDE_KICK =  Kick("L_Short_Side", x = 15.5, y = -.5,

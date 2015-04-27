@@ -18,6 +18,13 @@ BOOST_PYTHON_MODULE(noggin_constants)
     scope().attr("USE_LAB_FIELD") = false;
 #endif
 
+// Using a v5 or v4 robot?
+#ifdef ROBOT_V5
+    scope().attr("ROBOT_V5") = true;
+#else
+    scope().attr("ROBOT_V5") = false;
+#endif
+
     // Walk time
     scope().attr("TIME_STEP") = TIME_STEP;
     scope().attr("TIME_PER_STEP") = TIME_PER_STEP;
