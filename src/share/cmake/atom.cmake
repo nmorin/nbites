@@ -5,9 +5,21 @@ set( OFFLINE OFF )
 # Find the NBITES_DIR
 include(${CMAKE_CURRENT_LIST_DIR}/FindNBITES_DIR.cmake)
 
+
 # Cross compilation!
 # Set the variable for the cross-compilation directory, cmake variables
 set( TOOLCHAIN_DIR "${NBITES_DIR}/lib/atomtoolchain" )
+
+message(STATUS "AL_DIR defined as: $ENV{AL_DIR}.")
+
+if($ENV{AL_DIR} MATCHES "2.1.0.19")
+  message(STATUS "AL_DIR set to v5")
+  set( OE_SYSROOT "${TOOLCHAIN_DIR}/libnaoqi-sysroot/" )
+else()
+  message(STATUS "AL_DIR set to v4")
+  set( OE_SYSROOT "${TOOLCHAIN_DIR}/sysroot/" )
+endif()
+
 set( OE_SYSROOT "${TOOLCHAIN_DIR}/sysroot/" )
 
 set( CMAKE_CROSSCOMPILING   TRUE  )

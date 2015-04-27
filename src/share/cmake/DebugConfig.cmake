@@ -30,6 +30,12 @@ option(
 )
 
 option(
+  ROBOT_V5
+  "Using a V5 robot."
+  OFF
+)
+
+option(
   DEBUG_BALLTRACK
   "Toggle balltrack debug mode."
   OFF

@@ -25,6 +25,13 @@
 #   undef DEBUG_LOC
 #endif
 
+#define ROBOT_V5_${ROBOT_V5}
+#ifdef  ROBOT_V5_ON
+#   define ROBOT_V5
+#else
+#   undef ROBOT_V5
+#endif
+
 #define DEBUG_THREADS_${DEBUG_THREADS}
 #ifdef  DEBUG_THREADS_ON
 #   define DEBUG_THREADS
