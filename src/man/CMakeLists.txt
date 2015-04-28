@@ -64,6 +64,12 @@ include_directories( SYSTEM ${PROTOBUF_INCLUDE_DIR} )
 find_package( PythonLibs REQUIRED)
 include_directories( ${PYTHON_INCLUDE_DIR} )
 
+if( $ENV{AL_DIR} MATCHES "2.1.0.19" )
+  set(Boost_NO_BOOST_CMAKE true)
+  find_package(Boost COMPONENTS python REQUIRED)
+  include_directories( ${Boost_INCLUDE_DIR} )
+endif()
+
 # Our core includes come from here
 include_directories( ${SHARE_DIR}/include )
 

@@ -94,8 +94,8 @@ ZELLVARRO_RIGHT_KICK = Kick("Zellvarro_Left_Kick",
 if not Constants.ROBOT_V5:
     LEFT_KICK = ZELLVARRO_LEFT_KICK
     RIGHT_KICK = ZELLVARRO_RIGHT_KICK
-    M_LEFT_SIDE = Kick("M_Left_Side", x = 13.4, y = -2.76, h = 90, dist = 100)
-    M_RIGHT_SIDE = Kick("M_Right_Side", x = 13.4, y = 2.76, h = -90, dist = 100)
+    M_LEFT_SIDE = Kick("M_Left_Side", x = 13.4, y = -2.76, h = 90, dist = 70)
+    M_RIGHT_SIDE = Kick("M_Right_Side", x = 13.4, y = 2.76, h = -90, dist = 70)
 else:
     LEFT_KICK = LEFT_SHORT_STRAIGHT_KICK
     RIGHT_KICK = RIGHT_SHORT_STRAIGHT_KICK

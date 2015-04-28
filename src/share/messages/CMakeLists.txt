@@ -5,6 +5,11 @@ file(GLOB PROTO_FILES
   RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
   "*.proto")
 
+if( $ENV{AL_DIR} MATCHES "2.1.0.19" )
+  find_package(Boost COMPONENTS python REQUIRED)
+  include_directories( ${Boost_INCLUDE_DIR} )
+endif()
+
 #protobuf compiler
 set(PROTOC_C_OUT_FLAG --cpp_out)
 
@@ -46,6 +51,7 @@ endif( NOT OFFLINE )
 
 set( PROTOS_SRCS ${GENERATED_SRC_FILES} )
 set( MESSAGE_SRCS Images.cpp )
+
 
 # Add static library target
 add_library(

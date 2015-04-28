@@ -5,6 +5,7 @@
 #include "Common.h"
 #include "Profiler.h"
 #include "Camera.h"
+#include "DebugConfig.h"
 
 #include "log/log_header.h"
 #include "log/log_sf.h"
