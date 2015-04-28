@@ -4,19 +4,19 @@ set( AL_DIR $ENV{AL_DIR} )
 message(STATUS "Set $ENV{AL_DIR}/ as the SDK.")
 message(STATUS "If this is not correct, edit your nbites.bash.")
 
-if (${OE_SYSROOT} MATCHES "libnaoqi")
-  message(STATUS "Using v5 sysroot")
-else()
-  message(STATUS "Using v4 sysroot")
-endif()
-
-if( NOT OFFLINE )
+if( NOT OFFLINE AND $AL_DIR MATCHES "2.1.0.19")
+  set( ALCOMMON_INCLUDE_DIR ${OE_SYSROOT}/include/ )
+elseif( NOT OFFLINE )
   set( ALCOMMON_INCLUDE_DIR ${OE_SYSROOT}/usr/include/ )
 else()
   set( ALCOMMON_INCLUDE_DIR ${AL_DIR}/include/ )
 endif()
 
-if( NOT OFFLINE )
+if( NOT OFFLINE AND $AL_DIR MATCHES "2.1.0.19")
+  set( ALCOMMON_LIBRARIES
+  ${OE_SYSROOT}/lib/libalcommon.so
+  ${OE_SYSROOT}/lib/libalmemoryfastaccess.so)
+elseif( NOT OFFLINE )
   set( ALCOMMON_LIBRARIES
     ${OE_SYSROOT}/usr/lib/libalcommon.so
     ${OE_SYSROOT}/usr/lib/libalmemoryfastaccess.so)
