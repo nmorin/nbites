@@ -102,6 +102,30 @@ PROF_ENTER(P_COMM_BUILD_PACKET);
     splMessage.ballVel[0] = model.ball_vel_x()*CM_TO_MM;
     splMessage.ballVel[1] = model.ball_vel_y()*CM_TO_MM;
 
+    // describes what robot intends to do (which player they intend to be)
+    switch(airbData->player_number()) {
+        case 1:
+            splMessage.intention = (uint8_t)1;
+            break;
+        case 2:
+        case 3:
+            splMessage.intention = (uint8_t)2;
+            break;
+        case 4:
+        case 5:
+            splMessage.intention = (uint8_t)3;
+            break;
+        default:
+            splMessage.intention = (uint8_t)0;
+    }
+
+    // TODO: calculate these and fix
+    splMessage.averageWalkSpeed = (uint16_t)0;
+    splMessage.maxKickDistance = (uint16_t)0;
+    splMessage.currentPositionConfidence = (uint16_t)0;
+    splMessage.currentSideConfidence = (uint16_t)0;
+
+
 PROF_EXIT(P_COMM_BUILD_PACKET);
 
 PROF_ENTER(P_COMM_SERIALIZE_PACKET);
@@ -128,106 +152,106 @@ PROF_EXIT(P_COMM_TO_SOCKET);
 void TeamConnect::receive(portals::OutPortal<messages::WorldModel>* modelOuts [NUM_PLAYERS_PER_TEAM],
                           int player, int team)
 {
-    char packet[sizeof(SPLStandardMessage)];
-    int result;
-    int playerNum;
+//     char packet[sizeof(SPLStandardMessage)];
+//     int result;
+//     int playerNum;
 
-    do
-    {
-        // initial setup
-        struct SPLStandardMessage splMessage;
-        memset(&splMessage, 0, sizeof(SPLStandardMessage)); // @TODO: neccessary?
+//     do
+//     {
+//         // initial setup
+//         struct SPLStandardMessage splMessage;
+//         memset(&splMessage, 0, sizeof(SPLStandardMessage)); // @TODO: neccessary?
 
-        // actually check socket
-        result = socket->receive((char*) &splMessage, sizeof(SPLStandardMessage));
+//         // actually check socket
+//         result = socket->receive((char*) &splMessage, sizeof(SPLStandardMessage));
 
-        llong recvdtime = timer->timestamp();
+//         llong recvdtime = timer->timestamp();
 
-        if (result <= 0 || result != sizeof(SPLStandardMessage)) {
-            break; // leave on error or nothing to receive
-        }
+//         if (result <= 0 || result != sizeof(SPLStandardMessage)) {
+//             break; // leave on error or nothing to receive
+//         }
 
-        // deserialize the SPLMessage's teamMessage.get() field into a TeamPacket
-        portals::Message<messages::TeamPacket> teamMessage(0);
-        if (!teamMessage.get()->ParseFromArray(splMessage.data, splMessage.numOfDataBytes))
-        {
+//         // deserialize the SPLMessage's teamMessage.get() field into a TeamPacket
+//         portals::Message<messages::TeamPacket> teamMessage(0);
+//         if (!teamMessage.get()->ParseFromArray(splMessage.data, splMessage.numOfDataBytes))
+//         {
 
-            std::cerr << "Failed to parse GPB from socket in TeamConnect. " << "numOfDataBytes" << splMessage.numOfDataBytes << std::endl;
-        }
+//             std::cerr << "Failed to parse GPB from socket in TeamConnect. " << "numOfDataBytes" << splMessage.numOfDataBytes << std::endl;
+//         }
 
-        if (!verify(&splMessage, teamMessage.get()->sequence_number(), teamMessage.get()->timestamp(), recvdtime, player, team))
-        {
-            continue;  // bad packet
-        }
+//         if (!verify(&splMessage, teamMessage.get()->sequence_number(), teamMessage.get()->timestamp(), recvdtime, player, team))
+//         {
+//             continue;  // bad packet
+//         }
 
-#ifdef DEBUG_COMM
-        std::cout << "Recieved a packet\n"
-                  << teamMessage.get()->DebugString()
-                  << std::endl;
-#endif
+// #ifdef DEBUG_COMM
+//         std::cout << "Recieved a packet\n"
+//                   << teamMessage.get()->DebugString()
+//                   << std::endl;
+// #endif
 
-#ifdef USE_SPL_COMM
-        // create a WorldModel with data from splMessage
-        portals::Message<messages::WorldModel> model(0);
-        messages::WorldModel *message = model.get();
+// #ifdef USE_SPL_COMM
+//         // create a WorldModel with data from splMessage
+//         portals::Message<messages::WorldModel> model(0);
+//         messages::WorldModel *message = model.get();
 
-        message->set_timestamp(teamMessage.get()->payload().timestamp());
+//         message->set_timestamp(teamMessage.get()->payload().timestamp());
 
-#ifdef DEBUG_COMM
-        std::cout << "Debugging SPL comm" << std::endl;
-        std::cout << "Fallen: " << splMessage.fallen << std::endl;
-        std::cout << "Pose: " << splMessage.pose[0] << std::endl;
-        std::cout << "Pose: " << splMessage.pose[1] << std::endl;
-        std::cout << "Pose: " << splMessage.pose[2] << std::endl;
-        std::cout << "Walking to: " << splMessage.walkingTo[0] << std::endl;
-        std::cout << "Walking to: " << splMessage.walkingTo[1] << std::endl;
-        std::cout << "Shooting to: " << splMessage.shootingTo[0] << std::endl;
-        std::cout << "Shooting to: " << splMessage.shootingTo[1] << std::endl;
-        std::cout << "Ball age: " << splMessage.ballAge << std::endl;
-        std::cout << "Ball: " << splMessage.ball[0] << std::endl;
-        std::cout << "Ball: " << splMessage.ball[1] << std::endl;
-        std::cout << "Ball vel: " << splMessage.ballVel[0] << std::endl;
-        std::cout << "Ball vel: " << splMessage.ballVel[1] << std::endl;
-#endif
+// #ifdef DEBUG_COMM
+//         std::cout << "Debugging SPL comm" << std::endl;
+//         std::cout << "Fallen: " << splMessage.fallen << std::endl;
+//         std::cout << "Pose: " << splMessage.pose[0] << std::endl;
+//         std::cout << "Pose: " << splMessage.pose[1] << std::endl;
+//         std::cout << "Pose: " << splMessage.pose[2] << std::endl;
+//         std::cout << "Walking to: " << splMessage.walkingTo[0] << std::endl;
+//         std::cout << "Walking to: " << splMessage.walkingTo[1] << std::endl;
+//         std::cout << "Shooting to: " << splMessage.shootingTo[0] << std::endl;
+//         std::cout << "Shooting to: " << splMessage.shootingTo[1] << std::endl;
+//         std::cout << "Ball age: " << splMessage.ballAge << std::endl;
+//         std::cout << "Ball: " << splMessage.ball[0] << std::endl;
+//         std::cout << "Ball: " << splMessage.ball[1] << std::endl;
+//         std::cout << "Ball vel: " << splMessage.ballVel[0] << std::endl;
+//         std::cout << "Ball vel: " << splMessage.ballVel[1] << std::endl;
+// #endif
 
-        playerNum = splMessage.playerNum;
-        message->set_fallen(splMessage.fallen);
+//         playerNum = splMessage.playerNum;
+//         message->set_fallen(splMessage.fallen);
 
-        message->set_my_x(splMessage.pose[0]*MM_TO_CM + CENTER_FIELD_X);
-        message->set_my_y(splMessage.pose[1]*MM_TO_CM + CENTER_FIELD_Y);
-        message->set_my_h(splMessage.pose[2]);
+//         message->set_my_x(splMessage.pose[0]*MM_TO_CM + CENTER_FIELD_X);
+//         message->set_my_y(splMessage.pose[1]*MM_TO_CM + CENTER_FIELD_Y);
+//         message->set_my_h(splMessage.pose[2]);
 
-        message->set_walking_to_x(splMessage.walkingTo[0]*MM_TO_CM + CENTER_FIELD_X);
-        message->set_walking_to_y(splMessage.walkingTo[1]*MM_TO_CM + CENTER_FIELD_Y);
+//         message->set_walking_to_x(splMessage.walkingTo[0]*MM_TO_CM + CENTER_FIELD_X);
+//         message->set_walking_to_y(splMessage.walkingTo[1]*MM_TO_CM + CENTER_FIELD_Y);
 
-        message->set_kicking_to_x(splMessage.shootingTo[0]*MM_TO_CM + CENTER_FIELD_X);
-        message->set_kicking_to_y(splMessage.shootingTo[1]*MM_TO_CM + CENTER_FIELD_Y);
+//         message->set_kicking_to_x(splMessage.shootingTo[0]*MM_TO_CM + CENTER_FIELD_X);
+//         message->set_kicking_to_y(splMessage.shootingTo[1]*MM_TO_CM + CENTER_FIELD_Y);
 
-        message->set_ball_age(splMessage.ballAge/1000); // milliseconds to seconds
+//         message->set_ball_age(splMessage.ballAge/1000); // milliseconds to seconds
 
-        // @TODO: the logic for this conversion is somewhere else in the code, use it
-        message->set_ball_dist((float)sqrt((float)pow(splMessage.ball[0], 2) + 
-                                           (float)pow(splMessage.ball[1], 2))*MM_TO_CM);
-        message->set_ball_bearing((float)atan(splMessage.ball[1]/splMessage.ball[0])*TO_DEG);
+//         // @TODO: the logic for this conversion is somewhere else in the code, use it
+//         message->set_ball_dist((float)sqrt((float)pow(splMessage.ball[0], 2) + 
+//                                            (float)pow(splMessage.ball[1], 2))*MM_TO_CM);
+//         message->set_ball_bearing((float)atan(splMessage.ball[1]/splMessage.ball[0])*TO_DEG);
 
-        message->set_ball_vel_x(splMessage.ballVel[0]*MM_TO_CM);
-        message->set_ball_vel_y(splMessage.ballVel[1]*MM_TO_CM);
+//         message->set_ball_vel_x(splMessage.ballVel[0]*MM_TO_CM);
+//         message->set_ball_vel_y(splMessage.ballVel[1]*MM_TO_CM);
 
-        // so that world view displays drop-in players correctly
-        message->set_ball_on(!splMessage.ballAge);
-        message->set_in_kicking_state(splMessage.pose[0] != splMessage.shootingTo[0] ||
-                                      splMessage.pose[1] != splMessage.shootingTo[1]);
-        message->set_role(6);
+//         // so that world view displays drop-in players correctly
+//         message->set_ball_on(!splMessage.ballAge);
+//         message->set_in_kicking_state(splMessage.pose[0] != splMessage.shootingTo[0] ||
+//                                       splMessage.pose[1] != splMessage.shootingTo[1]);
+//         message->set_role(6);
 
-        // so that behaviors actually processes world model
-        message->set_active(true);
-#else
-        playerNum = teamMessage.get()->player_number();
-        portals::Message<messages::WorldModel> model(&teamMessage.get()->payload());
-#endif
+//         // so that behaviors actually processes world model
+//         message->set_active(true);
+// #else
+//         playerNum = teamMessage.get()->player_number();
+//         portals::Message<messages::WorldModel> model(&teamMessage.get()->payload());
+// #endif
 
-        modelOuts[playerNum-1]->setMessage(model);
-    } while (result > 0);
+//         modelOuts[playerNum-1]->setMessage(model);
+//     } while (result > 0);
 }
 
 bool TeamConnect::verify(SPLStandardMessage* splMessage, int seqNumber, int64_t timestamp, llong recvdtime,
