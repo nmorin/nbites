@@ -71,26 +71,28 @@ void ObstacleModule::run_()
     sonarIn.latch();
 
     // Decide sonars
-    // FieldObstacles::Obstacle::ObstaclePosition
-    //     sonars = processSonar(sonarIn.message());
+    FieldObstacles::Obstacle::ObstaclePosition
+        sonars = processSonar(sonarIn.message());
 
     // Process vision in all three sections of frame separately
-    FieldObstacles::Obstacle::ObstaclePosition
-        visionL = processVision(visionIn.message().left_dist(),
-                                visionIn.message().left_bearing());
-    FieldObstacles::Obstacle::ObstaclePosition
-        visionM = processVision(visionIn.message().mid_dist(),
-                                visionIn.message().mid_bearing());
-    FieldObstacles::Obstacle::ObstaclePosition
-        visionR = processVision(visionIn.message().right_dist(),
-                                visionIn.message().right_bearing());
+    // FieldObstacles::Obstacle::ObstaclePosition
+    //     visionL = processVision(visionIn.message().left_dist(),
+    //                             visionIn.message().left_bearing());
+    // FieldObstacles::Obstacle::ObstaclePosition
+    //     visionM = processVision(visionIn.message().mid_dist(),
+    //                             visionIn.message().mid_bearing());
+    // FieldObstacles::Obstacle::ObstaclePosition
+    //     visionR = processVision(visionIn.message().right_dist(),
+    //                             visionIn.message().right_bearing());
 
     // update obstacle buffer with new information from vision
-    updateObstacleBuffer(visionL, visionM, visionR);
+    // updateObstacleBuffer(visionL, visionM, visionR);
 
     // Decide arms
     FieldObstacles::Obstacle::ObstaclePosition
         arms = processArms(armContactIn.message());
+
+    
 
     // Used to check if there were any obstacles found
     bool didReturn = false;
@@ -99,64 +101,77 @@ void ObstacleModule::run_()
     // std::cout<<"OBSTACLE: ";
 
     // ignore "NONE" direction, start at 1
-    for (int i = 1; i < NUM_DIRECTIONS; i++)
-    {
-        if (obstacleBuffer[i] != 0)
-        {
-            FieldObstacles::Obstacle* temp = current.get()->add_obstacle();
-            temp->set_position(obstaclesList[i]);
-            temp->set_distance(obstacleDistances[i]);
-            // std::cout<<obstacleDistances[i]<<", ";
-            didReturn = true;
-        }
-    }
+    // for (int i = 1; i < NUM_DIRECTIONS; i++)
+    // {
+    //     if (obstacleBuffer[i] != 0)
+    //     {
+    //         FieldObstacles::Obstacle* temp = current.get()->add_obstacle();
+    //         temp->set_position(obstaclesList[i]);
+    //         temp->set_distance(obstacleDistances[i]);
+    //         // std::cout<<obstacleDistances[i]<<", ";
+    //         didReturn = true;
+    //     }
+    // }
     // std::cout<<std::endl;
 
-    FieldObstacles::Obstacle*temp = current.get()->add_obstacle();
-    temp->set_position(arms);
-    temp->set_distance(1.f);
+    // FieldObstacles::Obstacle*temp = current.get()->add_obstacle();
+    // temp->set_position(arms);
+    // temp->set_distance(1.f);
 
-    obstacleOut.setMessage(current);
+    // obstacleOut.setMessage(current);
 
 /*
  * This code processes both sonars and arms, then returns where
  * a single obstacle is based on information gathered from both inputs.
  * It does not use vision at all.
- *
+ */
 #ifdef USE_LAB_FIELD // Walls are too close to field for sonar use
-    sonars = Obstacle::NONE;
+    sonars = FieldObstacles::Obstacle::NONE;
 #endif
+
+    FieldObstacles::Obstacle* temp = current.get()->add_obstacle();
 
     // How do we combine the two decisions?
     // If they agree, easy
     if (arms == sonars)
     {
-        current.get()->set_position(arms);
+        // current.get()->set_position(arms);
+        temp->set_position(arms);
+        // std::cout<<arms<<std::endl;
     }
     // Trust sonars before we get any arm input
-    else if (arms == Obstacle::NONE)
+    else if (arms == FieldObstacles::Obstacle::NONE)
     {
-        current.get()->set_position(sonars);
+        // current.get()->set_position(sonars);
+        temp->set_position(sonars);
+        // std::cout<<sonars<<std::endl;
     }
     // If they sort of agree, use the value that gives us better dodging info
-    else if (sonars == Obstacle::NORTH && (arms == Obstacle::NORTHWEST ||
-                                           arms == Obstacle::NORTHEAST))
+    else if (sonars == FieldObstacles::Obstacle::NORTH && (arms == FieldObstacles::Obstacle::NORTHWEST ||
+                                           arms == FieldObstacles::Obstacle::NORTHEAST))
     {
-        current.get()->set_position(arms);
+        // current.get()->set_position(arms);
+        temp->set_position(arms);
+        // std::cout<<arms<<std::endl;
     }
-    else if (arms == Obstacle::NORTH &&  (sonars == Obstacle::NORTHWEST ||
-                                          sonars == Obstacle::NORTHEAST))
+    else if (arms == FieldObstacles::Obstacle::NORTH &&  (sonars == FieldObstacles::Obstacle::NORTHWEST ||
+                                          sonars == FieldObstacles::Obstacle::NORTHEAST))
     {
-        current.get()->set_position(sonars);
+        // current.get()->set_position(sonars);
+        temp->set_position(sonars);
+        // std::cout<<sonars<<std::endl;
     }
     // If they don't agree or get no sonars, trust the arms
     else
     {
-        current.get()->set_position(arms);
+        // current.get()->set_posisttion(arms);
+        temp->set_position(arms);
+        // std::cout<<arms<<std::endl;
     }
 
+    temp->set_distance(1.f);
     obstacleOut.setMessage(current);
-*/
+
 }
 
 FieldObstacles::Obstacle::ObstaclePosition

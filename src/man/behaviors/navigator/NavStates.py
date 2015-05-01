@@ -146,13 +146,13 @@ def dodge(nav):
             dodge.dest = RelRobotLocation(-15, direction*10, 0)
         elif dodge.armPosition == 2:
             print "Dodging NORTHEAST obstacle"
-            dodge.dest = RelRobotLocation(-5, 15, 0)
+            dodge.dest = RelRobotLocation(-20, 30, 0)
         elif dodge.armPosition == 3:
             print "Dodging EAST obstacle"
-            dodge.dest = RelRobotLocation(0, 20, 0)
+            dodge.dest = RelRobotLocation(0, 30, 0)
         elif dodge.armPosition == 4:
             print "Dodging SOUTHEAST obstacle"
-            dodge.dest = RelRobotLocation(5, 15, 0)
+            dodge.dest = RelRobotLocation(20, 30, 0)
         # if directly behind us, move forward and to one side based on
         # where the goToPosition dest is
         elif dodge.armPosition == 5:
@@ -166,13 +166,13 @@ def dodge(nav):
             dodge.dest = RelRobotLocation(15, direction*10, 0)
         elif dodge.armPosition == 6:
             print "Dodging SOUTHWEST obstacle"
-            dodge.dest = RelRobotLocation(5, -15, 0)
+            dodge.dest = RelRobotLocation(20, -30, 0)
         elif dodge.armPosition == 7:
             print "Dodging WEST obstacle"
-            dodge.dest = RelRobotLocation(0, -20, 0)
+            dodge.dest = RelRobotLocation(0, -30, 0)
         elif dodge.armPosition == 8:
             print "Dodging NORTHWEST obstacle"
-            dodge.dest = RelRobotLocation(-5, -15, 0)
+            dodge.dest = RelRobotLocation(-20, -30, 0)
         else:
             return
 
