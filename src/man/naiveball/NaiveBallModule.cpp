@@ -193,15 +193,16 @@ void NaiveBallModule::calculateVelocity()
     xVelocityEst = (end_avgs.rel_x - start_avgs.rel_x) / denominator * ALPHA + .9*xVelocityEst * (1 - ALPHA);
     yVelocityEst = (end_avgs.rel_y - start_avgs.rel_y) / denominator * ALPHA + .9*yVelocityEst * (1 - ALPHA);
 
-    if (fabs(xVelocityEst) < .01 && xVelocityEst != 0.0 && fabs(myBall.mov_vel_x()) > 2.0) {
-        std::cout << "----- velocity extremely low?" << std::endl;
-        printBallState(start_avgs);
-        printBallState(end_avgs);
-        std::cout << "xVelocityEst: " << xVelocityEst << std::endl;
-        std::cout << "endIndex: " << endIndex << std::endl;
-        std::cout << "startIndex: " << startIndex << std::endl;
-        std::cout << "yIntercept: " << yIntercept << std::endl;
-    }
+
+    // if (fabs(xVelocityEst) < .01 && xVelocityEst != 0.0 && fabs(myBall.mov_vel_x()) > 2.0) {
+    //     std::cout << "----- velocity extremely low?" << std::endl;
+    //     printBallState(start_avgs);
+    //     printBallState(end_avgs);
+    //     std::cout << "xVelocityEst: " << xVelocityEst << std::endl;
+    //     std::cout << "endIndex: " << endIndex << std::endl;
+    //     std::cout << "startIndex: " << startIndex << std::endl;
+    //     std::cout << "yIntercept: " << yIntercept << std::endl;
+    // }
 
     float dist = calcSumSquaresSQRT((xVelocityEst), (yVelocityEst));
     velocityEst = (dist / denominator) * ALPHA + velocityEst * (1-ALPHA);

@@ -590,7 +590,7 @@ def notTurnedAround(player):
 def updateSpeedBuffer(player):
     buffSize = 6
     player.ballObservations += [player.brain.ball.mov_vel_x]
-    
+
 
 
 updateSpeedBuffer.currentIndex = 0
@@ -622,32 +622,8 @@ def shouldDiveRight(player):
         sightOk)
 
 #todo if ball vel < -15
-#check nb avging
-
-    if save:
-        print "DIVE RIGHT"
-        print("yintercept:", nball.yintercept)
-        print("Ball dist:", ball.distance)
-        print("shouldDiveRight.lastFramesOff:", shouldDiveRight.lastFramesOff)
-        print("ball.vis.frames_on", ball.vis.frames_on)
-        print("nb xvel:", nball.x_vel)
-        print("ball mov vel:", ball.mov_vel_x)
-        nb = player.brain.naiveBall
-        print("startAvgX:", nb.start_avg_x, "Y:", nb.start_avg_y)
-        print("endAvgX:", nb.end_avg_x, "Y:", nb.end_avg_y)
-        print("avgStartIndex:", nb.avg_start_index, "end:", nb.avg_end_index)
-        print("alt vel x:", nb.alt_x_vel)
-        for i in range(0, nb.position_size()):
-            print("Position", i, ":: x: ", nb.position(i).x, "y: ", nb.position(i).y)
-
 
     return save
-
-    # return (ball.mov_vel_x < -6.0 and
-    #         ball.mov_speed > 8.0 and
-    #         ball.rel_y_intersect_dest < -20.0 and
-    #         ball.distance < 150.0 and
-    #         sightOk)
 
 def shouldDiveLeft(player):
 
@@ -674,22 +650,6 @@ def shouldDiveLeft(player):
         nball.yintercept < 100.0 and
         ball.distance < constants.SAVE_DIST and
         sightOk)
-
-    if save:
-        print "DIVE LEFT"
-        print("yintercept:", nball.yintercept)
-        print("Ball dist:", ball.distance)
-        print("shouldDiveRight.lastFramesOff:", shouldDiveLeft.lastFramesOff)
-        print("ball.vis.frames_on", ball.vis.frames_on)
-        print("nb xvel:", nball.x_vel)
-        print("ball mov vel:", ball.mov_vel_x)
-        nb = player.brain.naiveBall
-        print("startAvgX:", nb.start_avg_x, "Y:", nb.start_avg_y)
-        print("endAvgX:", nb.end_avg_x, "Y:", nb.end_avg_y)
-        print("avgStartIndex:", nb.avg_start_index, "end:", nb.avg_end_index)
-        print("alt vel x:", nb.alt_x_vel)
-        for i in range(0, nb.position_size()):
-            print("Position", i, ":: x: ", nb.position(i).x, "y: ", nb.position(i).y)
 
     return save
 
@@ -736,29 +696,7 @@ def shouldSquat(player):
         print("ball exceptionally close, I'm saving")
         save = True
 
-    if save:
-        print "SQUAT"
-        print("yintercept:", nball.yintercept)
-        print("Ball dist:", ball.distance)
-        print("shouldDiveRight.lastFramesOff:", shouldSquat.lastFramesOff)
-        print("ball.vis.frames_on", ball.vis.frames_on)
-        print("nb xvel:", nball.x_vel)
-        print("ball mov vel:", ball.mov_vel_x)
-        nb = player.brain.naiveBall
-        print("startAvgX:", nb.start_avg_x, "Y:", nb.start_avg_y)
-        print("endAvgX:", nb.end_avg_x, "Y:", nb.end_avg_y)
-        print("avgStartIndex:", nb.avg_start_index, "end:", nb.avg_end_index)
-        print("alt vel x:", nb.alt_x_vel)
-        for i in range(0, nb.position_size()):
-            print("Position", i, ":: x: ", nb.position(i).x, "y: ", nb.position(i).y)
-
     return save
-
-    # return (ball.mov_vel_x < -4.0 and
-    #         ball.mov_speed > 8.0 and
-    #         abs(ball.rel_y_intersect_dest) < 40.0 and
-    #         ball.distance < 150.0 and
-    #         sightOk)
 
 def shouldClearDangerousBall(player):
     return False
