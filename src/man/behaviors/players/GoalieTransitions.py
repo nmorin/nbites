@@ -91,7 +91,7 @@ def facingBackward(player):
 #TODO Finish
 def seeGoalbox(player):
     lines = player.brain.visionLines
-    for i in range(0, lines_size()):
+    for i in range(0, player.brain.vision.line_size()):
         r1 = lines(i).inner.r
         t1 = math.degrees(lines(i).inner.t)
 
@@ -504,7 +504,7 @@ def shouldPositionLeft(player):
 def shouldStopTurning(player):
     lines = player.brain.visionLines
 
-    for i in range(0, lines_size()):
+    for i in range(0, player.brain.vision.line_size()):
         r = lines(i).inner.r
         t = math.degrees(lines(i).inner.t)
         if math.fabs(t - 90.0) < 15.0 and r is not 0.0 and r < 40.0:
@@ -524,7 +524,7 @@ def seeFrontLine(player):
     lines = player.brain.visionLines
     horizon = player.brain.vision.horizon_dist
 
-    for i in range(0, lines_size()):
+    for i in range(0, player.brain.vision.line_size()):
         r = lines(i).inner.r
         t = math.degrees(lines(i).inner.t)
         length = getLineLength(lines(i).inner)
