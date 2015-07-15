@@ -3,10 +3,21 @@ Game controller states for pCorner, player for corner kick technical challenge
 """
 
 import noggin_constants as nogginConstants
-import ChaseBallTransitions as chaseTransitions
+import ChaseBallTransitions
+import ChaseBallStates
 from math import fabs
 from ..util import *
 from .. import SweetMoves
+from objects import RobotLocation
+
+# Corner constants
+kickerStartPosition = RobotLocation(nogginConstants.OPP_GOALBOX_LEFT_X,
+									nogginConstants.FIELD_WHITE_TOP_SIDELINE_Y,
+									nogginConstants.OPP_GOAL_HEADING)
+
+receiverStartPosition = RobotLocation(nogginConstants.LANDMARK_OPP_FIELD_CROSS[0] - 50.0,
+									nogginConstants.LANDMARK_OPP_FIELD_CROSS[1],
+									nogginConstants.OPP_GOAL_HEADING)
 
 # Figure out which player you are and reset loc to that spot
 # Player one: approach and kick the ball
@@ -76,22 +87,66 @@ def gameSet(player):
 @superState('gameControllerResponder')
 def gamePlaying(player):
     if player.firstFrame():
-
+    	if player.isCornerKicker:
+    		player.brain.resetLocTo(kickerStartPosition.x,
+    								kickerStartPosition.y,
+    								kickerStartPosition.h)
+    	else:
+    		player.brain.resetLocTo(receiverStartPosition.x,
+    								receiverStartPosition.y,
+    								receiverStartPosition.h)
+    		return player.goLater('waitForKick')
 
     if player.isCornerKicker:
     	player.brain.nav.chaseBall(fast = True)
     	if (chaseTransitions.shouldPrepareForKick(player)):
-    		return player.goNow('positionForCornerKick')
-
-   	else:
-   		if (ballMoved(player)):
-   			return player.goNow('approachBall')
+    		return player.goNow('ChaseBallStates.approachBall')
 
    	return player.stay()
 
 @superState('gameControllerResponder')
-def positionForCornerKick:
-	
+def gameFinished(player):
+    """
+    Ensure we are sitting down and head is snapped forward.
+    In the future, we may wish to make the head move a bit slower here
+    """
+    if player.firstFrame():
+        player.inKickingState = False
+        player.brain.fallController.enabled = False
+        player.stopWalking()
+        player.zeroHeads()
+        if nogginConstants.V5_ROBOT:
+            player.executeMove(SweetMoves.SIT_POS_V5)
+        else:
+            player.executeMove(SweetMoves.SIT_POS)
+
+    if player.brain.nav.isStopped():
+        player.gainsOff()
+
+    return player.stay()
+
+@superState('gameControllerResponder')
+def gamePenalized(player):
+    if player.firstFrame():
+        player.inKickingState = False
+        player.brain.fallController.enabled = False
+        player.gainsOn()
+        player.stand()
+        player.penalizeHeads()
+
+    return player.stay()
+
+@superState('gameControllerResponder')
+def waitForKick(player):
+	if player.firstFrame():
+        waitForKick.ballRelX = player.brain.ball.rel_x
+        waitForKick.ballRelY = player.brain.ball.rel_y
+
+    if (fabs(player.brain.ball.rel_x - waitForKick.ballRelX) > 15.0 or
+        fabs(player.brain.ball.rel_y - waitForKick.ballRelY) > 15.0):
+        return player.goNow('ChaseBallStates.approachBall')
+
+    return player.stay()
 
 def determineIfKicking(player):
 	bearing = player.brain.ball.bearing_deg
