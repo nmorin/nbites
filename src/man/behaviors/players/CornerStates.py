@@ -91,16 +91,12 @@ def gamePlaying(player):
     		player.brain.resetLocTo(kickerStartPosition.x,
     								kickerStartPosition.y,
     								kickerStartPosition.h)
+            return player.goLater('positionForCornerKick')
     	else:
     		player.brain.resetLocTo(receiverStartPosition.x,
     								receiverStartPosition.y,
     								receiverStartPosition.h)
     		return player.goLater('waitForKick')
-
-    if player.isCornerKicker:
-    	player.brain.nav.chaseBall(fast = True)
-    	if (chaseTransitions.shouldPrepareForKick(player)):
-    		return player.goNow('ChaseBallStates.approachBall')
 
    	return player.stay()
 
@@ -147,6 +143,27 @@ def waitForKick(player):
         return player.goNow('ChaseBallStates.approachBall')
 
     return player.stay()
+
+@superState('gameControllerResponder')
+def positionForCornerKick:
+    if player.firstFrame():
+        location = RelRobotLocation(ball.rel_x + 20, ball.rel_y + 20, 0)
+        player.brain.nav.destinationWalkTo(location, Navigator.MEDIUM_SPEED)
+
+        # Positions the robot for a corner kick to the goal cross
+        player.brain.nav.chaseBall(Navigator.FAST_SPEED, fast = True)
+        player.brain.tracker.repeatFastNarrowPan()
+    else:
+        location = RelRobotLocation(ball.rel_x + 20, ball.rel_y + 20, 0)
+        player.brain.nav.updateDestinationWalkDest(location)
+
+
+    if (location.relX**2 + location.relY**2)**.5 < 15:
+        print "X: ", player.brain.ball.rel_x
+        print "Y: ", player.brain.ball.rel_y
+        player.brain.nav.stand()
+        # prepareForPenaltyKick.chase = True
+        return player.goNow('CornerKickSpin')
 
 def determineIfKicking(player):
 	bearing = player.brain.ball.bearing_deg
