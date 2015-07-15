@@ -91,7 +91,26 @@ def gamePlaying(player):
 
 @superState('gameControllerResponder')
 def positionForCornerKick:
-	
+    
+    if player.firstFrame():
+        location = RelRobotLocation(ball.rel_x + 20, ball.rel_y + 20, 0)
+        player.brain.nav.destinationWalkTo(location, Navigator.MEDIUM_SPEED)
+        
+        # Positions the robot for a corner kick to the goal cross
+        player.brain.nav.chaseBall(Navigator.FAST_SPEED, fast = True)
+        player.brain.tracker.repeatFastNarrowPan()
+    else:
+        location = RelRobotLocation(ball.rel_x + 20, ball.rel_y + 20, 0)
+        player.brain.nav.updateDestinationWalkDest(location)
+
+
+    if (location.relX**2 + location.relY**2)**.5 < 15:
+        print "X: ", player.brain.ball.rel_x
+        print "Y: ", player.brain.ball.rel_y
+        player.brain.nav.stand()
+        # prepareForPenaltyKick.chase = True
+        return player.goNow('CornerKickSpin')
+
 
 def determineIfKicking(player):
 	bearing = player.brain.ball.bearing_deg
