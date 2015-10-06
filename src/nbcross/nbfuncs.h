@@ -38,6 +38,7 @@ const std::string NBCROSS_WILDCARD_TYPE = "__WILDCARD__";
 int test_func();
 int arg_test_func();
 int CrossBright_func();
+int ColorLearnTest_func();
 
 // Defined in misc_defs.cpp
 
@@ -55,6 +56,7 @@ const std::vector<CrossFunc> FUNCS = {
     CrossFunc("test", test_func, {}),
     CrossFunc("arg_test", arg_test_func, {"YUVImage", "YUVImage"}),
     CrossFunc("CrossBright", CrossBright_func, {"YUVImage"}),
+    CrossFunc("ColorLearnTest", ColorLearnTest_func, {"YUVImage"}),
     
 #ifndef __APPLE__
     CrossFunc("Vision", Vision_func, {"YUVImage"}),
