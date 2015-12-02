@@ -786,3 +786,181 @@ man::vision::VisionModule& getModuleRef(const std::string robotName) {
         return *newInst;
     }
 }
+
+// - - -  - - - ---------------------------------------------------------------------
+
+int ColorLearnTest_func() {
+    bool debugColorLearn = false;
+    assert(args.size() == 1);
+    printf("ColorLearnTest_func()\n");
+    int y_thresh = 90;
+    //work on a copy of the arg so we can safely push to rets.
+    
+    Log * copy = new Log(args[0]);
+    size_t length = copy->data().size();
+    uint8_t buf[length];
+    memcpy(buf, copy->data().data(), length);
+
+    // Determine if top or bottom image from log description
+    bool topCamera = copy->description().find("camera_TOP") != std::string::npos;
+    int width, height;
+    std::vector<SExpr*> vec = copy->tree().recursiveFind("width");
+    if (vec.size() != 0) {
+        SExpr *s = vec.at(vec.size()-1);
+        width = 2*s->get(1)->valueAsInt();
+        // TODO question for Bill, this was originally doubled, why? 
+    } else {
+        std::cout << "Could not find width in the description\n";
+    }
+    vec = copy->tree().recursiveFind("height");
+    if (vec.size() != 0) {
+        SExpr* s = vec.at(vec.size()-1);
+        height = s->get(1)->valueAsInt();
+    } else {
+        std::cout << "Could not find height in description\n";
+    }
+
+    std::cout << " HEIGHT: " << height << " WIDTH " << width << std::endl;
+
+    imageSizeCheck(topCamera, width, height);
+
+    // joints if exist
+    messages::JointAngles joints;
+    if (copy->tree().find("contents")->get(2)) {
+        int numBytes[3];
+        for (int i = 0; i < 3; i++)
+            numBytes[i] = atoi(copy->tree().find("contents")->get(i+1)->
+                                            find("nbytes")->get(1)->value().c_str());
+        uint8_t* ptToJoints = buf + (numBytes[0] + numBytes[1]);
+        joints.ParseFromArray((void *) ptToJoints, numBytes[2]);
+    }
+
+    SExpr* robotName = args[0]->tree().find("from_address");
+    std::string rname;
+    if (robotName != NULL) {
+        rname = robotName->get(1)->value();
+    }
+
+    // instance of vision module
+    man::vision::VisionModule& module = getModuleRef(rname);
+
+    messages::YUVImage realImage(buf, width, height, width);
+
+    // setup module
+    portals::Message<messages::YUVImage> rImageMessage(&realImage);
+    portals::Message<messages::YUVImage> eImageMessage(topCamera ? &emptyBot : &emptyTop);
+    portals::Message<messages::JointAngles> jointsMessage(&joints);
+
+    if (topCamera) {
+        module.topIn.setMessage(rImageMessage);
+        module.bottomIn.setMessage(eImageMessage);
+    } else {
+        module.topIn.setMessage(eImageMessage);
+        module.bottomIn.setMessage(rImageMessage);
+    }
+    module.jointsIn.setMessage(jointsMessage);
+
+    // run module
+    module.run();
+
+    // - - - - - - -  -  - - - - - --  this was setup
+    bool test = realImage.pixelExists(19, 123);
+    std::cout << "TEST TEST : " << test << std::endl;
+
+    // use image.getPixel(x, y)
+    // when we use getpixel we are returned a pixel address
+    // what is different about a pixeladdress? how do we use this
+    // i am having a hard time manipulating pixels through memory operations
+    // can we talk about that? ie, what is a pixel? if i am returned a pixel
+    // address, how do i use this to access information such as the y or
+    // u or v values; is there any other information in them? 
+
+    // get fieldline list
+    /*
+    fieldlinelist is a vector of fieldlines
+    also contains information about maxlineangle, etc.
+    a fieldline contains two houghlines in array _lines
+    as well as a line id
+
+    // TODO questions about hough, what does adjust do?
+
+
+
+    */
+
+
+
+    // get field line list
+    // man::vision::ImageFrontEnd* frontEnd = module.getFrontEnd(topCamera);
+    man::vision::FieldLineList* fieldLineList = module.getFieldLines(topCamera);
+    std::cout << "Found field line list\n";
+    std::cout << "Size of fieldLineList: " << (*fieldLineList).size() << std::endl;
+
+    // for (int i = 0; i < (*fieldLineList).size(); i++) {
+    //     std::cout << "Line at index: " << i << std::endl;
+    //     man::vision::FieldLine& line = (*fieldLineList)[i];
+    //     man::vision::HoughLine& houghLine1 = line[0];
+    //     man::vision::HoughLine& houghLine2 = line[1];
+    //     if (debugColorLearn) {
+    //         std::cout << "Houghlines: \n";
+    //         std::cout << houghLine1.print() << std::endl;
+    //         std::cout << houghLine2.print() << std::endl;
+    //     }
+        
+
+    // }
+
+    // iterate over every pixel in image
+    // perform check: if pixel exists
+    // then use pDist(x, y) and test if positive; will be positive if the point is
+    // on the brighter side of the line
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            if (realImage.pixelExists(x, y)) {  // if a valid pixel
+                for (int i = 0; i < (*fieldLineList).size(); i++) {
+                    man::vision::FieldLine& line = (*fieldLineList)[i];
+                    man::vision::HoughLine& houghLine1 = line[0];
+                    man::vision::HoughLine& houghLine2 = line[1];
+                    if (houghLine1.pDist(x, y) > 0 && houghLine2.pDist(x, y) > 0) {
+                        // if the pixel is inside the line, ie on the + side
+                        uint8_t insidePixelAddress = realImage.getPixel(x, y);
+                        std::cout << "Address " << insidePixelAddress << std::endl;
+                        std::cout << "FOUND pixel inside the line at x:" << x << " y:" << y << std::endl;
+                    }
+
+                }
+
+            }
+        }
+    }
+    
+
+
+
+
+
+
+    Log* yRet = new Log();
+    int yLength = (width / 4) * (height / 2) * 2;
+
+    uint8_t yBuf[yLength];
+
+
+
+    // 1 pixel is 4 bytes; yuyv    
+    // by traversing the image in a for loop and incrementing by 4 each time,
+    // we always begin at the first y value of the next pixel
+    // for (int i = 0; i < length; i += 4) {
+
+    //     if (*(buf + i) > y_thresh) {
+    //         *(buf + i) = 240;
+    //     }
+        
+    // }
+    // std::string buffer((const char *) buf, length);
+    // copy->setData(buffer);
+    
+    rets.push_back(copy);
+    
+    return 0;
+}
