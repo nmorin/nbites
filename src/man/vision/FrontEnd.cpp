@@ -89,11 +89,11 @@ void* alignedAlloc(size_t size, int alignBits, void*& block)
 //    optional image reulting from color table lookup
 extern "C" uint32_t
   _acquire_image(const uint8_t* source, int width, int height, int pitch, const Colors* colors,
-                 uint8_t* dest, uint8_t* colorTable = 0);
+                 uint8_t* dest, uint8_t* colorTable = 0, bool writeUV = false);
 
 uint32_t
   testAcquire(const uint8_t* source, int width, int height, int pitch, const Colors* colors,
-              uint8_t* dest, uint8_t* colorTable)
+              uint8_t* dest, uint8_t* colorTable, bool writeUV = false)
 {
   TickTimer timer;
 
@@ -107,6 +107,17 @@ uint32_t
   uint8_t* po = pg + width * height;
   uint8_t* pc = po + width * height;
 
+  uint8_t* pu;
+  if (colorTable) 
+    pu = pc + width * height;
+  else 
+    pu = po + width * height;
+
+  uint8_t* pv = pu + width * height;  // TODO make conditional on color table being used
+
+  std::cout << "[DEBUG ACQUIREIMAGE] Val of writeUV here is " << writeUV << std::endl;
+  // std::cout << "[DEBUG ACQUIREIMAGE] Val of colorTable here is " << colorTable << std::endl;
+
   for (int j = 0; j < height; ++j)
   {
     const uint8_t* ps = source + 2 * pitch * j;
@@ -117,6 +128,11 @@ uint32_t
       int v = ps[3] + ps[pitch + 3];
 
       *py++ = (short)y;
+      if (writeUV) {
+        *pu++ = (uint8_t)(u >> 1);
+        *pv++ = (uint8_t)(v >> 1);
+      }
+
       *pw++ = colors->white .scoreMax(y, abs(u - UVZero) + UVZero, abs(v - UVZero) + UVZero);
       *pg++ = colors->green .scoreMax(y, u, v);
       *po++ = colors->orange.scoreMax(y, u, v ^ UVMask);
@@ -137,6 +153,7 @@ ImageFrontEnd::ImageFrontEnd()
   dstOffset = 0;
 
   fast(true);
+  writeUV(true);
 }
 
 ImageFrontEnd::~ImageFrontEnd()
@@ -150,8 +167,18 @@ void ImageFrontEnd::run(const YuvLite& src, const Colors* colors, uint8_t* color
                           (src.width() + 15) & ~15);
 
   int size = 5 * imagePitch();
-  if (colorTable)
+
+  if (colorTable) {
     size += imagePitch();
+    useColorTable(true);
+  }
+  else
+    useColorTable(false);
+
+  if (writeUV())
+    size += 2 * imagePitch();
+
+
 
   if (size > dstAllocated)
   {
@@ -160,13 +187,24 @@ void ImageFrontEnd::run(const YuvLite& src, const Colors* colors, uint8_t* color
     dstAllocated = size;
   }
 
+  std::cout << "[DEBUG RUNFRONTEND] Val of writeUV = " << writeUV() << std::endl;
+  std::cout << "[DEBUG RUNFRONTEND] Size: " << size << std::endl;
+
+  fast(false);
+
+  if (fast())
+    std::cout << "[DEBUG RUNFRONTEND] running fast\n";
+  else
+    std::cout << "Not running fast\n";
+
+
   if (fast())
     _time = man::vision::_acquire_image(src.pixelAddr(), dstBase.pitch(),
                                         dstBase.height(), src.pitch(),
-                                        colors, dstImages, colorTable);
+                                        colors, dstImages, colorTable, writeUV());
   else
     _time = testAcquire(src.pixelAddr(), dstBase.pitch(), dstBase.height(), 
-                        src.pitch(), colors, dstImages, colorTable);
+                        src.pitch(), colors, dstImages, colorTable, writeUV());
 }
 
 }

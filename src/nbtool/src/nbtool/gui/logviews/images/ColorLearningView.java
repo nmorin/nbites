@@ -9,6 +9,10 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 
+
+import nbtool.images.Y8image;
+import nbtool.images.U8image;
+
 import nbtool.data.Log;
 import nbtool.gui.logviews.misc.ViewParent;
 import nbtool.util.Utility;
@@ -65,7 +69,15 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 
 	@Override
 	public void ioReceived(IOInstance inst, int ret, Log... out) {
-		this.img = Utility.biFromLog(out[0]);
+		if (out.length > 0) {
+            U8image u8 = new U8image(320, 240, out[0].bytes);
+            this.img = u8.toBufferedImage();
+            System.out.println("OUTPUT!!!!");
+        }
+        else {
+			System.out.println("NO OUTPUT!!! ");
+        }
+		// this.img = Utility.biFromLog(out[0]);
 		repaint();
 	}
 

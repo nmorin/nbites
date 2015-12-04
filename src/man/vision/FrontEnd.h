@@ -150,6 +150,8 @@ struct Colors
 class ImageFrontEnd
 {
   bool _fast;
+  bool _writeUV;
+  bool _useColorTable;
 
   void* memBlock;
   int dstAllocated;
@@ -169,6 +171,14 @@ public:
   bool fast() const { return _fast;}
   void fast(bool b) { _fast = b;}
 
+  // Write out U and V images to memory too
+  bool writeUV() const { return _writeUV;}
+  void writeUV(bool b) { _writeUV = b;}
+
+  // Write out U and V images to memory too
+  bool useColorTable() const { return _useColorTable;}
+  void useColorTable(bool b) { _useColorTable = b;}
+
   ImageFrontEnd();
   ~ImageFrontEnd();
 
@@ -177,6 +187,16 @@ public:
   ImageLiteU8 greenImage () { return ImageLiteU8(dstBase, dstImages + 3 * imagePitch() + dstOffset); }
   ImageLiteU8 orangeImage() { return ImageLiteU8(dstBase, dstImages + 4 * imagePitch() + dstOffset); }
   ImageLiteU8 colorImage () { return ImageLiteU8(dstBase, dstImages + 5 * imagePitch() + dstOffset); }
+  ImageLiteU8 uImage () { 
+    if (useColorTable())
+      return ImageLiteU8(dstBase, dstImages + 6 * imagePitch() + dstOffset); 
+    else
+      return ImageLiteU8(dstBase, dstImages + 5 * imagePitch() + dstOffset); }
+  ImageLiteU8 vImage () {  
+    if (useColorTable())
+      return ImageLiteU8(dstBase, dstImages + 7 * imagePitch() + dstOffset); 
+    else
+      return ImageLiteU8(dstBase, dstImages + 6 * imagePitch() + dstOffset); }
 
   void run(const YuvLite& src, const Colors* colors, uint8_t* colorTable = 0);
 };

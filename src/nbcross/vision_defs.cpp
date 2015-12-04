@@ -891,7 +891,34 @@ int ColorLearnTest_func() {
 
 
     // get field line list
-    // man::vision::ImageFrontEnd* frontEnd = module.getFrontEnd(topCamera);
+    man::vision::ImageFrontEnd* frontEnd = module.getFrontEnd(topCamera);
+
+
+    // ---------------
+    //   U IMAGE
+    // ---------------
+    std::cout << "[UV IMAGE TEST] End of get u image\n";
+
+    Log* uRet = new Log();
+    int uLength = (width / 4) * (height / 2);
+
+    // Create temp buffer and fill with white image 
+    uint8_t uBuf[uLength];
+    memcpy(uBuf, frontEnd->whiteImage().pixelAddr(), uLength);
+
+    // Convert to string and set log
+    std::string uBuffer((const char*)uBuf, uLength);
+    uRet->setData(uBuffer);
+
+    // Read params from Lisp and attach to image 
+    // uRet->setTree(getSExprFromSavedParams(0, sexpPath, topCamera));
+
+    rets.push_back(uRet);
+
+    std::cout << "[UV IMAGE TEST] End of get u image\n";
+
+    // -------------
+    // -------------
     man::vision::FieldLineList* fieldLineList = module.getFieldLines(topCamera);
     std::cout << "Found field line list\n";
     std::cout << "Size of fieldLineList: " << (*fieldLineList).size() << std::endl;
@@ -950,17 +977,17 @@ int ColorLearnTest_func() {
     // 1 pixel is 4 bytes; yuyv    
     // by traversing the image in a for loop and incrementing by 4 each time,
     // we always begin at the first y value of the next pixel
-    // for (int i = 0; i < length; i += 4) {
+    for (int i = 0; i < length; i += 4) {
 
-    //     if (*(buf + i) > y_thresh) {
-    //         *(buf + i) = 240;
-    //     }
+        if (*(buf + i) > y_thresh) {
+            *(buf + i) = 240;
+        }
         
-    // }
-    // std::string buffer((const char *) buf, length);
-    // copy->setData(buffer);
+    }
+    std::string buffer((const char *) buf, length);
+    copy->setData(buffer);
     
-    rets.push_back(copy);
+    // rets.push_back(copy);
     
     return 0;
 }
