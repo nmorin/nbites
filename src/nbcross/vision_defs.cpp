@@ -964,8 +964,8 @@ int ColorLearnTest_func() {
     // -----------
 
     man::vision::ImageLiteU8 uImageLite = frontEnd->uImage();
-    man::vision::ImageLiteU8 uImageLite = frontEnd->vImage();
-    man::vision::ImageLiteU16 uImageLite = frontEnd->yImage();
+    man::vision::ImageLiteU8 vImageLite = frontEnd->vImage();
+    man::vision::ImageLiteU16 yImageLite = frontEnd->yImage();
 
     // Get field line list
     man::vision::FieldLineList* fieldLineList = module.getFieldLines(topCamera);
@@ -976,8 +976,8 @@ int ColorLearnTest_func() {
     // perform check: if pixel exists
     // then use pDist(x, y) and test if positive; will be positive if the point is
     // on the brighter side of the line
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
+    for (int y = 0; y < uImageLite.height(); y++) {
+        for (int x = 0; x < uImageLite.width(); x++) {
             if (realImage.pixelExists(x, y)) {  // if a valid pixel
                 for (int i = 0; i < (*fieldLineList).size(); i++) {
                     man::vision::FieldLine& line = (*fieldLineList)[i];
