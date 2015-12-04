@@ -790,7 +790,6 @@ man::vision::VisionModule& getModuleRef(const std::string robotName) {
 // - - -  - - - ---------------------------------------------------------------------
 
 int ColorLearnTest_func() {
-    bool debugColorLearn = false;
     assert(args.size() == 1);
     printf("ColorLearnTest_func()\n");
     int y_thresh = 90;
@@ -897,14 +896,14 @@ int ColorLearnTest_func() {
     // ---------------
     //   U IMAGE
     // ---------------
-    std::cout << "[UV IMAGE TEST] End of get u image\n";
+    std::cout << "[UV IMAGE TEST] Beg of get u image\n";
 
     Log* uRet = new Log();
     int uLength = (width / 4) * (height / 2);
 
     // Create temp buffer and fill with white image 
     uint8_t uBuf[uLength];
-    memcpy(uBuf, frontEnd->whiteImage().pixelAddr(), uLength);
+    memcpy(uBuf, frontEnd->uImage().pixelAddr(), uLength);
 
     // Convert to string and set log
     std::string uBuffer((const char*)uBuf, uLength);
@@ -917,25 +916,61 @@ int ColorLearnTest_func() {
 
     std::cout << "[UV IMAGE TEST] End of get u image\n";
 
+    // ---------------
+    //   V IMAGE
+    // ---------------
+    std::cout << "[UV IMAGE TEST] Beg of v image\n";
+
+    Log* vRet = new Log();
+    int vLength = (width / 4) * (height / 2);
+
+    // Create temp buffer and fill with white image 
+    uint8_t vBuf[vLength];
+    memcpy(vBuf, frontEnd->vImage().pixelAddr(), vLength);
+
+    // Convert to string and set log
+    std::string vBuffer((const char*)vBuf, vLength);
+    vRet->setData(vBuffer);
+
+    // Read params from Lisp and attach to image 
+    // uRet->setTree(getSExprFromSavedParams(0, sexpPath, topCamera));
+
+    rets.push_back(vRet);
+
+    std::cout << "[UV IMAGE TEST] End of get u image\n";
+
+    // -----------
+    //   Y IMAGE
+    // -----------
+
+    Log* yRet = new Log();
+    int yLength = (width / 4) * (height / 2) * 2;
+
+    // Create temp buffer and fill with yImage from FrontEnd
+    short yBuf[yLength];
+    memcpy(yBuf, frontEnd->yImage().pixelAddr(), yLength);
+
+    // Convert to string and set log
+    std::string yBuffer((const char*)yBuf, yLength);
+    yRet->setData(yBuffer);
+
+    rets.push_back(yRet);
+
     // -------------
     // -------------
+
+    // -----------
+    //   LOCAL IMAGE LITES
+    // -----------
+
+    man::vision::ImageLiteU8 uImageLite = frontEnd->uImage();
+    man::vision::ImageLiteU8 uImageLite = frontEnd->vImage();
+    man::vision::ImageLiteU16 uImageLite = frontEnd->yImage();
+
+    // Get field line list
     man::vision::FieldLineList* fieldLineList = module.getFieldLines(topCamera);
     std::cout << "Found field line list\n";
     std::cout << "Size of fieldLineList: " << (*fieldLineList).size() << std::endl;
-
-    // for (int i = 0; i < (*fieldLineList).size(); i++) {
-    //     std::cout << "Line at index: " << i << std::endl;
-    //     man::vision::FieldLine& line = (*fieldLineList)[i];
-    //     man::vision::HoughLine& houghLine1 = line[0];
-    //     man::vision::HoughLine& houghLine2 = line[1];
-    //     if (debugColorLearn) {
-    //         std::cout << "Houghlines: \n";
-    //         std::cout << houghLine1.print() << std::endl;
-    //         std::cout << houghLine2.print() << std::endl;
-    //     }
-        
-
-    // }
 
     // iterate over every pixel in image
     // perform check: if pixel exists
@@ -966,11 +1001,6 @@ int ColorLearnTest_func() {
 
 
 
-
-    Log* yRet = new Log();
-    int yLength = (width / 4) * (height / 2) * 2;
-
-    uint8_t yBuf[yLength];
 
 
 
