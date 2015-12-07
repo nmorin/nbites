@@ -29,6 +29,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	BufferedImage u_img;
 	BufferedImage v_img;
 	BufferedImage y_img;
+	BufferedImage alt_img;
 	BufferedImage original_image;
 	private String label = null;
 	
@@ -38,13 +39,16 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		if (original_image != null)
 			g.drawImage(original_image, 0, 0, null);
 		if (u_img != null)
-			g.drawImage(u_img, 0, original_image.getHeight() + 25, null);
+			g.drawImage(u_img, 0, original_image.getHeight() + 15, null);
 		if (v_img != null)
-			g.drawImage(v_img, u_img.getWidth() + 10, original_image.getHeight() + 25, null);
+			g.drawImage(v_img, u_img.getWidth() + 10, original_image.getHeight() + 15, null);
 		if (y_img != null)
-			g.drawImage(y_img, 2 * u_img.getWidth() + 20, original_image.getHeight() + 25, null);
+			g.drawImage(y_img, 2 * u_img.getWidth() + 20, original_image.getHeight() + 15, null);
+		if (alt_img != null) {
+			g.drawImage(alt_img, 0, u_img.getHeight() + original_image.getHeight() + 30, null);
+        } 
 		if (label != null)
-			g.drawString(label, 10, original_image.getHeight() + u_img.getHeight() + 45);
+			g.drawString(label, 10, original_image.getHeight() + u_img.getHeight() + 25);
     }
 	
 	public void setLog(Log newlog) {		
@@ -85,6 +89,11 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 
             Y16image yImg = new Y16image(320, 240, out[2].bytes);
             this.y_img = yImg.toBufferedImage();
+
+            UV8image altImg = new UV8image(320, 240, out[3].bytes, true);
+            this.alt_img = altImg.toBufferedImage();
+            // this.alt_img = this.y_img;
+        	System.out.println("[DEBUGCOLOR] alt image set\n");
         }
 
         else {

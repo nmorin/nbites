@@ -791,6 +791,7 @@ man::vision::VisionModule& getModuleRef(const std::string robotName) {
 
 int ColorLearnTest_func() {
     assert(args.size() == 1);
+    printf("= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =\n");
     printf("ColorLearnTest_func()\n");
     int y_thresh = 90;
     //work on a copy of the arg so we can safely push to rets.
@@ -866,29 +867,6 @@ int ColorLearnTest_func() {
     bool test = realImage.pixelExists(19, 123);
     std::cout << "TEST TEST : " << test << std::endl;
 
-    // use image.getPixel(x, y)
-    // when we use getpixel we are returned a pixel address
-    // what is different about a pixeladdress? how do we use this
-    // i am having a hard time manipulating pixels through memory operations
-    // can we talk about that? ie, what is a pixel? if i am returned a pixel
-    // address, how do i use this to access information such as the y or
-    // u or v values; is there any other information in them? 
-
-    // get fieldline list
-    /*
-    fieldlinelist is a vector of fieldlines
-    also contains information about maxlineangle, etc.
-    a fieldline contains two houghlines in array _lines
-    as well as a line id
-
-    // TODO questions about hough, what does adjust do?
-
-
-
-    */
-
-
-
     // get field line list
     man::vision::ImageFrontEnd* frontEnd = module.getFrontEnd(topCamera);
 
@@ -963,9 +941,13 @@ int ColorLearnTest_func() {
     //   LOCAL IMAGE LITES
     // -----------
 
+
     man::vision::ImageLiteU8 uImageLite = frontEnd->uImage();
     man::vision::ImageLiteU8 vImageLite = frontEnd->vImage();
     man::vision::ImageLiteU16 yImageLite = frontEnd->yImage();
+    int liteWidth = uImageLite.width();
+    int liteHeight = uImageLite.height();
+    // man::vision::ImageLiteU8 testDrawImage = new man::vision::ImageLiteU8(liteWidth, liteHeight;
 
     // Get field line list
     man::vision::FieldLineList* fieldLineList = module.getFieldLines(topCamera);
@@ -976,25 +958,41 @@ int ColorLearnTest_func() {
     // perform check: if pixel exists
     // then use pDist(x, y) and test if positive; will be positive if the point is
     // on the brighter side of the line
+    std::cout << "imageLite height: " << liteHeight << " width: " << liteWidth << std::endl;
+
+    int lineCenterY = liteHeight / 2;
+    int lineCenterX = liteWidth / 2;
+    std::cout << "lineCenterX: " << lineCenterX << " lineCenterY: " << lineCenterY << std::endl;
+
     for (int y = 0; y < uImageLite.height(); y++) {
         for (int x = 0; x < uImageLite.width(); x++) {
-            if (realImage.pixelExists(x, y)) {  // if a valid pixel
-                for (int i = 0; i < (*fieldLineList).size(); i++) {
-                    man::vision::FieldLine& line = (*fieldLineList)[i];
-                    man::vision::HoughLine& houghLine1 = line[0];
-                    man::vision::HoughLine& houghLine2 = line[1];
-                    if (houghLine1.pDist(x, y) > 0 && houghLine2.pDist(x, y) > 0) {
-                        // if the pixel is inside the line, ie on the + side
-                        uint8_t insidePixelAddress = realImage.getPixel(x, y);
-                        std::cout << "Address " << insidePixelAddress << std::endl;
-                        std::cout << "FOUND pixel inside the line at x:" << x << " y:" << y << std::endl;
-                    }
+            for (int i = 0; i < (*fieldLineList).size(); i++) {
+                man::vision::FieldLine& line = (*fieldLineList)[i];
+                man::vision::HoughLine& houghLine1 = line[0];
+                man::vision::HoughLine& houghLine2 = line[1];
+                int pixLineCoordX = x - lineCenterX;
+                int pixLineCoordY = lineCenterY - y;
 
-                }
-
+                if (houghLine1.pDist(pixLineCoordX, pixLineCoordY) > 0 && houghLine2.pDist(pixLineCoordX, pixLineCoordY) > 0) {
+                    *(uImageLite.pixelAddr(x,y)) = (uint8_t)(0);
+                } 
             }
         }
     }
+
+    Log* altRet = new Log();
+    int altLength = (width / 4) * (height / 2) * 2;
+
+    // Create temp buffer and fill with yImage from FrontEnd
+    short altBuf[altLength];
+    memcpy(altBuf, uImageLite.pixelAddr(), altLength);
+
+    // Convert to string and set log
+    std::string altBuffer((const char*)altBuf, altLength);
+    altRet->setData(altBuffer);
+
+    rets.push_back(altRet);
+
     
 
 

@@ -21,10 +21,10 @@ public class UV8image extends ImageParent {
 			for (int c = 0; c < width; ++c) {
 				
 				byte color_byte = (data[r * width + c]);// & 0xFF;
-				byte none = 0;		
+				byte none = 127;		
 				// Color color = new Color(y, y, y);
 				if (u) {
-				ret.setRGB(c, r, yuv444ToARGB888Pixel(none, color_byte, none));
+				ret.setRGB(c, r, yuv444ToARGB888Pixel(color_byte, color_byte, color_byte));
 				}
 				else {
 					ret.setRGB(c, r, yuv444ToARGB888Pixel(none, none, color_byte));

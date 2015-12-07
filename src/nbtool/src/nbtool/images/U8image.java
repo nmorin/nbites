@@ -20,7 +20,7 @@ public class U8image extends ImageParent {
 				byte u = (data[r * width + c]);// & 0xFF;		
 				byte none = 0;		
 				// Color color = new Color(y, y, y);
-				ret.setRGB(c, r, yuv444ToARGB888Pixel(none, u, none));
+				ret.setRGB(c, r, yuv444ToARGB888Pixel(u, u, u));
 			}
 		}
 		return ret;
