@@ -51,7 +51,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	public void drawHist(Graphics g) {
 
 		if (u_line_vals != null) {
-            int xOffset = original_image.getWidth() / 2 + 30;
+            int xOffset = original_image.getWidth() + 10;
             int yOffset = 5;
             int width = 450;
             int height = 200;
@@ -102,16 +102,15 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		if (original_image != null)
 			g.drawImage(original_image, 0, 0, original_image.getWidth() / 2, original_image.getHeight() / 2, null);
 		if (u_img != null)
-			g.drawImage(u_img, 0, original_image.getHeight() + 15, null);
+			g.drawImage(u_img, original_image.getWidth() / 2 + 5, 0, null);
 		if (v_img != null)
-			g.drawImage(v_img, u_img.getWidth() + 10, original_image.getHeight() + 15, null);
+			g.drawImage(v_img, original_image.getWidth() / 2 + 5, u_img.getHeight() + 5, null);
 		if (y_img != null)
-			g.drawImage(y_img, 2 * u_img.getWidth() + 20, original_image.getHeight() + 15, null);
-		if (alt_img != null) {
-			g.drawImage(alt_img, 0, u_img.getHeight() + original_image.getHeight() + 30, null);
-        } 
-		if (label != null)
-			g.drawString(label, 10, original_image.getHeight() + u_img.getHeight() + 25);
+			g.drawImage(y_img, original_image.getWidth() / 2 + 5, 2*u_img.getHeight() + 10, null);
+		if (alt_img != null)
+			g.drawImage(alt_img, 0, original_image.getHeight() / 2 + 5, null);
+		// if (label != null)
+		// 	g.drawString(label, 10, original_image.getHeight() + u_img.getHeight() + 25);
 
 		drawHist(g);
     }
