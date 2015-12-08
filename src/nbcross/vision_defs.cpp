@@ -948,7 +948,6 @@ int ColorLearnTest_func() {
     man::vision::ImageLiteU16 yImageLite = frontEnd->yImage();
     int liteWidth = uImageLite.width();
     int liteHeight = uImageLite.height();
-    // man::vision::ImageLiteU8 testDrawImage = new man::vision::ImageLiteU8(liteWidth, liteHeight;
 
     // Get field line list
     man::vision::FieldLineList* fieldLineList = module.getFieldLines(topCamera);
@@ -965,8 +964,8 @@ int ColorLearnTest_func() {
     int lineCenterX = liteWidth / 2;
     std::cout << "lineCenterX: " << lineCenterX << " lineCenterY: " << lineCenterY << std::endl;
 
-    std::map<int, int> u_line_vals, v_line_vals;
-    std::map<short, int> y_line_vals;
+    std::map<int, int> u_line_vals, v_line_vals, y_line_vals;
+    std::map<int, int> yuv_line_vals;
 
     for (int y = 0; y < uImageLite.height(); y++) {
         for (int x = 0; x < uImageLite.width(); x++) {
@@ -993,28 +992,32 @@ int ColorLearnTest_func() {
                     ) 
                 {
                     
-
-                    // add y, u, and v values to the histogram
-                    uint8_t u_val = *uImageLite.pixelAddr(x,y);
-                    uint8_t v_val = *vImageLite.pixelAddr(x,y);
-                    short y_val = *yImageLite.pixelAddr(x,y);
+                    int u_val = *uImageLite.pixelAddr(x,y);
+                    int v_val = *vImageLite.pixelAddr(x,y);
+                    int y_val = *yImageLite.pixelAddr(x,y);
+                    int yuv_val = (y_val << 16) & (u_val << 8) & y_val;
 
                     if (u_line_vals.count(u_val))
                         u_line_vals[u_val]++;
                     else
-                        u_line_vals.insert(std::pair<uint8_t, int>(u_val, 1));
+                        u_line_vals.insert(std::pair<int, int>(u_val, 1));
 
                     if (v_line_vals.count(v_val))
                         v_line_vals[v_val]++;
                     else
-                        v_line_vals.insert(std::pair<uint8_t, int>(v_val, 1));
+                        v_line_vals.insert(std::pair<int, int>(v_val, 1));
 
                     if (y_line_vals.count(y_val))
                         y_line_vals[y_val]++;
                     else
-                        y_line_vals.insert(std::pair<uint8_t, int>(y_val, 1));
+                        y_line_vals.insert(std::pair<int, int>(y_val, 1));
+
+                    if (yuv_line_vals.count(yuv_val))
+                        yuv_line_vals[yuv_val]++;
+                    else
+                        yuv_line_vals.insert(std::pair<int, int>(yuv_val, 1));
                     
-                    // make pixel darker
+                    // make pixel darker just for debug viewing
                     *(uImageLite.pixelAddr(x,y)) = (uint8_t)(0);
 
                 } 
@@ -1036,9 +1039,7 @@ int ColorLearnTest_func() {
     rets.push_back(altRet);
 
     // ------------------------
-    // return u histogram vals
-
-
+    // Return u histogram vals
     Log* u_line_ret = new Log();
     std::string u_line_val_buf;
     // int u_line_val_buf[u_line_vals.size() * 4]; 
@@ -1055,9 +1056,65 @@ int ColorLearnTest_func() {
         u_line_val_buf.append((const char*) &count, sizeof(int));
     }
     u_line_ret->setData(u_line_val_buf);
-
     rets.push_back(u_line_ret);
         
+    // ------------------------
+    // Return v histogram vals
+    Log* v_line_ret = new Log();
+    std::string v_line_val_buf;
+    std::map<int, int>::iterator itv;
+    for ( itv = v_line_vals.begin(); itv != v_line_vals.end(); itv++ ) {
+
+        int val = itv->first;
+        int count = itv->second;
+        std::cout << "[CROSS HISTOGRAM] Val: " << val << " count: " << count << "\n";
+        endswap<int>(&val);
+        endswap<int>(&count);
+
+        v_line_val_buf.append((const char*) &val, sizeof(int));
+        v_line_val_buf.append((const char*) &count, sizeof(int));
+    }
+    v_line_ret->setData(v_line_val_buf);
+    rets.push_back(v_line_ret);
+
+    // ------------------------
+    // Return y histogram vals
+    Log* y_line_ret = new Log();
+    std::string y_line_val_buf;
+    std::map<int, int>::iterator ity;
+    for ( ity = y_line_vals.begin(); ity != y_line_vals.end(); ity++ ) {
+
+        int val = ity->first;
+        int count = ity->second;
+        std::cout << "[CROSS HISTOGRAM] Val: " << val << " count: " << count << "\n";
+        endswap<int>(&val);
+        endswap<int>(&count);
+
+        y_line_val_buf.append((const char*) &val, sizeof(int));
+        y_line_val_buf.append((const char*) &count, sizeof(int));
+    }
+    y_line_ret->setData(y_line_val_buf);
+    rets.push_back(y_line_ret);
+
+    // ------------------------
+    // Return yuv histogram vals
+    // Log* yuv_line_ret = new Log();
+    // std::string yuv_line_val_buf;
+    // std::map<int, int>::iterator ityuv;
+    // for ( ityuv = yuv_line_vals.begin(); ityuv != yuv_line_vals.end(); ityuv++ ) {
+
+    //     int val = ityuv->first;
+    //     int count = ityuv->second;
+    //     std::cout << "[CROSS HISTOGRAM] Val: " << val << " count: " << count << "\n";
+    //     endswap<int>(&val);
+    //     endswap<int>(&count);
+
+    //     yuv_line_val_buf.append((const char*) &val, sizeof(int));
+    //     yuv_line_val_buf.append((const char*) &count, sizeof(int));
+    // }
+    // y_line_ret->setData(y_line_val_buf);
+    // rets.push_back(y_line_ret);
+
 
 
 
