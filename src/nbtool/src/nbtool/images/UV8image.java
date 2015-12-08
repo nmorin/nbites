@@ -16,18 +16,29 @@ public class UV8image extends ImageParent {
 
 	@Override
 	public BufferedImage toBufferedImage() {
-		BufferedImage ret = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		boolean colored_img = false;
+		BufferedImage ret;
+		if (colored_img)
+			ret = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		else 
+			ret = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+		
 		for (int r = 0; r < height; ++r) {
 			for (int c = 0; c < width; ++c) {
 				
 				byte color_byte = (data[r * width + c]);// & 0xFF;
 				byte none = 127;		
 				// Color color = new Color(y, y, y);
-				if (u) {
-				ret.setRGB(c, r, yuv444ToARGB888Pixel(color_byte, color_byte, color_byte));
+				if (colored_img) {
+					if (u)	
+						ret.setRGB(c, r, yuv444ToARGB888Pixel(none, color_byte, none));
+					else
+						ret.setRGB(c, r, yuv444ToARGB888Pixel(none, none, color_byte));
 				}
 				else {
-					ret.setRGB(c, r, yuv444ToARGB888Pixel(none, none, color_byte));
+					int val = color_byte & 0xFF;
+					Color color = new Color(val, val, val);
+					ret.setRGB(c, r, color.getRGB());
 				}
 			}
 		}

@@ -15,6 +15,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <map>
 
 using nblog::Log;
 using nblog::SExpr;
@@ -964,17 +965,58 @@ int ColorLearnTest_func() {
     int lineCenterX = liteWidth / 2;
     std::cout << "lineCenterX: " << lineCenterX << " lineCenterY: " << lineCenterY << std::endl;
 
+    std::map<int, int> u_line_vals, v_line_vals;
+    std::map<short, int> y_line_vals;
+
     for (int y = 0; y < uImageLite.height(); y++) {
         for (int x = 0; x < uImageLite.width(); x++) {
             for (int i = 0; i < (*fieldLineList).size(); i++) {
                 man::vision::FieldLine& line = (*fieldLineList)[i];
                 man::vision::HoughLine& houghLine1 = line[0];
                 man::vision::HoughLine& houghLine2 = line[1];
-                int pixLineCoordX = x - lineCenterX;
+                int pixLineCoordX = x - lineCenterX;    // get pixel in line coordinates
                 int pixLineCoordY = lineCenterY - y;
 
-                if (houghLine1.pDist(pixLineCoordX, pixLineCoordY) > 0 && houghLine2.pDist(pixLineCoordX, pixLineCoordY) > 0) {
+                double houghLine1X0, houghLine1Y0, houghLine1X1, houghLine1Y1;
+                double houghLine2X0, houghLine2Y0, houghLine2X1, houghLine2Y1;
+                houghLine1.rawEndPoints(0, 0, houghLine1X0, houghLine1Y0, houghLine1X1, houghLine1Y1);
+                houghLine2.rawEndPoints(0, 0, houghLine2X0, houghLine2Y0, houghLine2X1, houghLine2Y1);
+                
+                // TODO add check for endpoints
+                if (houghLine1.pDist(pixLineCoordX, pixLineCoordY) > 0 && 
+                    houghLine2.pDist(pixLineCoordX, pixLineCoordY) > 0
+                    //  &&
+                    // ((pixLineCoordX > houghLine1X0 && pixLineCoordX < houghLine1X1) ||
+                    //     (pixLineCoordX < houghLine1X0 && pixLineCoordX > houghLine1X1)) &&
+                    // ((pixLineCoordY > houghLine1Y0 && pixLineCoordY < houghLine1Y1) ||
+                    //     (pixLineCoordY < houghLine1Y0 && pixLineCoordY > houghLine1Y1))
+                    ) 
+                {
+                    
+
+                    // add y, u, and v values to the histogram
+                    uint8_t u_val = *uImageLite.pixelAddr(x,y);
+                    uint8_t v_val = *vImageLite.pixelAddr(x,y);
+                    short y_val = *yImageLite.pixelAddr(x,y);
+
+                    if (u_line_vals.count(u_val))
+                        u_line_vals[u_val]++;
+                    else
+                        u_line_vals.insert(std::pair<uint8_t, int>(u_val, 1));
+
+                    if (v_line_vals.count(v_val))
+                        v_line_vals[v_val]++;
+                    else
+                        v_line_vals.insert(std::pair<uint8_t, int>(v_val, 1));
+
+                    if (y_line_vals.count(y_val))
+                        y_line_vals[y_val]++;
+                    else
+                        y_line_vals.insert(std::pair<uint8_t, int>(y_val, 1));
+                    
+                    // make pixel darker
                     *(uImageLite.pixelAddr(x,y)) = (uint8_t)(0);
+
                 } 
             }
         }
@@ -993,7 +1035,29 @@ int ColorLearnTest_func() {
 
     rets.push_back(altRet);
 
-    
+    // ------------------------
+    // return u histogram vals
+
+
+    Log* u_line_ret = new Log();
+    std::string u_line_val_buf;
+    // int u_line_val_buf[u_line_vals.size() * 4]; 
+    std::map<int, int>::iterator it;
+    for ( it = u_line_vals.begin(); it != u_line_vals.end(); it++ ) {
+
+        int val = it->first;
+        int count = it->second;
+        std::cout << "[CROSS HISTOGRAM] Val: " << val << " count: " << count << "\n";
+        endswap<int>(&val);
+        endswap<int>(&count);
+
+        u_line_val_buf.append((const char*) &val, sizeof(int));
+        u_line_val_buf.append((const char*) &count, sizeof(int));
+    }
+    u_line_ret->setData(u_line_val_buf);
+
+    rets.push_back(u_line_ret);
+        
 
 
 
@@ -1005,15 +1069,15 @@ int ColorLearnTest_func() {
     // 1 pixel is 4 bytes; yuyv    
     // by traversing the image in a for loop and incrementing by 4 each time,
     // we always begin at the first y value of the next pixel
-    for (int i = 0; i < length; i += 4) {
+    // for (int i = 0; i < length; i += 4) {
 
-        if (*(buf + i) > y_thresh) {
-            *(buf + i) = 240;
-        }
+    //     if (*(buf + i) > y_thresh) {
+    //         *(buf + i) = 240;
+    //     }
         
-    }
-    std::string buffer((const char *) buf, length);
-    copy->setData(buffer);
+    // }
+    // std::string buffer((const char *) buf, length);
+    // copy->setData(buffer);
     
     // rets.push_back(copy);
     

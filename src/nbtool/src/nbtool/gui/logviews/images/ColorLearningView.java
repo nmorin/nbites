@@ -8,7 +8,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
-
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import nbtool.images.Y8image;
 import nbtool.images.UV8image;
@@ -92,10 +95,36 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 
             UV8image altImg = new UV8image(320, 240, out[3].bytes, true);
             this.alt_img = altImg.toBufferedImage();
-            // this.alt_img = this.y_img;
-        	System.out.println("[DEBUGCOLOR] alt image set\n");
-        }
 
+        	// get u histogram vals
+	        HashMap<Integer, Integer> u_line_vals = new HashMap<Integer, Integer>();
+	        byte[] uBytes = out[4].bytes;
+	        int numPairs = uBytes.length / (2 * 4);
+        	System.out.println("[HISTOGRAM] uBytes: " + uBytes.length);
+	        try {
+	            DataInputStream dis = new DataInputStream(new ByteArrayInputStream(uBytes));
+
+	            for (int i = 0; i < numPairs; i++) {
+	            	Integer u_val_key = new Integer(dis.readInt());
+	            	Integer u_val_val = new Integer(dis.readInt());
+	            	u_line_vals.put(u_val_key, u_val_val);
+	            }
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+
+        	System.out.println("[HISTOGRAM] BEFORE PRINTS");
+	        // print u histogram vals
+	        for (Integer name : u_line_vals.keySet()){
+	            String key = name.toString();
+	            String value = u_line_vals.get(name).toString();  
+	            System.out.println(key + " : " + value);  
+			} 
+        	System.out.println("[HISTOGRAM] AFTER PRINTS");
+
+
+
+	    }
         else {
 			System.out.println("ERROR no output received");
         }
