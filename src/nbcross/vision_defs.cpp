@@ -939,9 +939,10 @@ int ColorLearnTest_func() {
     // -------------
 
     // -----------
-    //   LOCAL IMAGE LITES
+    //   PIXELS INSIDE FIELD LINES
     // -----------
 
+    man::vision::ImageLiteU8 fieldUImageLite = frontEnd->uImage();
 
     man::vision::ImageLiteU8 uImageLite = frontEnd->uImage();
     man::vision::ImageLiteU8 vImageLite = frontEnd->vImage();
@@ -964,11 +965,49 @@ int ColorLearnTest_func() {
     int lineCenterX = liteWidth / 2;
     std::cout << "lineCenterX: " << lineCenterX << " lineCenterY: " << lineCenterY << std::endl;
 
+    struct yuv_struct {
+        yuv_struct(int y_, int u_, int v_) {
+            y = y_;
+            u = u_;
+            v = v_;
+        }
+        int y;
+        int u;
+        int v;
+
+        bool operator=(const yuv_struct &o) const {
+            return y == o.y && u == o.u && v == o.v;
+        }
+
+        bool operator<(const yuv_struct &o) const {
+            return y < o.y || (y == o.y && u < o.u) || (y == o.y && u == o.u && v < o.v);
+        }
+    };
+
     std::map<int, int> u_line_vals, v_line_vals, y_line_vals;
     std::map<int, int> yuv_line_vals;
+    std::map<int, int> all_pixel_u_vals;
+    std::map<yuv_struct,int> all_pixels_yuv;
 
     for (int y = 0; y < uImageLite.height(); y++) {
         for (int x = 0; x < uImageLite.width(); x++) {
+            int u_val = *uImageLite.pixelAddr(x,y);
+            int v_val = *vImageLite.pixelAddr(x,y);
+            int y_val = *yImageLite.pixelAddr(x,y);
+            // int yuv_val = (y_val << 16) & (u_val << 8) & y_val;
+
+            yuv_struct pixel_yuv = yuv_struct(y_val, u_val, v_val);
+
+            if (all_pixel_u_vals.count(u_val))
+                all_pixel_u_vals[u_val]++;
+            else
+                all_pixel_u_vals.insert(std::pair<int, int>(u_val, 1));
+
+            if (all_pixels_yuv.count(pixel_yuv))
+                all_pixels_yuv[pixel_yuv]++;
+            else
+                all_pixels_yuv.insert(std::pair<yuv_struct, int>(pixel_yuv, 1));
+
             for (int i = 0; i < (*fieldLineList).size(); i++) {
                 man::vision::FieldLine& line = (*fieldLineList)[i];
                 man::vision::HoughLine& houghLine1 = line[0];
@@ -983,7 +1022,8 @@ int ColorLearnTest_func() {
                 
                 // TODO add check for endpoints
                 if (houghLine1.pDist(pixLineCoordX, pixLineCoordY) > 0 && 
-                    houghLine2.pDist(pixLineCoordX, pixLineCoordY) > 0
+                    houghLine2.pDist(pixLineCoordX, pixLineCoordY) > 0 &&
+                    houghLine1.qDist(pixLineCoordX, pixLineCoordY) 
                     //  &&
                     // ((pixLineCoordX > houghLine1X0 && pixLineCoordX < houghLine1X1) ||
                     //     (pixLineCoordX < houghLine1X0 && pixLineCoordX > houghLine1X1)) &&
@@ -992,11 +1032,6 @@ int ColorLearnTest_func() {
                     ) 
                 {
                     
-                    int u_val = *uImageLite.pixelAddr(x,y);
-                    int v_val = *vImageLite.pixelAddr(x,y);
-                    int y_val = *yImageLite.pixelAddr(x,y);
-                    int yuv_val = (y_val << 16) & (u_val << 8) & y_val;
-
                     if (u_line_vals.count(u_val))
                         u_line_vals[u_val]++;
                     else
@@ -1012,10 +1047,10 @@ int ColorLearnTest_func() {
                     else
                         y_line_vals.insert(std::pair<int, int>(y_val, 1));
 
-                    if (yuv_line_vals.count(yuv_val))
-                        yuv_line_vals[yuv_val]++;
-                    else
-                        yuv_line_vals.insert(std::pair<int, int>(yuv_val, 1));
+                    // if (yuv_line_vals.count(yuv_val))
+                    //     yuv_line_vals[yuv_val]++;
+                    // else
+                    //     yuv_line_vals.insert(std::pair<int, int>(yuv_val, 1));
                     
                     // make pixel darker just for debug viewing
                     *(uImageLite.pixelAddr(x,y)) = (uint8_t)(0);
@@ -1025,18 +1060,18 @@ int ColorLearnTest_func() {
         }
     }
 
-    Log* altRet = new Log();
-    int altLength = (width / 4) * (height / 2) * 2;
+    Log* linePixRet = new Log();
+    int linePixLength = (width / 4) * (height / 2) * 2;
 
     // Create temp buffer and fill with yImage from FrontEnd
-    short altBuf[altLength];
-    memcpy(altBuf, uImageLite.pixelAddr(), altLength);
+    short linePixBuf[linePixLength];
+    memcpy(linePixBuf, uImageLite.pixelAddr(), linePixLength);
 
     // Convert to string and set log
-    std::string altBuffer((const char*)altBuf, altLength);
-    altRet->setData(altBuffer);
+    std::string linePixBuffer((const char*)linePixBuf, linePixLength);
+    linePixRet->setData(linePixBuffer);
 
-    rets.push_back(altRet);
+    rets.push_back(linePixRet);
 
     // ------------------------
     // Return u histogram vals
@@ -1117,9 +1152,84 @@ int ColorLearnTest_func() {
 
 
 
+    // -----------
+    //   DETERMINE FIELD COLOR
+    // -----------
 
+    int GREEN_THRESHOLD = 142;
 
+    // traverse each pixel in the image; if it is below a certain threshold, assume green
+    for (int y = 0; y < fieldUImageLite.height(); y++) {
+        for (int x = 0; x < fieldUImageLite.width(); x++) {
 
+            int uVal = *(fieldUImageLite.pixelAddr(x,y));   
+            if (uVal < GREEN_THRESHOLD) {
+                *(fieldUImageLite.pixelAddr(x,y)) = (uint8_t)(0);
+            }         
+
+        }
+    }
+
+    // return the green field color
+    Log* fieldURet = new Log();
+    int fieldULength = (width / 4) * (height / 2) * 2;
+
+    // Create temp buffer and fill with yImage from FrontEnd
+    short fieldUBuf[fieldULength];
+    memcpy(fieldUBuf, fieldUImageLite.pixelAddr(), fieldULength);
+
+    // Convert to string and set log
+    std::string fieldUBuffer((const char*)fieldUBuf, fieldULength);
+    fieldURet->setData(fieldUBuffer);
+
+    rets.push_back(fieldURet);
+
+    // -------------
+    // Return the u whole field histogram vals
+        // ------------------------
+    // Return y histogram vals
+    Log* u_field_ret = new Log();
+    std::string u_field_val_buf;
+    std::map<int, int>::iterator ituf;
+    for ( ituf = all_pixel_u_vals.begin(); ituf != all_pixel_u_vals.end(); ituf++ ) {
+
+        int val = ituf->first;
+        int count = ituf->second;
+        // std::cout << "[CROSS HISTOGRAM] Val: " << val << " count: " << count << "\n";
+        endswap<int>(&val);
+        endswap<int>(&count);
+
+        u_field_val_buf.append((const char*) &val, sizeof(int));
+        u_field_val_buf.append((const char*) &count, sizeof(int));
+    }
+    u_field_ret->setData(u_field_val_buf);
+    rets.push_back(u_field_ret);
+
+    // ------------------------
+    // Return all pixel yuv histogram vals
+    // Log* allPixYuvRet = new Log();
+    // std::string all_pix_yuv_buf;
+    // // int u_line_val_buf[u_line_vals.size() * 4]; 
+    // std::map<yuv_struct, int>::iterator it_all_pix;
+    // for ( it_all_pix = all_pixels_yuv.begin(); it_all_pix != all_pixels_yuv.end(); it_all_pix++ ) {
+
+    //     yuv_struct pixYuv = it_all_pix->first;
+    //     int y = pixYuv.y;
+    //     int u = pixYuv.u;
+    //     int v = pixYuv.v;
+    //     int count = it_all_pix->second;
+    //     endswap<int>(&y);
+    //     endswap<int>(&u);
+    //     endswap<int>(&v);
+    //     endswap<int>(&count);
+
+    //     all_pix_yuv_buf.append((const char*) &y, sizeof(int));
+    //     all_pix_yuv_buf.append((const char*) &u, sizeof(int));
+    //     all_pix_yuv_buf.append((const char*) &v, sizeof(int));
+    //     all_pix_yuv_buf.append((const char*) &count, sizeof(int));
+    // }
+    // allPixYuvRet->setData(all_pix_yuv_buf);
+    // rets.push_back(allPixYuvRet);
 
 
 

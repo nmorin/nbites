@@ -40,37 +40,39 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	BufferedImage u_img;
 	BufferedImage v_img;
 	BufferedImage y_img;
+	BufferedImage green_img;
 	BufferedImage alt_img;
 	BufferedImage original_image;
 
 	HashMap<Integer, Integer> u_line_vals;
+	HashMap<Integer, Integer> u_all_vals;
 
 	private String label = null;
 	int MIN_BAR_WIDTH = 5;
 
-	public void drawHist(Graphics g) {
+	public void drawHist(Graphics g, HashMap<Integer, Integer> vals_map, int xBegin, int yBegin, int w, int h) {
 
-		if (u_line_vals != null) {
-            int xOffset = original_image.getWidth() + 10;
-            int yOffset = 5;
-            int width = 450;
-            int height = 200;
+		if (vals_map != null) {
+            int xOffset = xBegin;
+            int yOffset = yBegin;
+            int width = w;
+            int height = h;
 
             Graphics2D g2d = (Graphics2D) g.create();
             g2d.setColor(Color.DARK_GRAY);
             g2d.drawRect(xOffset, yOffset, width, height);
             int barWidth = Math.max(MIN_BAR_WIDTH, (int) Math.floor((float) width
-                    / (float) u_line_vals.size()));
+                    / (float) vals_map.size()));
 
             int maxValue = 0;
-            for (Integer key : u_line_vals.keySet()) {
-                int value = u_line_vals.get(key);
+            for (Integer key : vals_map.keySet()) {
+                int value = vals_map.get(key);
                 maxValue = Math.max(maxValue, value);
             }
             int xPos = xOffset;
 
-            for (Integer key : u_line_vals.keySet()) {
-                int value = u_line_vals.get(key);
+            for (Integer key : vals_map.keySet()) {
+                int value = vals_map.get(key);
                 int barHeight = Math.round(((float) value / (float) maxValue) * height);
                 g2d.setColor(new Color(key, key, key));
                 int yPos = height + yOffset - barHeight;
@@ -109,10 +111,13 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 			g.drawImage(y_img, original_image.getWidth() / 2 + 5, 2*u_img.getHeight() + 10, null);
 		if (alt_img != null)
 			g.drawImage(alt_img, 0, original_image.getHeight() / 2 + 5, null);
+		if (green_img != null)
+			g.drawImage(green_img, 0, original_image.getHeight() + 10, null);
 		// if (label != null)
 		// 	g.drawString(label, 10, original_image.getHeight() + u_img.getHeight() + 25);
 
-		drawHist(g);
+		drawHist(g, u_line_vals, original_image.getWidth() + 10, 5, 450, 200);
+		drawHist(g, u_all_vals, original_image.getWidth() + 10, 210, 450, 200);
     }
 	
 	public void setLog(Log newlog) {		
@@ -158,7 +163,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
             this.alt_img = altImg.toBufferedImage();
 
             // Line histogram data:
-        	// Get u histogram vals
+        	// Get u histogram vals -- lines
 	        u_line_vals = new HashMap<Integer, Integer>();
 	        byte[] uBytes = out[4].bytes;
 	        int numPairs = uBytes.length / (2 * 4);
@@ -175,7 +180,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	            e.printStackTrace();
 	        }
 
-	        // Get v histogram vals
+	        // Get v histogram vals -- lines
 			HashMap<Integer, Integer> v_line_vals = new HashMap<Integer, Integer>();
 	        byte[] vBytes = out[5].bytes;
 	        numPairs = vBytes.length / (2 * 4);
@@ -191,7 +196,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	            e.printStackTrace();
 	        }	        
 
-	        // Get y histogram vals
+	        // Get y histogram vals -- lines
 			HashMap<Integer, Integer> y_line_vals = new HashMap<Integer, Integer>();
 	        byte[] yBytes = out[6].bytes;
 	        numPairs = yBytes.length / (2 * 4);
@@ -222,6 +227,48 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	  //       } catch (Exception e) {
 	  //           e.printStackTrace();
 	  //       }	        
+
+	        // get "green" image
+			UV8image greenImg = new UV8image(320, 240, out[7].bytes, true);
+            this.green_img = greenImg.toBufferedImage();
+
+            // get all pixel u histogram values
+	        u_all_vals = new HashMap<Integer, Integer>();
+	        byte[] uAllBytes = out[8].bytes;
+	        int numUAllPairs = uAllBytes.length / (2 * 4);
+        	System.out.println("[HISTOGRAM] uAllBytes: " + uAllBytes.length);
+	        try {
+	            DataInputStream dis = new DataInputStream(new ByteArrayInputStream(uAllBytes));
+
+	            for (int i = 0; i < numUAllPairs; i++) {
+	            	Integer u_val_key = new Integer(dis.readInt());
+	            	Integer u_val_val = new Integer(dis.readInt());
+	            	u_all_vals.put(u_val_key, u_val_val);
+	            }
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+
+            // get all pixels yuv histogram values
+			// HashMap<Integer, Integer> all_pixel_y_vals = new HashMap<Integer, Integer>();
+			// HashMap<Integer, Integer> all_pixel_u_vals = new HashMap<Integer, Integer>();
+			// HashMap<Integer, Integer> all_pixel_v_vals = new HashMap<Integer, Integer>();
+	  //       byte[] allPixBytes = out[8].bytes;
+	  //       numPairs = allPixBytes.length / (4 * 4);
+   //      	System.out.println("[HISTOGRAM] allPixBytes: " + allPixBytes.length);
+	  //       try {
+	  //           DataInputStream dis = new DataInputStream(new ByteArrayInputStream(yBytes));
+	  //           for (int i = 0; i < numPairs; i++) {
+	  //           	Integer y_val = new Integer(dis.readInt());
+	  //           	Integer u_val = new Integer(dis.readInt());
+	  //           	Integer v_val = new Integer(dis.readInt());
+	  //           	Integer count = new Integer(dis.readInt());
+	  //           	y_line_vals.put(y_val_key, y_val_val);
+	  //           }
+	  //       } catch (Exception e) {
+	  //           e.printStackTrace();
+	  //       }
+
 
 
 
