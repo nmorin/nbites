@@ -115,9 +115,6 @@ uint32_t
 
   uint8_t* pv = pu + width * height;  // TODO make conditional on color table being used
 
-  std::cout << "[DEBUG ACQUIREIMAGE] Val of writeUV here is " << writeUV << std::endl;
-  // std::cout << "[DEBUG ACQUIREIMAGE] Val of colorTable here is " << colorTable << std::endl;
-
   for (int j = 0; j < height; ++j)
   {
     const uint8_t* ps = source + 2 * pitch * j;
@@ -187,15 +184,12 @@ void ImageFrontEnd::run(const YuvLite& src, const Colors* colors, uint8_t* color
     dstAllocated = size;
   }
 
-  std::cout << "[DEBUG RUNFRONTEND] Val of writeUV = " << writeUV() << std::endl;
-  std::cout << "[DEBUG RUNFRONTEND] Size: " << size << std::endl;
-
   fast(false);
 
-  if (fast())
-    std::cout << "[DEBUG RUNFRONTEND] running fast\n";
-  else
-    std::cout << "Not running fast\n";
+  // if (fast())
+  //   std::cout << "[DEBUG RUNFRONTEND] running fast\n";
+  // else
+  //   std::cout << "Not running fast\n";
 
 
   if (fast())

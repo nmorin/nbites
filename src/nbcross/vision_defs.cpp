@@ -808,6 +808,30 @@ int findMaxKeyOfMap(std::map<int, int> *val_map) {
     return max_key;
 }
 
+int findMaxKeyOfMapFloat(std::map<int, float> *val_map) {
+    float max_count = -1;
+    float max_key = -1;
+    float count;
+    int key;
+
+    std::map<int, float>::iterator it;
+    for ( it = val_map->begin(); it != val_map->end(); it++ ) {
+        key = it->first;
+        count = it->second;
+        if (count > max_count) { 
+            max_count = count;
+            max_key = key;
+        }
+    }
+    return max_key;
+}
+
+float calcWeightedGreenUVal(int u) {
+    int STANDARD_U_GREEN_VAL = 137;
+    float error = std::abs((float)u - (float)137); 
+    return ((float)u / (error*error));
+}
+
 int ColorLearnTest_func() {
     assert(args.size() == 1);
     printf("= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =\n");
@@ -1005,7 +1029,10 @@ int ColorLearnTest_func() {
     std::map<int, int> u_line_vals, v_line_vals, y_line_vals;
     std::map<int, int> yuv_line_vals;
     std::map<int, int> all_pixel_u_vals;
+    std::map<int, float> all_pixel_u_vals_float_count;
     std::map<yuv_struct,int> all_pixels_yuv;
+
+    int STANDARD_U_GREEN_VAL = 137;
 
     for (int y = 0; y < uImageLite.height(); y++) {
         for (int x = 0; x < uImageLite.width(); x++) {
@@ -1016,10 +1043,21 @@ int ColorLearnTest_func() {
 
             yuv_struct pixel_yuv = yuv_struct(y_val, u_val, v_val);
 
+            // ---------------
+            // track the u values of ALL the pixels in the image (for field color)
+            // NORMAL, UNWEIGHTED:
             if (all_pixel_u_vals.count(u_val))
                 all_pixel_u_vals[u_val]++;
             else
                 all_pixel_u_vals.insert(std::pair<int, int>(u_val, 1));
+            
+            // WEIGHTED ?? :
+            if (all_pixel_u_vals_float_count.count(u_val)) {
+                all_pixel_u_vals_float_count[u_val] += calcWeightedGreenUVal(u_val);
+            } else {
+                all_pixel_u_vals_float_count.insert(std::pair<int, int>(u_val, calcWeightedGreenUVal(u_val)));
+            }
+            // ---------------
 
             if (all_pixels_yuv.count(pixel_yuv))
                 all_pixels_yuv[pixel_yuv]++;
@@ -1173,6 +1211,25 @@ int ColorLearnTest_func() {
     // -----------
     //   DETERMINE FIELD COLOR
     // -----------
+    int u_threshold_width = 3;
+    std::vector<SExpr*> uThresholdS = args[0]->tree().recursiveFind("uThreshold");
+    if (uThresholdS.size() != 0) {
+        SExpr* s = uThresholdS.at(uThresholdS.size()-1);
+        u_threshold_width = s->get(1)->valueAsInt();
+        std::cout << "[FIELDCOLORDEBUG] Found u_threshold_width: ";
+        std::cout << u_threshold_width << "\n";
+    } else {
+        std::cout << "[FIELDCOLORDEBUG] did not find field params\n";
+    }
+    // if (fieldParams != NULL) {
+    //     std::cout << "[FIELDCOLORDEBUG] Found fieldparams \n";
+    //     std::cout << fieldParams->get(1)->valueAsInt() << "\n";
+    // }
+    // else {
+    //     std::cout << "[FIELDCOLORDEBUG] did not find field params\n";
+    // }
+
+    // Look for existing Params atom in current this.log description
 
     int GREEN_THRESHOLD = 142;
 
@@ -1189,7 +1246,6 @@ int ColorLearnTest_func() {
     // }
 
     // SLIGHTLY BETTER? ??? ?? 
-    int DIFF_THRESH = 3;
     int mostCommonUVal = findMaxKeyOfMap(&all_pixel_u_vals);
     std::cout << "[FIELDCOLORDEBUG] Most common u val: " << mostCommonUVal << "\n";
 
@@ -1197,13 +1253,25 @@ int ColorLearnTest_func() {
         for (int x = 0; x < fieldUImageLite.width(); x++) {
 
             int uVal = *(fieldUImageLite.pixelAddr(x,y));   
-            if (std::abs(uVal - mostCommonUVal) < DIFF_THRESH) {
+            if (std::abs(uVal - mostCommonUVal) < u_threshold_width) {
                 *(fieldUImageLite.pixelAddr(x,y)) = (uint8_t)(0);
             }         
         }
     }    
 
+    // WITH WEIGHTS
+    int mostCommonUValFloat = findMaxKeyOfMapFloat(&all_pixel_u_vals_float_count);
+    std::cout << "[FIELDCOLORDEBUG] Most common float u val: " << mostCommonUValFloat << "\n";
 
+    // for (int y = 0; y < fieldUImageLite.height(); y++) {
+    //     for (int x = 0; x < fieldUImageLite.width(); x++) {
+
+    //         float uVal = (float) *(fieldUImageLite.pixelAddr(x,y));   
+    //         if (std::abs(uVal - mostCommonUValFloat) < DIFF_THRESH) {
+    //             *(fieldUImageLite.pixelAddr(x,y)) = (uint8_t)(0);
+    //         }         
+    //     }
+    // }    
 
 
     // return the green field color

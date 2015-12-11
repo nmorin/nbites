@@ -15,8 +15,15 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
+
+import javax.swing.JSlider;
+import javax.swing.JButton;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -27,6 +34,7 @@ import nbtool.images.UV8image;
 import nbtool.images.Y16image;
 
 import nbtool.data.Log;
+import nbtool.data.SExpr;
 import nbtool.gui.logviews.misc.ViewParent;
 import nbtool.util.Utility;
 
@@ -38,6 +46,7 @@ import nbtool.io.CrossIO.CrossFunc;
 import nbtool.io.CrossIO.CrossInstance;
 
 public class ColorLearningView extends ViewParent implements MouseMotionListener, IOFirstResponder {
+	// output images and original image
 	BufferedImage u_img;
 	BufferedImage v_img;
 	BufferedImage y_img;
@@ -48,17 +57,21 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	TreeMap<Integer, Integer> u_line_vals;
 	TreeMap<Integer, Integer> u_all_vals;
 
-	private String label = null;
+    private JSlider fieldThreshSlider;
+
+	// private String label = null;
 	int MIN_BAR_WIDTH = 5;
 
 	int calcMax(TreeMap<Integer, Integer> map) {
 		int curr_max = -1;
+		int key_max = -1;
 		for (Integer key : map.keySet()) {
 			if (map.get(key) > curr_max) {
 				curr_max = map.get(key);
+				key_max = key;
 			}
 		}
-		return curr_max;
+		return key_max;
 	}
 
 	public void drawHist(Graphics g, TreeMap<Integer, Integer> vals_map, int xBegin, int yBegin, int w, int h, String title) {
@@ -86,6 +99,10 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
             Font titleFont = new Font(null, Font.BOLD, 10);
             g2d.setFont(titleFont); 
             g2d.drawString(title, xOffset + 15, yOffset + 15);
+            int mapMax = calcMax(vals_map);
+            String maxInfo = "Max: " + mapMax;
+            g2d.drawString(maxInfo, xOffset + 25, yOffset + 25);
+
 
             int labelCount = 0;
             for (Integer key : vals_map.keySet()) {
@@ -121,30 +138,41 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
+		int width = 0, height = 0;
         
-		if (original_image != null)
-			g.drawImage(original_image, 0, 0, original_image.getWidth() / 2, original_image.getHeight() / 2, null);
+		if (original_image != null) {
+			width = original_image.getWidth() / 2;
+			height = original_image.getHeight() / 2;
+			g.drawImage(original_image, 0, 0, width, height, null);
+		}
 		if (u_img != null)
-			g.drawImage(u_img, original_image.getWidth() / 2 + 5, 0, null);
+			g.drawImage(u_img, width + 5, 0, null);
 		if (v_img != null)
-			g.drawImage(v_img, original_image.getWidth() / 2 + 5, u_img.getHeight() + 5, null);
+			g.drawImage(v_img, width + 5, u_img.getHeight() + 5, null);
 		if (y_img != null)
-			g.drawImage(y_img, original_image.getWidth() / 2 + 5, 2*u_img.getHeight() + 10, null);
+			g.drawImage(y_img, width + 5, 2*height + 10, null);
 		if (alt_img != null)
-			g.drawImage(alt_img, 0, original_image.getHeight() / 2 + 5, null);
+			g.drawImage(alt_img, 0, height + 5, null);
 		if (green_img != null)
-			g.drawImage(green_img, 0, original_image.getHeight() + 10, null);
-		// if (label != null)
-		// 	g.drawString(label, 10, original_image.getHeight() + u_img.getHeight() + 25);
+			g.drawImage(green_img, 0, 2*height + 10, null);
 
-		drawHist(g, u_line_vals, original_image.getWidth() + 10, 5, 450, 200, "u_line_vals");
-		drawHist(g, u_all_vals, original_image.getWidth() + 10, original_image.getHeight() / 2, 450, 200, "u_all_vals");
+		drawHist(g, u_line_vals, 2*width + 10, 5, 450, 200, "u_line_vals");
+		drawHist(g, u_all_vals, 2*width + 10, height, 450, 200, "u_all_vals");
+
+		int sliderX = 5; 
+		int sliderY = 3*height + 20;
+		int sliderHeight = 15;
+		fieldThreshSlider.setBounds(sliderX, sliderY, width, sliderHeight);
+		g.drawString("width of u threshold for fieldcolor", sliderX, sliderY + 25);
+		g.drawString("Current value: " + fieldThreshSlider.getValue(), sliderX, sliderY + 40);
     }
 	
 	public void setLog(Log newlog) {		
-		// this.u_img = Utility.biFromLog(newlog);
 		this.original_image = Utility.biFromLog(newlog);
-		
+		callNBFunc();
+	}
+
+	public void callNBFunc() {
 		CrossInstance inst = CrossIO.instanceByIndex(0);
 		if (inst == null)
 			return;
@@ -158,11 +186,39 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 
 		repaint();
 	}
+
+	public void adjustParams() {
+		SExpr newFieldParams = SExpr.newList(
+			SExpr.newKeyValue("uThreshold", fieldThreshSlider.getValue())
+		);
+
+		SExpr oldFieldParams = this.log.tree().find("fieldParams");
+		if (oldFieldParams.exists()) {
+			// SExpr saveAtom = oldParams.get(1).find("SaveParams");
+   //          this.log.tree().remove(saveAtom);
+            oldFieldParams.setList( SExpr.atom("fieldParams"), newFieldParams); 
+		} else {
+            this.log.tree().append(SExpr.pair("fieldParams", newFieldParams));
+        }
+
+		callNBFunc();
+	}
 	
 	public ColorLearningView() {
 		super();
 		setLayout(null);
 		this.addMouseMotionListener(this);
+
+		ChangeListener slide = new ChangeListener(){
+	        public void stateChanged(ChangeEvent e) {
+	            adjustParams();
+	            repaint();
+	        }
+	    };
+	    
+		fieldThreshSlider = new JSlider(JSlider.HORIZONTAL, -15, 15, 0);
+		fieldThreshSlider.addChangeListener(slide);
+		add(fieldThreshSlider);
 	}
 
 	@Override
@@ -338,7 +394,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		int y = log.data()[first ? i : i + 2] & 0xff;
 		int u = log.data()[i + 1] & 0xff;
 		int v = log.data()[i + 3] & 0xff;
-		label = String.format("(%d,%d): y=%d u=%d v=%d", col, row, y, u, v);
+		// label = String.format("(%d,%d): y=%d u=%d v=%d", col, row, y, u, v);
 		repaint();
 	}
 	
