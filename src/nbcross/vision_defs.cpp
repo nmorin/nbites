@@ -16,6 +16,7 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#include <cmath>
 
 using nblog::Log;
 using nblog::SExpr;
@@ -790,6 +791,23 @@ man::vision::VisionModule& getModuleRef(const std::string robotName) {
 
 // - - -  - - - ---------------------------------------------------------------------
 
+int findMaxKeyOfMap(std::map<int, int> *val_map) {
+    int max_count = -1;
+    int max_key = -1;
+    int count, key;
+
+    std::map<int, int>::iterator it;
+    for ( it = val_map->begin(); it != val_map->end(); it++ ) {
+        key = it->first;
+        count = it->second;
+        if (count > max_count) { 
+            max_count = count;
+            max_key = key;
+        }
+    }
+    return max_key;
+}
+
 int ColorLearnTest_func() {
     assert(args.size() == 1);
     printf("= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =\n");
@@ -1083,7 +1101,7 @@ int ColorLearnTest_func() {
 
         int val = it->first;
         int count = it->second;
-        std::cout << "[CROSS HISTOGRAM] Val: " << val << " count: " << count << "\n";
+        // std::cout << "[CROSS HISTOGRAM] Val: " << val << " count: " << count << "\n";
         endswap<int>(&val);
         endswap<int>(&count);
 
@@ -1102,7 +1120,7 @@ int ColorLearnTest_func() {
 
         int val = itv->first;
         int count = itv->second;
-        std::cout << "[CROSS HISTOGRAM] Val: " << val << " count: " << count << "\n";
+        // std::cout << "[CROSS HISTOGRAM] Val: " << val << " count: " << count << "\n";
         endswap<int>(&val);
         endswap<int>(&count);
 
@@ -1121,7 +1139,7 @@ int ColorLearnTest_func() {
 
         int val = ity->first;
         int count = ity->second;
-        std::cout << "[CROSS HISTOGRAM] Val: " << val << " count: " << count << "\n";
+        // std::cout << "[CROSS HISTOGRAM] Val: " << val << " count: " << count << "\n";
         endswap<int>(&val);
         endswap<int>(&count);
 
@@ -1158,17 +1176,35 @@ int ColorLearnTest_func() {
 
     int GREEN_THRESHOLD = 142;
 
+    // NAIVE APPROACH
     // traverse each pixel in the image; if it is below a certain threshold, assume green
+    // for (int y = 0; y < fieldUImageLite.height(); y++) {
+    //     for (int x = 0; x < fieldUImageLite.width(); x++) {
+
+    //         int uVal = *(fieldUImageLite.pixelAddr(x,y));   
+    //         if (uVal < GREEN_THRESHOLD) {
+    //             *(fieldUImageLite.pixelAddr(x,y)) = (uint8_t)(0);
+    //         }         
+    //     }
+    // }
+
+    // SLIGHTLY BETTER? ??? ?? 
+    int DIFF_THRESH = 3;
+    int mostCommonUVal = findMaxKeyOfMap(&all_pixel_u_vals);
+    std::cout << "[FIELDCOLORDEBUG] Most common u val: " << mostCommonUVal << "\n";
+
     for (int y = 0; y < fieldUImageLite.height(); y++) {
         for (int x = 0; x < fieldUImageLite.width(); x++) {
 
             int uVal = *(fieldUImageLite.pixelAddr(x,y));   
-            if (uVal < GREEN_THRESHOLD) {
+            if (std::abs(uVal - mostCommonUVal) < DIFF_THRESH) {
                 *(fieldUImageLite.pixelAddr(x,y)) = (uint8_t)(0);
             }         
-
         }
-    }
+    }    
+
+
+
 
     // return the green field color
     Log* fieldURet = new Log();
@@ -1186,8 +1222,7 @@ int ColorLearnTest_func() {
 
     // -------------
     // Return the u whole field histogram vals
-        // ------------------------
-    // Return y histogram vals
+    int U_MIN_T = 10;
     Log* u_field_ret = new Log();
     std::string u_field_val_buf;
     std::map<int, int>::iterator ituf;
@@ -1195,9 +1230,13 @@ int ColorLearnTest_func() {
 
         int val = ituf->first;
         int count = ituf->second;
+
+        if (count < U_MIN_T)
+            continue;
         // std::cout << "[CROSS HISTOGRAM] Val: " << val << " count: " << count << "\n";
         endswap<int>(&val);
         endswap<int>(&count);
+
 
         u_field_val_buf.append((const char*) &val, sizeof(int));
         u_field_val_buf.append((const char*) &count, sizeof(int));
@@ -1250,3 +1289,4 @@ int ColorLearnTest_func() {
     
     return 0;
 }
+

@@ -19,6 +19,7 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.lang.Math;
 
 import nbtool.images.Y8image;
@@ -44,13 +45,23 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	BufferedImage alt_img;
 	BufferedImage original_image;
 
-	HashMap<Integer, Integer> u_line_vals;
-	HashMap<Integer, Integer> u_all_vals;
+	TreeMap<Integer, Integer> u_line_vals;
+	TreeMap<Integer, Integer> u_all_vals;
 
 	private String label = null;
 	int MIN_BAR_WIDTH = 5;
 
-	public void drawHist(Graphics g, HashMap<Integer, Integer> vals_map, int xBegin, int yBegin, int w, int h) {
+	int calcMax(TreeMap<Integer, Integer> map) {
+		int curr_max = -1;
+		for (Integer key : map.keySet()) {
+			if (map.get(key) > curr_max) {
+				curr_max = map.get(key);
+			}
+		}
+		return curr_max;
+	}
+
+	public void drawHist(Graphics g, TreeMap<Integer, Integer> vals_map, int xBegin, int yBegin, int w, int h, String title) {
 
 		if (vals_map != null) {
             int xOffset = xBegin;
@@ -71,6 +82,12 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
             }
             int xPos = xOffset;
 
+
+            Font titleFont = new Font(null, Font.BOLD, 10);
+            g2d.setFont(titleFont); 
+            g2d.drawString(title, xOffset + 15, yOffset + 15);
+
+            int labelCount = 0;
             for (Integer key : vals_map.keySet()) {
                 int value = vals_map.get(key);
                 int barHeight = Math.round(((float) value / (float) maxValue) * height);
@@ -81,16 +98,20 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
                 g2d.setColor(Color.DARK_GRAY);
                 g2d.draw(bar);
                 xPos += barWidth;
+
+                if (labelCount < 2) {
+                	labelCount++;
+                	continue;
+                }
+                labelCount = 0;
                 String value_label = "" + value;
                 Font font = new Font(null, Font.PLAIN, 10);
                 g2d.setFont(font); 
                 AffineTransform affTran = new AffineTransform(); // g2d.getTransform();
                 affTran.rotate(Math.toRadians(90), 0, 0);
-				// g2d.rotate(-Math.PI/2);
 				Font rotatedFont = font.deriveFont(affTran);
 				g2d.setFont(rotatedFont);
                 g2d.drawString(key.toString(), xPos - barWidth, yOffset + height + 10);
-				// g2d.setTransform(orig);
             }
             g2d.dispose();
         }
@@ -116,8 +137,8 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		// if (label != null)
 		// 	g.drawString(label, 10, original_image.getHeight() + u_img.getHeight() + 25);
 
-		drawHist(g, u_line_vals, original_image.getWidth() + 10, 5, 450, 200);
-		drawHist(g, u_all_vals, original_image.getWidth() + 10, 210, 450, 200);
+		drawHist(g, u_line_vals, original_image.getWidth() + 10, 5, 450, 200, "u_line_vals");
+		drawHist(g, u_all_vals, original_image.getWidth() + 10, original_image.getHeight() / 2, 450, 200, "u_all_vals");
     }
 	
 	public void setLog(Log newlog) {		
@@ -164,7 +185,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 
             // Line histogram data:
         	// Get u histogram vals -- lines
-	        u_line_vals = new HashMap<Integer, Integer>();
+	        u_line_vals = new TreeMap<Integer, Integer>();
 	        byte[] uBytes = out[4].bytes;
 	        int numPairs = uBytes.length / (2 * 4);
         	System.out.println("[HISTOGRAM] uBytes: " + uBytes.length);
@@ -233,7 +254,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
             this.green_img = greenImg.toBufferedImage();
 
             // get all pixel u histogram values
-	        u_all_vals = new HashMap<Integer, Integer>();
+	        u_all_vals = new TreeMap<Integer, Integer>();
 	        byte[] uAllBytes = out[8].bytes;
 	        int numUAllPairs = uAllBytes.length / (2 * 4);
         	System.out.println("[HISTOGRAM] uAllBytes: " + uAllBytes.length);
