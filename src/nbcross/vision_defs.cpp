@@ -7,6 +7,7 @@
 #include "vision/Homography.h"
 #include "ParamReader.h"
 #include "NBMath.h"
+#include "vision/Vision.h"
 
 #include <cstdlib>
 #include <netinet/in.h>
@@ -832,6 +833,37 @@ float calcWeightedGreenUVal(int u) {
     return ((float)u / (error*error));
 }
 
+std::string compressIntMapToString(std::map<int, int> values, int min = -1) {
+    std::string val_buffer;
+    std::map<int, int>::iterator it;
+    for ( it = values.begin(); it != values.end(); it++ ) {
+
+        int val = it->first;
+        int count = it->second;
+
+        if (count < min)
+            continue;
+        endswap<int>(&val);
+        endswap<int>(&count);
+
+        val_buffer.append((const char*) &val, sizeof(int));
+        val_buffer.append((const char*) &count, sizeof(int));
+    }
+    return val_buffer;
+}
+
+void setLogImageDataInShort(Log* logRet, man::vision::ImageLiteU8 *image, int width, int height) {
+    int imageLength = (width / 4) * (height / 2) * 2;
+
+    // Create temp buffer and fill with yImage from FrontEnd
+    short imageBuf[imageLength];
+    memcpy(imageBuf, image->pixelAddr(), imageLength);
+
+    // Convert to string and set log
+    std::string imageBuffer((const char*)imageBuf, imageLength);
+    logRet->setData(imageBuffer);
+}
+
 int ColorLearnTest_func() {
     assert(args.size() == 1);
     printf("= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =\n");
@@ -930,9 +962,6 @@ int ColorLearnTest_func() {
     std::string uBuffer((const char*)uBuf, uLength);
     uRet->setData(uBuffer);
 
-    // Read params from Lisp and attach to image 
-    // uRet->setTree(getSExprFromSavedParams(0, sexpPath, topCamera));
-
     rets.push_back(uRet);
 
     std::cout << "[UV IMAGE TEST] End of get u image\n";
@@ -952,9 +981,6 @@ int ColorLearnTest_func() {
     // Convert to string and set log
     std::string vBuffer((const char*)vBuf, vLength);
     vRet->setData(vBuffer);
-
-    // Read params from Lisp and attach to image 
-    // uRet->setTree(getSExprFromSavedParams(0, sexpPath, topCamera));
 
     rets.push_back(vRet);
 
@@ -983,14 +1009,26 @@ int ColorLearnTest_func() {
     // -----------
     //   PIXELS INSIDE FIELD LINES
     // -----------
+    
 
-    man::vision::ImageLiteU8 fieldUImageLite = frontEnd->uImage();
+
 
     man::vision::ImageLiteU8 uImageLite = frontEnd->uImage();
     man::vision::ImageLiteU8 vImageLite = frontEnd->vImage();
     man::vision::ImageLiteU16 yImageLite = frontEnd->yImage();
     int liteWidth = uImageLite.width();
     int liteHeight = uImageLite.height();
+
+    uint8_t destFieldUImage[liteHeight * liteWidth];
+    memcpy(destFieldUImage, uImageLite.pixelAddr(), (liteWidth*liteHeight*sizeof(uint8_t)));
+    uint8_t destFieldUImageFloat[liteHeight * liteWidth];
+    memcpy(destFieldUImageFloat, uImageLite.pixelAddr(), (liteWidth*liteHeight*sizeof(uint8_t)));
+
+    man::vision::ImageLiteU8 fieldUImageLite =  man::vision::ImageLiteU8(uImageLite.width(), 
+        uImageLite.height(), uImageLite.pitch(), destFieldUImage);
+    man::vision::ImageLiteU8 fieldUImageLiteFloat =  man::vision::ImageLiteU8(uImageLite.width(), 
+        uImageLite.height(), uImageLite.pitch(), destFieldUImageFloat);
+
 
     // Get field line list
     man::vision::FieldLineList* fieldLineList = module.getFieldLines(topCamera);
@@ -1116,75 +1154,28 @@ int ColorLearnTest_func() {
         }
     }
 
+    // ------------------------
+    // Return u image with darkened pixels inside the field lines
     Log* linePixRet = new Log();
-    int linePixLength = (width / 4) * (height / 2) * 2;
-
-    // Create temp buffer and fill with yImage from FrontEnd
-    short linePixBuf[linePixLength];
-    memcpy(linePixBuf, uImageLite.pixelAddr(), linePixLength);
-
-    // Convert to string and set log
-    std::string linePixBuffer((const char*)linePixBuf, linePixLength);
-    linePixRet->setData(linePixBuffer);
-
+    setLogImageDataInShort(linePixRet, &uImageLite, width, height);
     rets.push_back(linePixRet);
 
     // ------------------------
     // Return u histogram vals
     Log* u_line_ret = new Log();
-    std::string u_line_val_buf;
-    // int u_line_val_buf[u_line_vals.size() * 4]; 
-    std::map<int, int>::iterator it;
-    for ( it = u_line_vals.begin(); it != u_line_vals.end(); it++ ) {
-
-        int val = it->first;
-        int count = it->second;
-        // std::cout << "[CROSS HISTOGRAM] Val: " << val << " count: " << count << "\n";
-        endswap<int>(&val);
-        endswap<int>(&count);
-
-        u_line_val_buf.append((const char*) &val, sizeof(int));
-        u_line_val_buf.append((const char*) &count, sizeof(int));
-    }
-    u_line_ret->setData(u_line_val_buf);
+    u_line_ret->setData(compressIntMapToString(u_line_vals));
     rets.push_back(u_line_ret);
         
     // ------------------------
     // Return v histogram vals
     Log* v_line_ret = new Log();
-    std::string v_line_val_buf;
-    std::map<int, int>::iterator itv;
-    for ( itv = v_line_vals.begin(); itv != v_line_vals.end(); itv++ ) {
-
-        int val = itv->first;
-        int count = itv->second;
-        // std::cout << "[CROSS HISTOGRAM] Val: " << val << " count: " << count << "\n";
-        endswap<int>(&val);
-        endswap<int>(&count);
-
-        v_line_val_buf.append((const char*) &val, sizeof(int));
-        v_line_val_buf.append((const char*) &count, sizeof(int));
-    }
-    v_line_ret->setData(v_line_val_buf);
+    v_line_ret->setData(compressIntMapToString(v_line_vals));
     rets.push_back(v_line_ret);
 
     // ------------------------
     // Return y histogram vals
     Log* y_line_ret = new Log();
-    std::string y_line_val_buf;
-    std::map<int, int>::iterator ity;
-    for ( ity = y_line_vals.begin(); ity != y_line_vals.end(); ity++ ) {
-
-        int val = ity->first;
-        int count = ity->second;
-        // std::cout << "[CROSS HISTOGRAM] Val: " << val << " count: " << count << "\n";
-        endswap<int>(&val);
-        endswap<int>(&count);
-
-        y_line_val_buf.append((const char*) &val, sizeof(int));
-        y_line_val_buf.append((const char*) &count, sizeof(int));
-    }
-    y_line_ret->setData(y_line_val_buf);
+    y_line_ret->setData(compressIntMapToString(y_line_vals));
     rets.push_back(y_line_ret);
 
     // ------------------------
@@ -1207,7 +1198,7 @@ int ColorLearnTest_func() {
     // rets.push_back(y_line_ret);
 
 
-
+    // -----------
     // -----------
     //   DETERMINE FIELD COLOR
     // -----------
@@ -1219,7 +1210,18 @@ int ColorLearnTest_func() {
         std::cout << "[FIELDCOLORDEBUG] Found u_threshold_width: ";
         std::cout << u_threshold_width << "\n";
     } else {
-        std::cout << "[FIELDCOLORDEBUG] did not find field params\n";
+        std::cout << "[FIELDCOLORDEBUG] did not find u_threshold_width\n";
+    }
+
+    int user_u_mode = 0;
+    std::vector<SExpr*> uFieldValS = args[0]->tree().recursiveFind("uFieldVal");
+    if (uFieldValS.size() != 0) {
+        SExpr* s = uFieldValS.at(uFieldValS.size()-1);
+        user_u_mode = s->get(1)->valueAsInt();
+        std::cout << "[FIELDCOLORDEBUG] Found user_u_mode: ";
+        std::cout << user_u_mode << "\n";
+    } else {
+        std::cout << "[FIELDCOLORDEBUG] did not find user_u_mode\n";
     }
     // if (fieldParams != NULL) {
     //     std::cout << "[FIELDCOLORDEBUG] Found fieldparams \n";
@@ -1231,8 +1233,7 @@ int ColorLearnTest_func() {
 
     // Look for existing Params atom in current this.log description
 
-    int GREEN_THRESHOLD = 142;
-
+    int GREEN_THRESHOLD = (user_u_mode == 0) ? findMaxKeyOfMap(&all_pixel_u_vals) : user_u_mode;
     // NAIVE APPROACH
     // traverse each pixel in the image; if it is below a certain threshold, assume green
     // for (int y = 0; y < fieldUImageLite.height(); y++) {
@@ -1246,14 +1247,14 @@ int ColorLearnTest_func() {
     // }
 
     // SLIGHTLY BETTER? ??? ?? 
-    int mostCommonUVal = findMaxKeyOfMap(&all_pixel_u_vals);
+    int mostCommonUVal = (user_u_mode == 0) ? findMaxKeyOfMap(&all_pixel_u_vals) : user_u_mode;
     std::cout << "[FIELDCOLORDEBUG] Most common u val: " << mostCommonUVal << "\n";
 
     for (int y = 0; y < fieldUImageLite.height(); y++) {
         for (int x = 0; x < fieldUImageLite.width(); x++) {
 
             int uVal = *(fieldUImageLite.pixelAddr(x,y));   
-            if (std::abs(uVal - mostCommonUVal) < u_threshold_width) {
+            if (std::abs(uVal - mostCommonUVal) <= u_threshold_width) {
                 *(fieldUImageLite.pixelAddr(x,y)) = (uint8_t)(0);
             }         
         }
@@ -1276,40 +1277,14 @@ int ColorLearnTest_func() {
 
     // return the green field color
     Log* fieldURet = new Log();
-    int fieldULength = (width / 4) * (height / 2) * 2;
-
-    // Create temp buffer and fill with yImage from FrontEnd
-    short fieldUBuf[fieldULength];
-    memcpy(fieldUBuf, fieldUImageLite.pixelAddr(), fieldULength);
-
-    // Convert to string and set log
-    std::string fieldUBuffer((const char*)fieldUBuf, fieldULength);
-    fieldURet->setData(fieldUBuffer);
-
+    setLogImageDataInShort(fieldURet, &fieldUImageLite, width, height);
     rets.push_back(fieldURet);
 
     // -------------
     // Return the u whole field histogram vals
     int U_MIN_T = 10;
     Log* u_field_ret = new Log();
-    std::string u_field_val_buf;
-    std::map<int, int>::iterator ituf;
-    for ( ituf = all_pixel_u_vals.begin(); ituf != all_pixel_u_vals.end(); ituf++ ) {
-
-        int val = ituf->first;
-        int count = ituf->second;
-
-        if (count < U_MIN_T)
-            continue;
-        // std::cout << "[CROSS HISTOGRAM] Val: " << val << " count: " << count << "\n";
-        endswap<int>(&val);
-        endswap<int>(&count);
-
-
-        u_field_val_buf.append((const char*) &val, sizeof(int));
-        u_field_val_buf.append((const char*) &count, sizeof(int));
-    }
-    u_field_ret->setData(u_field_val_buf);
+    u_field_ret->setData(compressIntMapToString(all_pixel_u_vals, U_MIN_T));
     rets.push_back(u_field_ret);
 
     // ------------------------

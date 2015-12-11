@@ -9,17 +9,15 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Dimension;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JSlider;
+import javax.swing.JTextField;
 import javax.swing.JButton;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import javax.swing.event.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -58,6 +56,8 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	TreeMap<Integer, Integer> u_all_vals;
 
     private JSlider fieldThreshSlider;
+    private JTextField uTextField;
+    private JButton repaintButton;
 
 	// private String label = null;
 	int MIN_BAR_WIDTH = 5;
@@ -159,12 +159,22 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		drawHist(g, u_line_vals, 2*width + 10, 5, 450, 200, "u_line_vals");
 		drawHist(g, u_all_vals, 2*width + 10, height, 450, 200, "u_all_vals");
 
+		// u threshold slider
 		int sliderX = 5; 
 		int sliderY = 3*height + 20;
 		int sliderHeight = 15;
 		fieldThreshSlider.setBounds(sliderX, sliderY, width, sliderHeight);
 		g.drawString("width of u threshold for fieldcolor", sliderX, sliderY + 25);
 		g.drawString("Current value: " + fieldThreshSlider.getValue(), sliderX, sliderY + 40);
+
+		// draw u initial value text field
+		g.drawString("u max: ", sliderX, sliderY + 55);
+		uTextField.setBounds(sliderX, sliderY + 60, 50, 30);
+
+		// draw repaint button
+		repaintButton.setBounds(sliderX + 50, sliderY + 50, 100, 30);
+
+
     }
 	
 	public void setLog(Log newlog) {		
@@ -188,14 +198,17 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	}
 
 	public void adjustParams() {
+		int uFieldVal = 0;
+		if (!uTextField.getText().equals("")) 
+			uFieldVal = Integer.parseInt(uTextField.getText());
+
 		SExpr newFieldParams = SExpr.newList(
-			SExpr.newKeyValue("uThreshold", fieldThreshSlider.getValue())
+			SExpr.newKeyValue("uThreshold", fieldThreshSlider.getValue()),
+			SExpr.newKeyValue("uFieldVal", uFieldVal)
 		);
 
 		SExpr oldFieldParams = this.log.tree().find("fieldParams");
 		if (oldFieldParams.exists()) {
-			// SExpr saveAtom = oldParams.get(1).find("SaveParams");
-   //          this.log.tree().remove(saveAtom);
             oldFieldParams.setList( SExpr.atom("fieldParams"), newFieldParams); 
 		} else {
             this.log.tree().append(SExpr.pair("fieldParams", newFieldParams));
@@ -212,13 +225,22 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		ChangeListener slide = new ChangeListener(){
 	        public void stateChanged(ChangeEvent e) {
 	            adjustParams();
-	            repaint();
 	        }
 	    };
 	    
-		fieldThreshSlider = new JSlider(JSlider.HORIZONTAL, -15, 15, 0);
+		fieldThreshSlider = new JSlider(JSlider.HORIZONTAL, 0, 25, 3);
 		fieldThreshSlider.addChangeListener(slide);
 		add(fieldThreshSlider);
+
+		uTextField = new JTextField(3);
+		repaintButton = new JButton("Repaint");
+        repaintButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) { 
+        	adjustParams();      
+        }});
+
+        add(uTextField);
+        add(repaintButton);
 	}
 
 	@Override
