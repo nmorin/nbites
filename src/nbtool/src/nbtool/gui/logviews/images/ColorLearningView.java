@@ -28,6 +28,7 @@ import java.io.DataInputStream;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.TreeMap;
 import java.lang.Math;
 
@@ -61,12 +62,16 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	TreeMap<Integer, Integer> u_line_vals;
 	TreeMap<Integer, Integer> u_all_vals;
 	TreeMap<Integer, Integer> uv_all_vals;
+	TreeMap<Integer, Integer> v_line_vals;
+	TreeMap<Integer, Integer> y_line_vals;
 
     private JSlider fieldUThreshSlider;
     private JSlider fieldUWeightedThreshSlider;
     private JSlider vUVFieldThreshSlider;
     private JSlider uUVFieldThreshSlider;
     private JTextField uTextField;
+    private JTextField yMinTextField;
+    private JCheckBox saveUVStateCheckBox;
     private JCheckBox viewToggle;
     private JCheckBox viewToggle2;
     private JButton repaintButton;
@@ -78,6 +83,40 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	int FIELD_COLOR_MODE = 2;
 	int LINE_COLOR_MODE = 3;
 	int VIEW_MODE = 1;
+
+	boolean SAVE_UV_STATE = false;
+
+	double calcStandDev(TreeMap<Integer, Integer> map) {
+		ArrayList<Integer> differences = new ArrayList<>();
+		int average = calcAvg(map);
+		for (Integer key : map.keySet()) {
+			int count = map.get(key);
+			for (int i = 0; i < count; i++) {
+				int diff = key - average;
+				diff = diff * diff;
+				differences.add(diff);
+			}
+		}
+
+		double avgDiff = 0;
+		for (Integer num : differences) {
+			avgDiff += num.doubleValue();
+		}
+		avgDiff = avgDiff / ((double)differences.size());
+
+		return Math.sqrt(avgDiff);
+		
+	}
+
+	int calcAvg(TreeMap<Integer, Integer> map) {
+		int sum = 0, count = 0;
+		for (Integer key : map.keySet()) {
+			int value = map.get(key);
+			sum += key * value;
+			count += value; 
+		}
+		return (sum / count);
+	}
 
 	int calcMax(TreeMap<Integer, Integer> map) {
 		int curr_max = -1;
@@ -117,15 +156,24 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
             g2d.setFont(titleFont); 
             g2d.drawString(title, xOffset + 15, yOffset + 15);
             int mapMax = calcMax(vals_map);
-            String maxInfo = "Max: " + mapMax;
-            g2d.drawString(maxInfo, xOffset + 25, yOffset + 25);
+            int average = calcAvg(vals_map);
+            double stDev = calcStandDev(vals_map);
+            String maxInfo = "Mode: " + mapMax;
+            String meanInfo = "Mean: " + average;
+            String sdInfo = "S Dev: " + stDev;
+            g2d.drawString(maxInfo, xOffset + 25, yOffset + height + 40);
+            g2d.drawString(meanInfo, xOffset + 25, yOffset + height + 50);
+            g2d.drawString(sdInfo, xOffset + 25, yOffset + height + 60);
 
 
             int labelCount = 0;
             for (Integer key : vals_map.keySet()) {
                 int value = vals_map.get(key);
                 int barHeight = Math.round(((float) value / (float) maxValue) * height);
-                g2d.setColor(new Color(key, key, key));
+                if (key <= 255 && key >= 0)
+	                g2d.setColor(new Color(key, key, key));
+	            else
+	            	g2d.setColor(Color.white);
                 int yPos = height + yOffset - barHeight;
                 Rectangle2D bar = new Rectangle2D.Float(xPos, yPos, barWidth, barHeight);
                 g2d.fill(bar);
@@ -162,22 +210,35 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 			g.drawImage(y_img, width + 5, 2*height + 10, null);
 		fieldUWeightedThreshSlider.setVisible(false);
 		fieldUThreshSlider.setVisible(false);
+		uUVFieldThreshSlider.setVisible(false);
+		vUVFieldThreshSlider.setVisible(false);
 
 	}
 
 	void paintLineMode(Graphics g, int width, int height) {
 		fieldUWeightedThreshSlider.setVisible(false);
 		fieldUThreshSlider.setVisible(false);
+		uUVFieldThreshSlider.setVisible(false);
+		vUVFieldThreshSlider.setVisible(false);
 
 		if (alt_img != null) 
 			g.drawImage(alt_img, 0, height + 5, null);
-		drawHist(g, u_line_vals, 2*width + 10, 5, 450, 200, "u_line_vals");
 
+		int histX = 2*width+10;
+		int histY = 5;
+		int histHeight = 200;
+		int histWidth = 450;
+		drawHist(g, u_line_vals, histX, histY, histWidth, histHeight, "u_line_vals");
+		drawHist(g, v_line_vals, histX, histHeight + 100, histWidth, histHeight, "v_line_vals");
+		drawHist(g, y_line_vals, histX - histWidth/3, 2*histHeight + 200, histWidth + histWidth/3, histHeight, "y_line_vals");
+		// TODO y histogram not looking gr8
 	}
 
 	void paintFieldMode(Graphics g, int width, int height) {
 		fieldUWeightedThreshSlider.setVisible(true);
 		fieldUThreshSlider.setVisible(true);
+		uUVFieldThreshSlider.setVisible(true);
+		vUVFieldThreshSlider.setVisible(true);
 
 		if (u_img != null)
 			g.drawImage(u_img, width + 5, 0, null);
@@ -190,7 +251,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 
 		drawHist(g, u_all_vals, 2*width + 10, 5, 450, 200, "u_all_vals");
 
-		drawHist(g, uv_all_vals, 2*width + 10, 260, 450, 200, "v_vals_in_u");
+		drawHist(g, uv_all_vals, 2*width + 10, 300, 450, 200, "v_vals_in_u");
 
 		// u threshold slider
 		int sliderX = 5; 
@@ -276,12 +337,17 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		if (!uTextField.getText().equals("") && !uTextField.getText().equals("u max")) 
 			uFieldVal = Integer.parseInt(uTextField.getText());
 
+		int yMinVal = 0;
+		if (!yMinTextField.getText().equals("") && !yMinTextField.getText().equals("y min")) 
+			yMinVal = Integer.parseInt(yMinTextField.getText());
+
 		SExpr newFieldParams = SExpr.newList(
 			SExpr.newKeyValue("uThreshold", fieldUThreshSlider.getValue()),
 			SExpr.newKeyValue("uWeightedThreshold", fieldUWeightedThreshSlider.getValue()),
 			SExpr.newKeyValue("uUVThresh", uUVFieldThreshSlider.getValue()),
 			SExpr.newKeyValue("vUVThresh", vUVFieldThreshSlider.getValue()),
-			SExpr.newKeyValue("uFieldVal", uFieldVal)
+			SExpr.newKeyValue("uFieldVal", uFieldVal),
+			SExpr.newKeyValue("yMinVal", yMinVal)
 		);
 
 		SExpr oldFieldParams = this.log.tree().find("fieldParams");
@@ -321,6 +387,14 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	        }           
 	      });
 
+	    saveUVStateCheckBox = new JCheckBox("Line color");
+	    saveUVStateCheckBox.addItemListener(new ItemListener() {
+	        public void itemStateChanged(ItemEvent e) {         
+	            SAVE_UV_STATE = (e.getStateChange()==1 ? true : false);
+	            repaint();
+	        }           
+	      });
+
 
 		fieldUThreshSlider = new JSlider(JSlider.HORIZONTAL, 0, 20, 3);
 		fieldUWeightedThreshSlider = new JSlider(JSlider.HORIZONTAL, 0, 20, 3);
@@ -338,7 +412,8 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		add(vUVFieldThreshSlider);
 		
 
-		uTextField = new JTextField("u max");
+		uTextField = new JTextField("u max", 4);
+		yMinTextField = new JTextField("y min", 4);
 		repaintButton = new JButton("Repaint");
         repaintButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) { 
@@ -355,6 +430,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	    controlPanel.add(viewToggle);
 	    controlPanel.add(viewToggle2);
 	    controlPanel.add(uTextField);
+	    controlPanel.add(yMinTextField);
 	    // uTextField.setBounds(10, 50, 60, 20);
 	    controlPanel.add(repaintButton);
 	}
@@ -399,11 +475,11 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	        setHistogramVals(u_line_vals, out[4].bytes);
 
 	        // Get v histogram vals -- lines
-			HashMap<Integer, Integer> v_line_vals = new HashMap<Integer, Integer>();
+			v_line_vals = new TreeMap<Integer, Integer>();
 	        setHistogramVals(v_line_vals, out[5].bytes);      
 
 	        // Get y histogram vals -- lines
-			HashMap<Integer, Integer> y_line_vals = new HashMap<Integer, Integer>();
+			y_line_vals = new TreeMap<Integer, Integer>();
 	        setHistogramVals(y_line_vals, out[6].bytes);
 
 	        // Get yuv histogram vals
@@ -465,14 +541,14 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 
 
 
-        	System.out.println("[HISTOGRAM] BEFORE PRINTS");
-	        // print u histogram vals
-	        for (Integer name : u_line_vals.keySet()){
-	            String key = name.toString();
-	            String value = u_line_vals.get(name).toString();  
-	            System.out.println(key + " : " + value);  
-			} 
-        	System.out.println("[HISTOGRAM] AFTER PRINTS");
+   //      	System.out.println("[HISTOGRAM] BEFORE PRINTS");
+	  //       // print u histogram vals
+	  //       for (Integer name : u_line_vals.keySet()){
+	  //           String key = name.toString();
+	  //           String value = u_line_vals.get(name).toString();  
+	  //           System.out.println(key + " : " + value);  
+			// } 
+   //      	System.out.println("[HISTOGRAM] AFTER PRINTS");
 
 
 

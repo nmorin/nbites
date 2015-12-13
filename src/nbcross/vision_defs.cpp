@@ -1083,10 +1083,13 @@ int ColorLearnTest_func() {
             int u_val = *uImageLite.pixelAddr(x,y);
             int v_val = *vImageLite.pixelAddr(x,y);
             int y_val = *yImageLite.pixelAddr(x,y);
+            y_val = y_val >> 2;
             // int yuv_val = (y_val << 16) & (u_val << 8) & y_val;
 
             yuv_struct pixel_yuv = yuv_struct(y_val, u_val, v_val);
 
+
+            // std::cout << "[COLOR DEBUG] Y_val: " << y_val << "\n";
             // ---------------
             // track the u values of ALL the pixels in the image (for field color)
             // NORMAL, UNWEIGHTED:
@@ -1178,8 +1181,22 @@ int ColorLearnTest_func() {
 
     // ------------------------
     // Return y histogram vals
+
+    // get y min cut off value 
+    int yMin = -1;
+    std::vector<SExpr*> yMinValS = args[0]->tree().recursiveFind("yMinVal");
+    if (yMinValS.size() != 0) {
+        SExpr* s = yMinValS.at(yMinValS.size()-1);
+        yMin = s->get(1)->valueAsInt();
+        std::cout << "[FIELDCOLORDEBUG] Found yMin: ";
+        std::cout << yMin << "\n";
+    } else {
+        std::cout << "[FIELDCOLORDEBUG] did not find yMin\n";
+    }
+
+
     Log* y_line_ret = new Log();
-    y_line_ret->setData(compressIntMapToString(y_line_vals));
+    y_line_ret->setData(compressIntMapToString(y_line_vals, yMin));
     rets.push_back(y_line_ret);
 
     // ------------------------
