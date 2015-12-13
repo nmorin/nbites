@@ -15,9 +15,13 @@ import javax.swing.*;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JSlider;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JButton;
 import javax.swing.event.*;
+import javax.swing.BorderFactory;
+import javax.swing.border.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -49,18 +53,27 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	BufferedImage v_img;
 	BufferedImage y_img;
 	BufferedImage green_img;
+	BufferedImage green_weighted_img;
 	BufferedImage alt_img;
 	BufferedImage original_image;
 
 	TreeMap<Integer, Integer> u_line_vals;
 	TreeMap<Integer, Integer> u_all_vals;
 
-    private JSlider fieldThreshSlider;
+    private JSlider fieldUThreshSlider;
+    private JSlider fieldUWeightedThreshSlider;
     private JTextField uTextField;
+    private JCheckBox viewToggle;
+    private JCheckBox viewToggle2;
     private JButton repaintButton;
+    private JPanel controlPanel;
 
 	// private String label = null;
 	int MIN_BAR_WIDTH = 5;
+	int YUV_BASIC_MODE = 1;
+	int FIELD_COLOR_MODE = 2;
+	int LINE_COLOR_MODE = 3;
+	int VIEW_MODE = 1;
 
 	int calcMax(TreeMap<Integer, Integer> map) {
 		int curr_max = -1;
@@ -135,46 +148,82 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 
 
 	}
+
+	void paintBasicMode(Graphics g, int width, int height) {
+		if (u_img != null)
+			g.drawImage(u_img, width + 5, 0, null);
+		if (v_img != null)
+			g.drawImage(v_img, width + 5, height + 5, null);
+		if (y_img != null)
+			g.drawImage(y_img, width + 5, 2*height + 10, null);
+		fieldUWeightedThreshSlider.setVisible(false);
+		fieldUThreshSlider.setVisible(false);
+
+	}
+
+	void paintLineMode(Graphics g, int width, int height) {
+		fieldUWeightedThreshSlider.setVisible(false);
+		fieldUThreshSlider.setVisible(false);
+
+		if (alt_img != null) 
+			g.drawImage(alt_img, 0, height + 5, null);
+		drawHist(g, u_line_vals, 2*width + 10, 5, 450, 200, "u_line_vals");
+
+	}
+
+	void paintFieldMode(Graphics g, int width, int height) {
+		fieldUWeightedThreshSlider.setVisible(true);
+		fieldUThreshSlider.setVisible(true);
+
+		if (green_img != null)
+			g.drawImage(green_img, 0, height + 10, null);
+		if (green_weighted_img != null)
+			g.drawImage(green_weighted_img, width + 5, height + 10, null);
+
+		drawHist(g, u_all_vals, 2*width + 10, 5, 450, 200, "u_all_vals");
+
+		// u threshold slider
+		int sliderX = 5; 
+		int sliderY = 2*height + 20;
+		int sliderHeight = 15;
+		fieldUThreshSlider.setBounds(sliderX, sliderY, 150, sliderHeight);
+		g.drawString("width of u threshold for fieldcolor", sliderX, sliderY + 25);
+		g.drawString("Current value: " + fieldUThreshSlider.getValue(), sliderX, sliderY + 40);
+
+		// draw repaint button
+		// draw u initial value text field
+
+
+		// draw weighted u slider
+		sliderX += width + 5;
+		fieldUWeightedThreshSlider.setBounds(sliderX, sliderY, 150, sliderHeight);
+		g.drawString("width of u threshold for fieldcolor", sliderX, sliderY + 25);
+		g.drawString("Current value: " + fieldUWeightedThreshSlider.getValue(), sliderX, sliderY + 40);
+
+
+	}
 	
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		int width = 0, height = 0;
-        
+
 		if (original_image != null) {
 			width = original_image.getWidth() / 2;
 			height = original_image.getHeight() / 2;
 			g.drawImage(original_image, 0, 0, width, height, null);
 		}
-		if (u_img != null)
-			g.drawImage(u_img, width + 5, 0, null);
-		if (v_img != null)
-			g.drawImage(v_img, width + 5, u_img.getHeight() + 5, null);
-		if (y_img != null)
-			g.drawImage(y_img, width + 5, 2*height + 10, null);
-		if (alt_img != null)
-			g.drawImage(alt_img, 0, height + 5, null);
-		if (green_img != null)
-			g.drawImage(green_img, 0, 2*height + 10, null);
 
-		drawHist(g, u_line_vals, 2*width + 10, 5, 450, 200, "u_line_vals");
-		drawHist(g, u_all_vals, 2*width + 10, height, 450, 200, "u_all_vals");
+		if (VIEW_MODE == YUV_BASIC_MODE)
+			paintBasicMode(g, width, height);
+		else if (VIEW_MODE == LINE_COLOR_MODE)
+			paintLineMode(g, width, height);
+		else
+			paintFieldMode(g, width, height);
 
-		// u threshold slider
-		int sliderX = 5; 
-		int sliderY = 3*height + 20;
-		int sliderHeight = 15;
-		fieldThreshSlider.setBounds(sliderX, sliderY, width, sliderHeight);
-		g.drawString("width of u threshold for fieldcolor", sliderX, sliderY + 25);
-		g.drawString("Current value: " + fieldThreshSlider.getValue(), sliderX, sliderY + 40);
-
-		// draw u initial value text field
-		g.drawString("u max: ", sliderX, sliderY + 55);
-		uTextField.setBounds(sliderX, sliderY + 60, 50, 30);
-
-		// draw repaint button
-		repaintButton.setBounds(sliderX + 50, sliderY + 50, 100, 30);
-
-
+		int pWidth = 70, pHeight = 120;
+		controlPanel.setBackground(Color.white);
+		controlPanel.setBorder(new EtchedBorder(EtchedBorder.RAISED));
+		controlPanel.setBounds(5, 3*height + height/2, width - 10, pHeight);
     }
 	
 	public void setLog(Log newlog) {		
@@ -199,11 +248,12 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 
 	public void adjustParams() {
 		int uFieldVal = 0;
-		if (!uTextField.getText().equals("")) 
+		if (!uTextField.getText().equals("") && !uTextField.getText().equals("u max")) 
 			uFieldVal = Integer.parseInt(uTextField.getText());
 
 		SExpr newFieldParams = SExpr.newList(
-			SExpr.newKeyValue("uThreshold", fieldThreshSlider.getValue()),
+			SExpr.newKeyValue("uThreshold", fieldUThreshSlider.getValue()),
+			SExpr.newKeyValue("uWeightedThreshold", fieldUWeightedThreshSlider.getValue()),
 			SExpr.newKeyValue("uFieldVal", uFieldVal)
 		);
 
@@ -228,11 +278,32 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	        }
 	    };
 	    
-		fieldThreshSlider = new JSlider(JSlider.HORIZONTAL, 0, 25, 3);
-		fieldThreshSlider.addChangeListener(slide);
-		add(fieldThreshSlider);
+	    viewToggle = new JCheckBox("Field color");
+	    viewToggle.addItemListener(new ItemListener() {
+	        public void itemStateChanged(ItemEvent e) {         
+	            VIEW_MODE = (e.getStateChange()==1 ? FIELD_COLOR_MODE : YUV_BASIC_MODE);
+	            repaint();
+	        }           
+	      });
 
-		uTextField = new JTextField(3);
+	    viewToggle2 = new JCheckBox("Line color");
+	    viewToggle2.addItemListener(new ItemListener() {
+	        public void itemStateChanged(ItemEvent e) {         
+	            VIEW_MODE = (e.getStateChange()==1 ? LINE_COLOR_MODE : YUV_BASIC_MODE);
+	            repaint();
+	        }           
+	      });
+
+
+		fieldUThreshSlider = new JSlider(JSlider.HORIZONTAL, 0, 20, 3);
+		fieldUThreshSlider.addChangeListener(slide);
+		add(fieldUThreshSlider);
+		
+		fieldUWeightedThreshSlider = new JSlider(JSlider.HORIZONTAL, 0, 20, 3);
+		fieldUWeightedThreshSlider.addChangeListener(slide);
+		add(fieldUWeightedThreshSlider);
+
+		uTextField = new JTextField("u max");
 		repaintButton = new JButton("Repaint");
         repaintButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) { 
@@ -240,11 +311,37 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
         }});
 
         add(uTextField);
-        add(repaintButton);
+        // add(repaintButton);
+
+	    controlPanel = new JPanel();
+	    add(controlPanel);
+	    uTextField.setAlignmentX( Component.LEFT_ALIGNMENT );
+	    controlPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+	    controlPanel.add(viewToggle);
+	    controlPanel.add(viewToggle2);
+	    controlPanel.add(uTextField);
+	    // uTextField.setBounds(10, 50, 60, 20);
+	    controlPanel.add(repaintButton);
 	}
 
 	@Override
 	public void ioFinished(IOInstance instance) {}
+
+	private void setHistogramVals(Map<Integer, Integer> valueMap, byte[] bytes) {
+		int numPairs = bytes.length / (2 * 4);
+    	// System.out.println("[HISTOGRAM] bytes: " + bytes.length);
+        try {
+            DataInputStream dis = new DataInputStream(new ByteArrayInputStream(bytes));
+
+            for (int i = 0; i < numPairs; i++) {
+            	Integer key_val = new Integer(dis.readInt());
+            	Integer val_val = new Integer(dis.readInt());
+            	valueMap.put(key_val, val_val);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+	}
 
 	@Override
 	public void ioReceived(IOInstance inst, int ret, Log... out) {
@@ -264,52 +361,15 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
             // Line histogram data:
         	// Get u histogram vals -- lines
 	        u_line_vals = new TreeMap<Integer, Integer>();
-	        byte[] uBytes = out[4].bytes;
-	        int numPairs = uBytes.length / (2 * 4);
-        	System.out.println("[HISTOGRAM] uBytes: " + uBytes.length);
-	        try {
-	            DataInputStream dis = new DataInputStream(new ByteArrayInputStream(uBytes));
-
-	            for (int i = 0; i < numPairs; i++) {
-	            	Integer u_val_key = new Integer(dis.readInt());
-	            	Integer u_val_val = new Integer(dis.readInt());
-	            	u_line_vals.put(u_val_key, u_val_val);
-	            }
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }
+	        setHistogramVals(u_line_vals, out[4].bytes);
 
 	        // Get v histogram vals -- lines
 			HashMap<Integer, Integer> v_line_vals = new HashMap<Integer, Integer>();
-	        byte[] vBytes = out[5].bytes;
-	        numPairs = vBytes.length / (2 * 4);
-        	System.out.println("[HISTOGRAM] vBytes: " + vBytes.length);
-	        try {
-	            DataInputStream dis = new DataInputStream(new ByteArrayInputStream(vBytes));
-	            for (int i = 0; i < numPairs; i++) {
-	            	Integer v_val_key = new Integer(dis.readInt());
-	            	Integer v_val_val = new Integer(dis.readInt());
-	            	v_line_vals.put(v_val_key, v_val_val);
-	            }
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }	        
+	        setHistogramVals(v_line_vals, out[5].bytes);      
 
 	        // Get y histogram vals -- lines
 			HashMap<Integer, Integer> y_line_vals = new HashMap<Integer, Integer>();
-	        byte[] yBytes = out[6].bytes;
-	        numPairs = yBytes.length / (2 * 4);
-        	System.out.println("[HISTOGRAM] yBytes: " + yBytes.length);
-	        try {
-	            DataInputStream dis = new DataInputStream(new ByteArrayInputStream(yBytes));
-	            for (int i = 0; i < numPairs; i++) {
-	            	Integer y_val_key = new Integer(dis.readInt());
-	            	Integer y_val_val = new Integer(dis.readInt());
-	            	y_line_vals.put(y_val_key, y_val_val);
-	            }
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }
+	        setHistogramVals(y_line_vals, out[6].bytes);
 
 	        // Get yuv histogram vals
 			// HashMap<Integer, Integer> yuv_line_vals = new HashMap<Integer, Integer>();
@@ -333,20 +393,11 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 
             // get all pixel u histogram values
 	        u_all_vals = new TreeMap<Integer, Integer>();
-	        byte[] uAllBytes = out[8].bytes;
-	        int numUAllPairs = uAllBytes.length / (2 * 4);
-        	System.out.println("[HISTOGRAM] uAllBytes: " + uAllBytes.length);
-	        try {
-	            DataInputStream dis = new DataInputStream(new ByteArrayInputStream(uAllBytes));
+	        setHistogramVals(u_all_vals, out[8].bytes);
 
-	            for (int i = 0; i < numUAllPairs; i++) {
-	            	Integer u_val_key = new Integer(dis.readInt());
-	            	Integer u_val_val = new Integer(dis.readInt());
-	            	u_all_vals.put(u_val_key, u_val_val);
-	            }
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }
+	        // get "green" image with weighted func
+			UV8image greenWeightedImg = new UV8image(320, 240, out[9].bytes, true);
+            this.green_weighted_img = greenWeightedImg.toBufferedImage();
 
             // get all pixels yuv histogram values
 			// HashMap<Integer, Integer> all_pixel_y_vals = new HashMap<Integer, Integer>();

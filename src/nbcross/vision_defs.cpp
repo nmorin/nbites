@@ -827,10 +827,11 @@ int findMaxKeyOfMapFloat(std::map<int, float> *val_map) {
     return max_key;
 }
 
-float calcWeightedGreenUVal(int u) {
-    int STANDARD_U_GREEN_VAL = 137;
-    float error = std::abs((float)u - (float)137); 
-    return ((float)u / (error*error));
+float calcWeightedGreenUVal(int u, int standard_u_green_val) {
+    float error = std::abs((float)u - (float)standard_u_green_val); 
+    if (error == 0)
+        return 1;
+    return ((float)1 / (error*error + 1));
 }
 
 std::string compressIntMapToString(std::map<int, int> values, int min = -1) {
@@ -1024,10 +1025,10 @@ int ColorLearnTest_func() {
     uint8_t destFieldUImageFloat[liteHeight * liteWidth];
     memcpy(destFieldUImageFloat, uImageLite.pixelAddr(), (liteWidth*liteHeight*sizeof(uint8_t)));
 
-    man::vision::ImageLiteU8 fieldUImageLite =  man::vision::ImageLiteU8(uImageLite.width(), 
-        uImageLite.height(), uImageLite.pitch(), destFieldUImage);
-    man::vision::ImageLiteU8 fieldUImageLiteFloat =  man::vision::ImageLiteU8(uImageLite.width(), 
-        uImageLite.height(), uImageLite.pitch(), destFieldUImageFloat);
+    man::vision::ImageLiteU8 fieldUImageLite =  man::vision::ImageLiteU8(liteWidth, 
+        liteHeight, uImageLite.pitch(), destFieldUImage);
+    man::vision::ImageLiteU8 fieldUImageLiteFloat =  man::vision::ImageLiteU8(liteWidth, 
+        liteHeight, uImageLite.pitch(), destFieldUImageFloat);
 
 
     // Get field line list
@@ -1088,12 +1089,14 @@ int ColorLearnTest_func() {
                 all_pixel_u_vals[u_val]++;
             else
                 all_pixel_u_vals.insert(std::pair<int, int>(u_val, 1));
+
+            // std::cout << "[FIELDCOLORDEBUG] Weighted count of u val, instead of one: " << calcWeightedGreenUVal(u_val, STANDARD_U_GREEN_VAL) << "\n";
             
             // WEIGHTED ?? :
             if (all_pixel_u_vals_float_count.count(u_val)) {
-                all_pixel_u_vals_float_count[u_val] += calcWeightedGreenUVal(u_val);
+                all_pixel_u_vals_float_count[u_val] += calcWeightedGreenUVal(u_val, STANDARD_U_GREEN_VAL);
             } else {
-                all_pixel_u_vals_float_count.insert(std::pair<int, int>(u_val, calcWeightedGreenUVal(u_val)));
+                all_pixel_u_vals_float_count.insert(std::pair<int, float>(u_val, calcWeightedGreenUVal(u_val, STANDARD_U_GREEN_VAL)));
             }
             // ---------------
 
@@ -1117,7 +1120,8 @@ int ColorLearnTest_func() {
                 // TODO add check for endpoints
                 if (houghLine1.pDist(pixLineCoordX, pixLineCoordY) > 0 && 
                     houghLine2.pDist(pixLineCoordX, pixLineCoordY) > 0 &&
-                    houghLine1.qDist(pixLineCoordX, pixLineCoordY) 
+                    houghLine1.qDist(pixLineCoordX, pixLineCoordY) < houghLine1.ep1() &&
+                    houghLine2.qDist(pixLineCoordX, pixLineCoordY) < houghLine2.ep1()
                     //  &&
                     // ((pixLineCoordX > houghLine1X0 && pixLineCoordX < houghLine1X1) ||
                     //     (pixLineCoordX < houghLine1X0 && pixLineCoordX > houghLine1X1)) &&
@@ -1213,6 +1217,17 @@ int ColorLearnTest_func() {
         std::cout << "[FIELDCOLORDEBUG] did not find u_threshold_width\n";
     }
 
+    int u_weighted_threshold_width = 3;
+    std::vector<SExpr*> uWeightedThresholdS = args[0]->tree().recursiveFind("uWeightedThreshold");
+    if (uWeightedThresholdS.size() != 0) {
+        SExpr* s = uWeightedThresholdS.at(uWeightedThresholdS.size()-1);
+        u_weighted_threshold_width = s->get(1)->valueAsInt();
+        std::cout << "[FIELDCOLORDEBUG] Found uWeightedThreshold: ";
+        std::cout << u_weighted_threshold_width << "\n";
+    } else {
+        std::cout << "[FIELDCOLORDEBUG] did not find uWeightedThreshold\n";
+    }
+
     int user_u_mode = 0;
     std::vector<SExpr*> uFieldValS = args[0]->tree().recursiveFind("uFieldVal");
     if (uFieldValS.size() != 0) {
@@ -1261,18 +1276,18 @@ int ColorLearnTest_func() {
     }    
 
     // WITH WEIGHTS
-    int mostCommonUValFloat = findMaxKeyOfMapFloat(&all_pixel_u_vals_float_count);
+    float mostCommonUValFloat = (user_u_mode == 0) ? findMaxKeyOfMapFloat(&all_pixel_u_vals_float_count) : (float)user_u_mode;
     std::cout << "[FIELDCOLORDEBUG] Most common float u val: " << mostCommonUValFloat << "\n";
 
-    // for (int y = 0; y < fieldUImageLite.height(); y++) {
-    //     for (int x = 0; x < fieldUImageLite.width(); x++) {
+    for (int y = 0; y < fieldUImageLiteFloat.height(); y++) {
+        for (int x = 0; x < fieldUImageLiteFloat.width(); x++) {
 
-    //         float uVal = (float) *(fieldUImageLite.pixelAddr(x,y));   
-    //         if (std::abs(uVal - mostCommonUValFloat) < DIFF_THRESH) {
-    //             *(fieldUImageLite.pixelAddr(x,y)) = (uint8_t)(0);
-    //         }         
-    //     }
-    // }    
+            float uVal = (float) *(fieldUImageLiteFloat.pixelAddr(x,y));   
+            if (std::abs(uVal - mostCommonUValFloat) <= u_weighted_threshold_width) {
+                *(fieldUImageLiteFloat.pixelAddr(x,y)) = (uint8_t)(0);
+            }         
+        }
+    }    
 
 
     // return the green field color
@@ -1286,6 +1301,11 @@ int ColorLearnTest_func() {
     Log* u_field_ret = new Log();
     u_field_ret->setData(compressIntMapToString(all_pixel_u_vals, U_MIN_T));
     rets.push_back(u_field_ret);
+
+    // return the green field color with weighted function
+    Log* fieldUFloatRet = new Log();
+    setLogImageDataInShort(fieldUFloatRet, &fieldUImageLiteFloat, width, height);
+    rets.push_back(fieldUFloatRet);
 
     // ------------------------
     // Return all pixel yuv histogram vals
