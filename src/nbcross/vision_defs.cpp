@@ -1020,15 +1020,20 @@ int ColorLearnTest_func() {
     int liteWidth = uImageLite.width();
     int liteHeight = uImageLite.height();
 
+    // make copies to alter
     uint8_t destFieldUImage[liteHeight * liteWidth];
     memcpy(destFieldUImage, uImageLite.pixelAddr(), (liteWidth*liteHeight*sizeof(uint8_t)));
     uint8_t destFieldUImageFloat[liteHeight * liteWidth];
     memcpy(destFieldUImageFloat, uImageLite.pixelAddr(), (liteWidth*liteHeight*sizeof(uint8_t)));
+    uint8_t destFieldUVImage[liteHeight * liteWidth];
+    memcpy(destFieldUVImage, uImageLite.pixelAddr(), (liteWidth*liteHeight*sizeof(uint8_t)));
 
     man::vision::ImageLiteU8 fieldUImageLite =  man::vision::ImageLiteU8(liteWidth, 
         liteHeight, uImageLite.pitch(), destFieldUImage);
     man::vision::ImageLiteU8 fieldUImageLiteFloat =  man::vision::ImageLiteU8(liteWidth, 
         liteHeight, uImageLite.pitch(), destFieldUImageFloat);
+    man::vision::ImageLiteU8 fieldUVImageLite =  man::vision::ImageLiteU8(liteWidth, 
+        liteHeight, uImageLite.pitch(), destFieldUVImage);
 
 
     // Get field line list
@@ -1122,11 +1127,6 @@ int ColorLearnTest_func() {
                     houghLine2.pDist(pixLineCoordX, pixLineCoordY) > 0 &&
                     houghLine1.qDist(pixLineCoordX, pixLineCoordY) < houghLine1.ep1() &&
                     houghLine2.qDist(pixLineCoordX, pixLineCoordY) < houghLine2.ep1()
-                    //  &&
-                    // ((pixLineCoordX > houghLine1X0 && pixLineCoordX < houghLine1X1) ||
-                    //     (pixLineCoordX < houghLine1X0 && pixLineCoordX > houghLine1X1)) &&
-                    // ((pixLineCoordY > houghLine1Y0 && pixLineCoordY < houghLine1Y1) ||
-                    //     (pixLineCoordY < houghLine1Y0 && pixLineCoordY > houghLine1Y1))
                     ) 
                 {
                     
@@ -1206,7 +1206,9 @@ int ColorLearnTest_func() {
     // -----------
     //   DETERMINE FIELD COLOR
     // -----------
-    int u_threshold_width = 3;
+    std::map<int, int> v_values_in_u_mask;
+    int u_threshold_width = 3, v_threshold_width = 3;
+
     std::vector<SExpr*> uThresholdS = args[0]->tree().recursiveFind("uThreshold");
     if (uThresholdS.size() != 0) {
         SExpr* s = uThresholdS.at(uThresholdS.size()-1);
@@ -1238,15 +1240,6 @@ int ColorLearnTest_func() {
     } else {
         std::cout << "[FIELDCOLORDEBUG] did not find user_u_mode\n";
     }
-    // if (fieldParams != NULL) {
-    //     std::cout << "[FIELDCOLORDEBUG] Found fieldparams \n";
-    //     std::cout << fieldParams->get(1)->valueAsInt() << "\n";
-    // }
-    // else {
-    //     std::cout << "[FIELDCOLORDEBUG] did not find field params\n";
-    // }
-
-    // Look for existing Params atom in current this.log description
 
     int GREEN_THRESHOLD = (user_u_mode == 0) ? findMaxKeyOfMap(&all_pixel_u_vals) : user_u_mode;
     // NAIVE APPROACH
@@ -1269,8 +1262,16 @@ int ColorLearnTest_func() {
         for (int x = 0; x < fieldUImageLite.width(); x++) {
 
             int uVal = *(fieldUImageLite.pixelAddr(x,y));   
+            int vVal = *vImageLite.pixelAddr(x,y);
+
             if (std::abs(uVal - mostCommonUVal) <= u_threshold_width) {
                 *(fieldUImageLite.pixelAddr(x,y)) = (uint8_t)(0);
+
+                // add to the mask of v values
+                if (v_values_in_u_mask.count(vVal))
+                    v_values_in_u_mask[vVal]++;
+                else
+                    v_values_in_u_mask.insert(std::pair<int, int>(vVal, 1));
             }         
         }
     }    
@@ -1289,7 +1290,6 @@ int ColorLearnTest_func() {
         }
     }    
 
-
     // return the green field color
     Log* fieldURet = new Log();
     setLogImageDataInShort(fieldURet, &fieldUImageLite, width, height);
@@ -1306,6 +1306,36 @@ int ColorLearnTest_func() {
     Log* fieldUFloatRet = new Log();
     setLogImageDataInShort(fieldUFloatRet, &fieldUImageLiteFloat, width, height);
     rets.push_back(fieldUFloatRet);
+
+    // -------------
+    // FIELD COLOR AGAIN with V FILTER
+    // apply the v filter to the filtered u's
+    int mostCommonVVal = findMaxKeyOfMap(&v_values_in_u_mask);
+    std::cout << "[FIELDCOLORDEBUG] Most common v val in u vals: " << mostCommonUVal << "\n";
+
+    for (int y = 0; y < fieldUVImageLite.height(); y++) {
+        for (int x = 0; x < fieldUVImageLite.width(); x++) {
+
+            int uVal = *(fieldUVImageLite.pixelAddr(x,y));   
+            int vVal = *vImageLite.pixelAddr(x,y);
+
+            if (std::abs(uVal - mostCommonUVal) <= u_threshold_width &&
+                std::abs(vVal - mostCommonVVal) <= u_threshold_width) {
+                *(fieldUVImageLite.pixelAddr(x,y)) = (uint8_t)(0);
+            }         
+        }
+    } 
+
+    // ------------------------
+    // Return uv histogram vals
+    Log* uv_field_ret = new Log();
+    uv_field_ret->setData(compressIntMapToString(v_values_in_u_mask));
+    rets.push_back(uv_field_ret);
+
+    // return the green field color with weighted function
+    Log* fieldUVRet = new Log();
+    setLogImageDataInShort(fieldUVRet, &fieldUVImageLite, width, height);
+    rets.push_back(fieldUVRet);
 
     // ------------------------
     // Return all pixel yuv histogram vals
@@ -1331,24 +1361,7 @@ int ColorLearnTest_func() {
     //     all_pix_yuv_buf.append((const char*) &count, sizeof(int));
     // }
     // allPixYuvRet->setData(all_pix_yuv_buf);
-    // rets.push_back(allPixYuvRet);
-
-
-
-    // 1 pixel is 4 bytes; yuyv    
-    // by traversing the image in a for loop and incrementing by 4 each time,
-    // we always begin at the first y value of the next pixel
-    // for (int i = 0; i < length; i += 4) {
-
-    //     if (*(buf + i) > y_thresh) {
-    //         *(buf + i) = 240;
-    //     }
-        
-    // }
-    // std::string buffer((const char *) buf, length);
-    // copy->setData(buffer);
-    
-    // rets.push_back(copy);
+    // rets.push_back(allPixY
     
     return 0;
 }

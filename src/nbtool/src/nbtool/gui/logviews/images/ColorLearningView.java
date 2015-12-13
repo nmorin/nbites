@@ -54,11 +54,13 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	BufferedImage y_img;
 	BufferedImage green_img;
 	BufferedImage green_weighted_img;
+	BufferedImage green_uv_img;
 	BufferedImage alt_img;
 	BufferedImage original_image;
 
 	TreeMap<Integer, Integer> u_line_vals;
 	TreeMap<Integer, Integer> u_all_vals;
+	TreeMap<Integer, Integer> uv_all_vals;
 
     private JSlider fieldUThreshSlider;
     private JSlider fieldUWeightedThreshSlider;
@@ -175,10 +177,14 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		fieldUWeightedThreshSlider.setVisible(true);
 		fieldUThreshSlider.setVisible(true);
 
+		if (u_img != null)
+			g.drawImage(u_img, width + 5, 0, null);
 		if (green_img != null)
 			g.drawImage(green_img, 0, height + 10, null);
 		if (green_weighted_img != null)
 			g.drawImage(green_weighted_img, width + 5, height + 10, null);
+		if (green_uv_img != null)
+			g.drawImage(green_uv_img, width + 5, 2*height + 50, null);
 
 		drawHist(g, u_all_vals, 2*width + 10, 5, 450, 200, "u_all_vals");
 
@@ -398,6 +404,14 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	        // get "green" image with weighted func
 			UV8image greenWeightedImg = new UV8image(320, 240, out[9].bytes, true);
             this.green_weighted_img = greenWeightedImg.toBufferedImage();
+
+            // get all pixel uv histogram values
+	        uv_all_vals = new TreeMap<Integer, Integer>();
+	        setHistogramVals(uv_all_vals, out[10].bytes);
+
+	        // get "green" image with both u and v filters
+			UV8image greenUVImage = new UV8image(320, 240, out[11].bytes, true);
+            this.green_uv_img = greenUVImage.toBufferedImage();
 
             // get all pixels yuv histogram values
 			// HashMap<Integer, Integer> all_pixel_y_vals = new HashMap<Integer, Integer>();
