@@ -190,6 +190,8 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 
 		drawHist(g, u_all_vals, 2*width + 10, 5, 450, 200, "u_all_vals");
 
+		drawHist(g, uv_all_vals, 2*width + 10, 260, 450, 200, "v_vals_in_u");
+
 		// u threshold slider
 		int sliderX = 5; 
 		int sliderY = 2*height + 20;
@@ -221,6 +223,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		g.drawString("width of vUV threshold for fieldcolor", uvSliderX, uvSliderY + sliderHeight + 10);
 		g.drawString("Current value: " + vUVFieldThreshSlider.getValue(), uvSliderX, uvSliderY + sliderHeight + 25);
 
+		g.drawString("** REMEMBER, current width of u threshold is: " + fieldUThreshSlider.getValue(), uvSliderX, uvSliderY + sliderHeight*5);
 
 
 	}
