@@ -1206,9 +1206,15 @@ int ColorLearnTest_func() {
     // -----------
     //   DETERMINE FIELD COLOR
     // -----------
+
+    // FIND USER SET VALUES FROM VIEW
     std::map<int, int> v_values_in_u_mask;
     int u_threshold_width = 3, v_threshold_width = 3;
+    int uUV_threshold_width = 3, vUV_threshold_width = 3;
+    int u_weighted_threshold_width = 3;
+    int user_u_mode = 0;
 
+    // get u threshold from slider
     std::vector<SExpr*> uThresholdS = args[0]->tree().recursiveFind("uThreshold");
     if (uThresholdS.size() != 0) {
         SExpr* s = uThresholdS.at(uThresholdS.size()-1);
@@ -1219,7 +1225,7 @@ int ColorLearnTest_func() {
         std::cout << "[FIELDCOLORDEBUG] did not find u_threshold_width\n";
     }
 
-    int u_weighted_threshold_width = 3;
+    // get u weighted threshold from slider
     std::vector<SExpr*> uWeightedThresholdS = args[0]->tree().recursiveFind("uWeightedThreshold");
     if (uWeightedThresholdS.size() != 0) {
         SExpr* s = uWeightedThresholdS.at(uWeightedThresholdS.size()-1);
@@ -1230,7 +1236,7 @@ int ColorLearnTest_func() {
         std::cout << "[FIELDCOLORDEBUG] did not find uWeightedThreshold\n";
     }
 
-    int user_u_mode = 0;
+    // get user-defined u max
     std::vector<SExpr*> uFieldValS = args[0]->tree().recursiveFind("uFieldVal");
     if (uFieldValS.size() != 0) {
         SExpr* s = uFieldValS.at(uFieldValS.size()-1);
@@ -1240,6 +1246,31 @@ int ColorLearnTest_func() {
     } else {
         std::cout << "[FIELDCOLORDEBUG] did not find user_u_mode\n";
     }
+
+    // get u UV threshold from slider
+    std::vector<SExpr*> uUVThresholdS = args[0]->tree().recursiveFind("uUVThresh");
+    if (uUVThresholdS.size() != 0) {
+        SExpr* s = uUVThresholdS.at(uUVThresholdS.size()-1);
+        uUV_threshold_width = s->get(1)->valueAsInt();
+        std::cout << "[FIELDCOLORDEBUG] Found uUV_threshold_width: ";
+        std::cout << uUV_threshold_width << "\n";
+    } else {
+        std::cout << "[FIELDCOLORDEBUG] did not find uUV_threshold_width\n";
+    }
+
+    // get v UV threshold from slider
+    std::vector<SExpr*> vUVThresholds = args[0]->tree().recursiveFind("vUVThresh");
+    if (vUVThresholds.size() != 0) {
+        SExpr* s = vUVThresholds.at(vUVThresholds.size()-1);
+        vUV_threshold_width = s->get(1)->valueAsInt();
+        std::cout << "[FIELDCOLORDEBUG] Found vUV_threshold_width: ";
+        std::cout << vUV_threshold_width << "\n";
+    } else {
+        std::cout << "[FIELDCOLORDEBUG] did not find vUV_threshold_width\n";
+    }
+
+
+
 
     int GREEN_THRESHOLD = (user_u_mode == 0) ? findMaxKeyOfMap(&all_pixel_u_vals) : user_u_mode;
     // NAIVE APPROACH
@@ -1319,8 +1350,8 @@ int ColorLearnTest_func() {
             int uVal = *(fieldUVImageLite.pixelAddr(x,y));   
             int vVal = *vImageLite.pixelAddr(x,y);
 
-            if (std::abs(uVal - mostCommonUVal) <= u_threshold_width &&
-                std::abs(vVal - mostCommonVVal) <= u_threshold_width) {
+            if (std::abs(uVal - mostCommonUVal) <= uUV_threshold_width &&
+                std::abs(vVal - mostCommonVVal) <= vUV_threshold_width) {
                 *(fieldUVImageLite.pixelAddr(x,y)) = (uint8_t)(0);
             }         
         }

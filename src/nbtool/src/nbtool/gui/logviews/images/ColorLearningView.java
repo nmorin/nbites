@@ -64,6 +64,8 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 
     private JSlider fieldUThreshSlider;
     private JSlider fieldUWeightedThreshSlider;
+    private JSlider vUVFieldThreshSlider;
+    private JSlider uUVFieldThreshSlider;
     private JTextField uTextField;
     private JCheckBox viewToggle;
     private JCheckBox viewToggle2;
@@ -184,7 +186,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		if (green_weighted_img != null)
 			g.drawImage(green_weighted_img, width + 5, height + 10, null);
 		if (green_uv_img != null)
-			g.drawImage(green_uv_img, width + 5, 2*height + 50, null);
+			g.drawImage(green_uv_img, width + 5, 2*height + 70, null);
 
 		drawHist(g, u_all_vals, 2*width + 10, 5, 450, 200, "u_all_vals");
 
@@ -192,7 +194,8 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		int sliderX = 5; 
 		int sliderY = 2*height + 20;
 		int sliderHeight = 15;
-		fieldUThreshSlider.setBounds(sliderX, sliderY, 150, sliderHeight);
+		int sliderWidth = 150;
+		fieldUThreshSlider.setBounds(sliderX, sliderY, sliderWidth, sliderHeight);
 		g.drawString("width of u threshold for fieldcolor", sliderX, sliderY + 25);
 		g.drawString("Current value: " + fieldUThreshSlider.getValue(), sliderX, sliderY + 40);
 
@@ -202,9 +205,22 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 
 		// draw weighted u slider
 		sliderX += width + 5;
-		fieldUWeightedThreshSlider.setBounds(sliderX, sliderY, 150, sliderHeight);
+		fieldUWeightedThreshSlider.setBounds(sliderX, sliderY, sliderWidth, sliderHeight);
 		g.drawString("width of u threshold for fieldcolor", sliderX, sliderY + 25);
 		g.drawString("Current value: " + fieldUWeightedThreshSlider.getValue(), sliderX, sliderY + 40);
+
+		// draw the two uv sliders
+		int uvSliderX = width + 5;
+		int uvSliderY = 3*height + 70;
+		uUVFieldThreshSlider.setBounds(uvSliderX, uvSliderY, sliderWidth, sliderHeight);
+		g.drawString("width of uUV threshold for fieldcolor", uvSliderX, uvSliderY + sliderHeight + 10);
+		g.drawString("Current value: " + uUVFieldThreshSlider.getValue(), uvSliderX, uvSliderY + sliderHeight + 25);
+
+		uvSliderY += sliderHeight + 35;
+		vUVFieldThreshSlider.setBounds(uvSliderX, uvSliderY, sliderWidth, sliderHeight);
+		g.drawString("width of vUV threshold for fieldcolor", uvSliderX, uvSliderY + sliderHeight + 10);
+		g.drawString("Current value: " + vUVFieldThreshSlider.getValue(), uvSliderX, uvSliderY + sliderHeight + 25);
+
 
 
 	}
@@ -260,6 +276,8 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		SExpr newFieldParams = SExpr.newList(
 			SExpr.newKeyValue("uThreshold", fieldUThreshSlider.getValue()),
 			SExpr.newKeyValue("uWeightedThreshold", fieldUWeightedThreshSlider.getValue()),
+			SExpr.newKeyValue("uUVThresh", uUVFieldThreshSlider.getValue()),
+			SExpr.newKeyValue("vUVThresh", vUVFieldThreshSlider.getValue()),
 			SExpr.newKeyValue("uFieldVal", uFieldVal)
 		);
 
@@ -302,12 +320,20 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 
 
 		fieldUThreshSlider = new JSlider(JSlider.HORIZONTAL, 0, 20, 3);
-		fieldUThreshSlider.addChangeListener(slide);
-		add(fieldUThreshSlider);
-		
 		fieldUWeightedThreshSlider = new JSlider(JSlider.HORIZONTAL, 0, 20, 3);
+		uUVFieldThreshSlider = new JSlider(JSlider.HORIZONTAL, 0, 20, 3);
+		vUVFieldThreshSlider = new JSlider(JSlider.HORIZONTAL, 0, 20, 3);
+
+		fieldUThreshSlider.addChangeListener(slide);
 		fieldUWeightedThreshSlider.addChangeListener(slide);
+		uUVFieldThreshSlider.addChangeListener(slide);
+		vUVFieldThreshSlider.addChangeListener(slide);
+
+		add(fieldUThreshSlider);
 		add(fieldUWeightedThreshSlider);
+		add(uUVFieldThreshSlider);
+		add(vUVFieldThreshSlider);
+		
 
 		uTextField = new JTextField("u max");
 		repaintButton = new JButton("Repaint");
