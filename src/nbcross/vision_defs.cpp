@@ -828,6 +828,10 @@ int findMaxKeyOfMapFloat(std::map<int, float> *val_map) {
 }
 
 float calcWeightedGreenUVal(int u, int standard_u_green_val) {
+    // weight function: y = 250 - x
+    float uFloat = (float)u;
+    float weightedCount = 255 - .5*uFloat;
+    return weightedCount;
     float error = std::abs((float)u - (float)standard_u_green_val); 
     if (error == 0)
         return 1;

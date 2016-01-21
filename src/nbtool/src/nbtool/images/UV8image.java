@@ -6,17 +6,19 @@ import java.awt.image.BufferedImage;
 public class UV8image extends ImageParent {
 
 	private boolean u;
+	private boolean field_img;
 
 	public int pixelSize() {return 1;}
-	public UV8image(int w, int h, byte[] d, boolean _u) {
+	public UV8image(int w, int h, byte[] d, boolean _u, boolean _field_img) {
 		super(w, h, d);
 		u = _u;
+		field_img = _field_img;
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public BufferedImage toBufferedImage() {
-		boolean colored_img = false;
+		boolean colored_img = true;
 		BufferedImage ret;
 		if (colored_img)
 			ret = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
@@ -29,12 +31,19 @@ public class UV8image extends ImageParent {
 				byte color_byte = (data[r * width + c]);// & 0xFF;
 				byte none = 127;		
 				// Color color = new Color(y, y, y);
-				if (colored_img) {
-					if (u)	
-						ret.setRGB(c, r, yuv444ToARGB888Pixel(none, color_byte, none));
+				if (color_byte == (byte)0) {
+					// Color color = new Color(val, val, val);
+					if (field_img) 
+						ret.setRGB(c, r, (Color.green).getRGB());
 					else
-						ret.setRGB(c, r, yuv444ToARGB888Pixel(none, none, color_byte));
+						ret.setRGB(c, r, (Color.white).getRGB());
 				}
+				// if (colored_img) {
+				// 	if (u)	
+				// 		ret.setRGB(c, r, yuv444ToARGB888Pixel(none, color_byte, none));
+				// 	else
+				// 		ret.setRGB(c, r, yuv444ToARGB888Pixel(none, none, color_byte));
+				// }
 				else {
 					int val = color_byte & 0xFF;
 					Color color = new Color(val, val, val);

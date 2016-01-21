@@ -89,6 +89,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	double calcStandDev(TreeMap<Integer, Integer> map) {
 		ArrayList<Integer> differences = new ArrayList<>();
 		int average = calcAvg(map);
+		if (average == -1) return -1;
 		for (Integer key : map.keySet()) {
 			int count = map.get(key);
 			for (int i = 0; i < count; i++) {
@@ -102,6 +103,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		for (Integer num : differences) {
 			avgDiff += num.doubleValue();
 		}
+		if (differences.size() == 0) return -1;
 		avgDiff = avgDiff / ((double)differences.size());
 
 		return Math.sqrt(avgDiff);
@@ -115,6 +117,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 			sum += key * value;
 			count += value; 
 		}
+		if (count == 0) return -1;
 		return (sum / count);
 	}
 
@@ -457,16 +460,16 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	@Override
 	public void ioReceived(IOInstance inst, int ret, Log... out) {
 		if (out.length > 0) {
-            UV8image u8 = new UV8image(320, 240, out[0].bytes, true);
+            UV8image u8 = new UV8image(320, 240, out[0].bytes, true, false);
             this.u_img = u8.toBufferedImage();
 
-            UV8image v8 = new UV8image(320, 240, out[1].bytes, false);
+            UV8image v8 = new UV8image(320, 240, out[1].bytes, false, false);
             this.v_img = v8.toBufferedImage();
 
             Y16image yImg = new Y16image(320, 240, out[2].bytes);
             this.y_img = yImg.toBufferedImage();
 
-            UV8image altImg = new UV8image(320, 240, out[3].bytes, true);
+            UV8image altImg = new UV8image(320, 240, out[3].bytes, true, false);
             this.alt_img = altImg.toBufferedImage();
 
             // Line histogram data:
@@ -499,7 +502,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	  //       }	        
 
 	        // get "green" image
-			UV8image greenImg = new UV8image(320, 240, out[7].bytes, true);
+			UV8image greenImg = new UV8image(320, 240, out[7].bytes, true, true);
             this.green_img = greenImg.toBufferedImage();
 
             // get all pixel u histogram values
@@ -507,7 +510,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	        setHistogramVals(u_all_vals, out[8].bytes);
 
 	        // get "green" image with weighted func
-			UV8image greenWeightedImg = new UV8image(320, 240, out[9].bytes, true);
+			UV8image greenWeightedImg = new UV8image(320, 240, out[9].bytes, true, true);
             this.green_weighted_img = greenWeightedImg.toBufferedImage();
 
             // get all pixel uv histogram values
@@ -515,7 +518,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	        setHistogramVals(uv_all_vals, out[10].bytes);
 
 	        // get "green" image with both u and v filters
-			UV8image greenUVImage = new UV8image(320, 240, out[11].bytes, true);
+			UV8image greenUVImage = new UV8image(320, 240, out[11].bytes, true, true);
             this.green_uv_img = greenUVImage.toBufferedImage();
 
             // get all pixels yuv histogram values
