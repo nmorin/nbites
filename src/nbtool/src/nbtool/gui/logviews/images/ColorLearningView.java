@@ -237,60 +237,60 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		// TODO y histogram not looking gr8
 	}
 
-	void paintFieldMode(Graphics g, int width, int height) {
-		fieldUWeightedThreshSlider.setVisible(true);
-		fieldUThreshSlider.setVisible(true);
-		uUVFieldThreshSlider.setVisible(true);
-		vUVFieldThreshSlider.setVisible(true);
+	// void paintFieldMode(Graphics g, int width, int height) {
+	// 	fieldUWeightedThreshSlider.setVisible(true);
+	// 	fieldUThreshSlider.setVisible(true);
+	// 	uUVFieldThreshSlider.setVisible(true);
+	// 	vUVFieldThreshSlider.setVisible(true);
 
-		if (u_img != null)
-			g.drawImage(u_img, width + 5, 0, null);
-		if (green_img != null)
-			g.drawImage(green_img, 0, height + 10, null);
-		if (green_weighted_img != null)
-			g.drawImage(green_weighted_img, width + 5, height + 10, null);
-		if (green_uv_img != null)
-			g.drawImage(green_uv_img, width + 5, 2*height + 70, null);
+	// 	if (u_img != null)
+	// 		g.drawImage(u_img, width + 5, 0, null);
+	// 	if (green_img != null)
+	// 		g.drawImage(green_img, 0, height + 10, null);
+	// 	if (green_weighted_img != null)
+	// 		g.drawImage(green_weighted_img, width + 5, height + 10, null);
+	// 	if (green_uv_img != null)
+	// 		g.drawImage(green_uv_img, width + 5, 2*height + 70, null);
 
-		drawHist(g, u_all_vals, 2*width + 10, 5, 450, 200, "u_all_vals");
+	// 	drawHist(g, u_all_vals, 2*width + 10, 5, 450, 200, "u_all_vals");
 
-		drawHist(g, uv_all_vals, 2*width + 10, 300, 450, 200, "v_vals_in_u");
+	// 	drawHist(g, uv_all_vals, 2*width + 10, 300, 450, 200, "v_vals_in_u");
 
-		// u threshold slider
-		int sliderX = 5; 
-		int sliderY = 2*height + 20;
-		int sliderHeight = 15;
-		int sliderWidth = 150;
-		fieldUThreshSlider.setBounds(sliderX, sliderY, sliderWidth, sliderHeight);
-		g.drawString("width of u threshold for fieldcolor", sliderX, sliderY + 25);
-		g.drawString("Current value: " + fieldUThreshSlider.getValue(), sliderX, sliderY + 40);
+	// 	// u threshold slider
+	// 	int sliderX = 5; 
+	// 	int sliderY = 2*height + 20;
+	// 	int sliderHeight = 15;
+	// 	int sliderWidth = 150;
+	// 	fieldUThreshSlider.setBounds(sliderX, sliderY, sliderWidth, sliderHeight);
+	// 	g.drawString("width of u threshold for fieldcolor", sliderX, sliderY + 25);
+	// 	g.drawString("Current value: " + fieldUThreshSlider.getValue(), sliderX, sliderY + 40);
 
-		// draw repaint button
-		// draw u initial value text field
-
-
-		// draw weighted u slider
-		sliderX += width + 5;
-		fieldUWeightedThreshSlider.setBounds(sliderX, sliderY, sliderWidth, sliderHeight);
-		g.drawString("width of u threshold for fieldcolor", sliderX, sliderY + 25);
-		g.drawString("Current value: " + fieldUWeightedThreshSlider.getValue(), sliderX, sliderY + 40);
-
-		// draw the two uv sliders
-		int uvSliderX = width + 5;
-		int uvSliderY = 3*height + 70;
-		uUVFieldThreshSlider.setBounds(uvSliderX, uvSliderY, sliderWidth, sliderHeight);
-		g.drawString("width of uUV threshold for fieldcolor", uvSliderX, uvSliderY + sliderHeight + 10);
-		g.drawString("Current value: " + uUVFieldThreshSlider.getValue(), uvSliderX, uvSliderY + sliderHeight + 25);
-
-		uvSliderY += sliderHeight + 35;
-		vUVFieldThreshSlider.setBounds(uvSliderX, uvSliderY, sliderWidth, sliderHeight);
-		g.drawString("width of vUV threshold for fieldcolor", uvSliderX, uvSliderY + sliderHeight + 10);
-		g.drawString("Current value: " + vUVFieldThreshSlider.getValue(), uvSliderX, uvSliderY + sliderHeight + 25);
-
-		g.drawString("** REMEMBER, current width of u threshold is: " + fieldUThreshSlider.getValue(), uvSliderX, uvSliderY + sliderHeight*5);
+	// 	// draw repaint button
+	// 	// draw u initial value text field
 
 
-	}
+	// 	// draw weighted u slider
+	// 	sliderX += width + 5;
+	// 	fieldUWeightedThreshSlider.setBounds(sliderX, sliderY, sliderWidth, sliderHeight);
+	// 	g.drawString("width of u threshold for fieldcolor", sliderX, sliderY + 25);
+	// 	g.drawString("Current value: " + fieldUWeightedThreshSlider.getValue(), sliderX, sliderY + 40);
+
+	// 	// draw the two uv sliders
+	// 	int uvSliderX = width + 5;
+	// 	int uvSliderY = 3*height + 70;
+	// 	uUVFieldThreshSlider.setBounds(uvSliderX, uvSliderY, sliderWidth, sliderHeight);
+	// 	g.drawString("width of uUV threshold for fieldcolor", uvSliderX, uvSliderY + sliderHeight + 10);
+	// 	g.drawString("Current value: " + uUVFieldThreshSlider.getValue(), uvSliderX, uvSliderY + sliderHeight + 25);
+
+	// 	uvSliderY += sliderHeight + 35;
+	// 	vUVFieldThreshSlider.setBounds(uvSliderX, uvSliderY, sliderWidth, sliderHeight);
+	// 	g.drawString("width of vUV threshold for fieldcolor", uvSliderX, uvSliderY + sliderHeight + 10);
+	// 	g.drawString("Current value: " + vUVFieldThreshSlider.getValue(), uvSliderX, uvSliderY + sliderHeight + 25);
+
+	// 	g.drawString("** REMEMBER, current width of u threshold is: " + fieldUThreshSlider.getValue(), uvSliderX, uvSliderY + sliderHeight*5);
+
+
+	// }
 	
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -306,8 +306,6 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 			paintBasicMode(g, width, height);
 		else if (VIEW_MODE == LINE_COLOR_MODE)
 			paintLineMode(g, width, height);
-		else
-			paintFieldMode(g, width, height);
 
 		int pWidth = 70, pHeight = 120;
 		controlPanel.setBackground(Color.white);
@@ -374,13 +372,13 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	        }
 	    };
 	    
-	    viewToggle = new JCheckBox("Field color");
-	    viewToggle.addItemListener(new ItemListener() {
-	        public void itemStateChanged(ItemEvent e) {         
-	            VIEW_MODE = (e.getStateChange()==1 ? FIELD_COLOR_MODE : YUV_BASIC_MODE);
-	            repaint();
-	        }           
-	      });
+	    // viewToggle = new JCheckBox("Field color");
+	    // viewToggle.addItemListener(new ItemListener() {
+	    //     public void itemStateChanged(ItemEvent e) {         
+	    //         VIEW_MODE = (e.getStateChange()==1 ? FIELD_COLOR_MODE : YUV_BASIC_MODE);
+	    //         repaint();
+	    //     }           
+	    //   });
 
 	    viewToggle2 = new JCheckBox("Line color");
 	    viewToggle2.addItemListener(new ItemListener() {
@@ -430,7 +428,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	    add(controlPanel);
 	    uTextField.setAlignmentX( Component.LEFT_ALIGNMENT );
 	    controlPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-	    controlPanel.add(viewToggle);
+	    // controlPanel.add(viewToggle);
 	    controlPanel.add(viewToggle2);
 	    controlPanel.add(uTextField);
 	    controlPanel.add(yMinTextField);
@@ -485,75 +483,25 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 			y_line_vals = new TreeMap<Integer, Integer>();
 	        setHistogramVals(y_line_vals, out[6].bytes);
 
-	        // Get yuv histogram vals
-			// HashMap<Integer, Integer> yuv_line_vals = new HashMap<Integer, Integer>();
-	  //       byte[] yuvBytes = out[7].bytes;
-	  //       numPairs = yuvBytes.length / (2 * 4);
-   //      	System.out.println("[HISTOGRAM] yuvBytes: " + yuvBytes.length);
-	  //       try {
-	  //           DataInputStream dis = new DataInputStream(new ByteArrayInputStream(yuvBytes));
-	  //           for (int i = 0; i < numPairs; i++) {
-	  //           	Integer yuv_val_key = new Integer(dis.readInt());
-	  //           	Integer yuv_val_val = new Integer(dis.readInt());
-	  //           	yuv_line_vals.put(yuv_val_key, yuv_val_val);
-	  //           }
-	  //       } catch (Exception e) {
-	  //           e.printStackTrace();
-	  //       }	        
+	  //       // get "green" image
+			// UV8image greenImg = new UV8image(320, 240, out[7].bytes, true, true);
+   //          this.green_img = greenImg.toBufferedImage();
 
-	        // get "green" image
-			UV8image greenImg = new UV8image(320, 240, out[7].bytes, true, true);
-            this.green_img = greenImg.toBufferedImage();
+   //          // get all pixel u histogram values
+	  //       u_all_vals = new TreeMap<Integer, Integer>();
+	  //       setHistogramVals(u_all_vals, out[8].bytes);
 
-            // get all pixel u histogram values
-	        u_all_vals = new TreeMap<Integer, Integer>();
-	        setHistogramVals(u_all_vals, out[8].bytes);
+	  //       // get "green" image with weighted func
+			// UV8image greenWeightedImg = new UV8image(320, 240, out[9].bytes, true, true);
+   //          this.green_weighted_img = greenWeightedImg.toBufferedImage();
 
-	        // get "green" image with weighted func
-			UV8image greenWeightedImg = new UV8image(320, 240, out[9].bytes, true, true);
-            this.green_weighted_img = greenWeightedImg.toBufferedImage();
+   //          // get all pixel uv histogram values
+	  //       uv_all_vals = new TreeMap<Integer, Integer>();
+	  //       setHistogramVals(uv_all_vals, out[10].bytes);
 
-            // get all pixel uv histogram values
-	        uv_all_vals = new TreeMap<Integer, Integer>();
-	        setHistogramVals(uv_all_vals, out[10].bytes);
-
-	        // get "green" image with both u and v filters
-			UV8image greenUVImage = new UV8image(320, 240, out[11].bytes, true, true);
-            this.green_uv_img = greenUVImage.toBufferedImage();
-
-            // get all pixels yuv histogram values
-			// HashMap<Integer, Integer> all_pixel_y_vals = new HashMap<Integer, Integer>();
-			// HashMap<Integer, Integer> all_pixel_u_vals = new HashMap<Integer, Integer>();
-			// HashMap<Integer, Integer> all_pixel_v_vals = new HashMap<Integer, Integer>();
-	  //       byte[] allPixBytes = out[8].bytes;
-	  //       numPairs = allPixBytes.length / (4 * 4);
-   //      	System.out.println("[HISTOGRAM] allPixBytes: " + allPixBytes.length);
-	  //       try {
-	  //           DataInputStream dis = new DataInputStream(new ByteArrayInputStream(yBytes));
-	  //           for (int i = 0; i < numPairs; i++) {
-	  //           	Integer y_val = new Integer(dis.readInt());
-	  //           	Integer u_val = new Integer(dis.readInt());
-	  //           	Integer v_val = new Integer(dis.readInt());
-	  //           	Integer count = new Integer(dis.readInt());
-	  //           	y_line_vals.put(y_val_key, y_val_val);
-	  //           }
-	  //       } catch (Exception e) {
-	  //           e.printStackTrace();
-	  //       }
-
-
-
-
-   //      	System.out.println("[HISTOGRAM] BEFORE PRINTS");
-	  //       // print u histogram vals
-	  //       for (Integer name : u_line_vals.keySet()){
-	  //           String key = name.toString();
-	  //           String value = u_line_vals.get(name).toString();  
-	  //           System.out.println(key + " : " + value);  
-			// } 
-   //      	System.out.println("[HISTOGRAM] AFTER PRINTS");
-
-
+	  //       // get "green" image with both u and v filters
+			// UV8image greenUVImage = new UV8image(320, 240, out[11].bytes, true, true);
+   //          this.green_uv_img = greenUVImage.toBufferedImage();
 
 	    }
         else {

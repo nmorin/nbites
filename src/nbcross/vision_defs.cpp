@@ -18,6 +18,7 @@
 #include <fstream>
 #include <map>
 #include <cmath>
+#include <fstream>
 
 using nblog::Log;
 using nblog::SExpr;
@@ -1088,34 +1089,33 @@ int ColorLearnTest_func() {
             int v_val = *vImageLite.pixelAddr(x,y);
             int y_val = *yImageLite.pixelAddr(x,y);
             y_val = y_val >> 2;
-            // int yuv_val = (y_val << 16) & (u_val << 8) & y_val;
 
             yuv_struct pixel_yuv = yuv_struct(y_val, u_val, v_val);
 
 
-            // std::cout << "[COLOR DEBUG] Y_val: " << y_val << "\n";
-            // ---------------
-            // track the u values of ALL the pixels in the image (for field color)
-            // NORMAL, UNWEIGHTED:
-            if (all_pixel_u_vals.count(u_val))
-                all_pixel_u_vals[u_val]++;
-            else
-                all_pixel_u_vals.insert(std::pair<int, int>(u_val, 1));
+            // // std::cout << "[COLOR DEBUG] Y_val: " << y_val << "\n";
+            // // ---------------
+            // // track the u values of ALL the pixels in the image (for field color)
+            // // NORMAL, UNWEIGHTED:
+            // if (all_pixel_u_vals.count(u_val))
+            //     all_pixel_u_vals[u_val]++;
+            // else
+            //     all_pixel_u_vals.insert(std::pair<int, int>(u_val, 1));
 
-            // std::cout << "[FIELDCOLORDEBUG] Weighted count of u val, instead of one: " << calcWeightedGreenUVal(u_val, STANDARD_U_GREEN_VAL) << "\n";
+            // // std::cout << "[FIELDCOLORDEBUG] Weighted count of u val, instead of one: " << calcWeightedGreenUVal(u_val, STANDARD_U_GREEN_VAL) << "\n";
             
-            // WEIGHTED ?? :
-            if (all_pixel_u_vals_float_count.count(u_val)) {
-                all_pixel_u_vals_float_count[u_val] += calcWeightedGreenUVal(u_val, STANDARD_U_GREEN_VAL);
-            } else {
-                all_pixel_u_vals_float_count.insert(std::pair<int, float>(u_val, calcWeightedGreenUVal(u_val, STANDARD_U_GREEN_VAL)));
-            }
-            // ---------------
+            // // WEIGHTED ?? :
+            // if (all_pixel_u_vals_float_count.count(u_val)) {
+            //     all_pixel_u_vals_float_count[u_val] += calcWeightedGreenUVal(u_val, STANDARD_U_GREEN_VAL);
+            // } else {
+            //     all_pixel_u_vals_float_count.insert(std::pair<int, float>(u_val, calcWeightedGreenUVal(u_val, STANDARD_U_GREEN_VAL)));
+            // }
+            // // ---------------
 
-            if (all_pixels_yuv.count(pixel_yuv))
-                all_pixels_yuv[pixel_yuv]++;
-            else
-                all_pixels_yuv.insert(std::pair<yuv_struct, int>(pixel_yuv, 1));
+            // if (all_pixels_yuv.count(pixel_yuv))
+            //     all_pixels_yuv[pixel_yuv]++;
+            // else
+            //     all_pixels_yuv.insert(std::pair<yuv_struct, int>(pixel_yuv, 1));
 
             for (int i = 0; i < (*fieldLineList).size(); i++) {
                 man::vision::FieldLine& line = (*fieldLineList)[i];
@@ -1203,25 +1203,6 @@ int ColorLearnTest_func() {
     y_line_ret->setData(compressIntMapToString(y_line_vals, yMin));
     rets.push_back(y_line_ret);
 
-    // ------------------------
-    // Return yuv histogram vals
-    // Log* yuv_line_ret = new Log();
-    // std::string yuv_line_val_buf;
-    // std::map<int, int>::iterator ityuv;
-    // for ( ityuv = yuv_line_vals.begin(); ityuv != yuv_line_vals.end(); ityuv++ ) {
-
-    //     int val = ityuv->first;
-    //     int count = ityuv->second;
-    //     std::cout << "[CROSS HISTOGRAM] Val: " << val << " count: " << count << "\n";
-    //     endswap<int>(&val);
-    //     endswap<int>(&count);
-
-    //     yuv_line_val_buf.append((const char*) &val, sizeof(int));
-    //     yuv_line_val_buf.append((const char*) &count, sizeof(int));
-    // }
-    // y_line_ret->setData(y_line_val_buf);
-    // rets.push_back(y_line_ret);
-
 
     // -----------
     // -----------
@@ -1229,191 +1210,191 @@ int ColorLearnTest_func() {
     // -----------
 
     // FIND USER SET VALUES FROM VIEW
-    std::map<int, int> v_values_in_u_mask;
-    int u_threshold_width = 3, v_threshold_width = 3;
-    int uUV_threshold_width = 3, vUV_threshold_width = 3;
-    int u_weighted_threshold_width = 3;
-    int user_u_mode = 0;
+    // std::map<int, int> v_values_in_u_mask;
+    // int u_threshold_width = 3, v_threshold_width = 3;
+    // int uUV_threshold_width = 3, vUV_threshold_width = 3;
+    // int u_weighted_threshold_width = 3;
+    // int user_u_mode = 0;
 
-    // get u threshold from slider
-    std::vector<SExpr*> uThresholdS = args[0]->tree().recursiveFind("uThreshold");
-    if (uThresholdS.size() != 0) {
-        SExpr* s = uThresholdS.at(uThresholdS.size()-1);
-        u_threshold_width = s->get(1)->valueAsInt();
-        std::cout << "[FIELDCOLORDEBUG] Found u_threshold_width: ";
-        std::cout << u_threshold_width << "\n";
-    } else {
-        std::cout << "[FIELDCOLORDEBUG] did not find u_threshold_width\n";
-    }
+    // // get u threshold from slider
+    // std::vector<SExpr*> uThresholdS = args[0]->tree().recursiveFind("uThreshold");
+    // if (uThresholdS.size() != 0) {
+    //     SExpr* s = uThresholdS.at(uThresholdS.size()-1);
+    //     u_threshold_width = s->get(1)->valueAsInt();
+    //     std::cout << "[FIELDCOLORDEBUG] Found u_threshold_width: ";
+    //     std::cout << u_threshold_width << "\n";
+    // } else {
+    //     std::cout << "[FIELDCOLORDEBUG] did not find u_threshold_width\n";
+    // }
 
-    // get u weighted threshold from slider
-    std::vector<SExpr*> uWeightedThresholdS = args[0]->tree().recursiveFind("uWeightedThreshold");
-    if (uWeightedThresholdS.size() != 0) {
-        SExpr* s = uWeightedThresholdS.at(uWeightedThresholdS.size()-1);
-        u_weighted_threshold_width = s->get(1)->valueAsInt();
-        std::cout << "[FIELDCOLORDEBUG] Found uWeightedThreshold: ";
-        std::cout << u_weighted_threshold_width << "\n";
-    } else {
-        std::cout << "[FIELDCOLORDEBUG] did not find uWeightedThreshold\n";
-    }
+    // // get u weighted threshold from slider
+    // std::vector<SExpr*> uWeightedThresholdS = args[0]->tree().recursiveFind("uWeightedThreshold");
+    // if (uWeightedThresholdS.size() != 0) {
+    //     SExpr* s = uWeightedThresholdS.at(uWeightedThresholdS.size()-1);
+    //     u_weighted_threshold_width = s->get(1)->valueAsInt();
+    //     std::cout << "[FIELDCOLORDEBUG] Found uWeightedThreshold: ";
+    //     std::cout << u_weighted_threshold_width << "\n";
+    // } else {
+    //     std::cout << "[FIELDCOLORDEBUG] did not find uWeightedThreshold\n";
+    // }
 
-    // get user-defined u max
-    std::vector<SExpr*> uFieldValS = args[0]->tree().recursiveFind("uFieldVal");
-    if (uFieldValS.size() != 0) {
-        SExpr* s = uFieldValS.at(uFieldValS.size()-1);
-        user_u_mode = s->get(1)->valueAsInt();
-        std::cout << "[FIELDCOLORDEBUG] Found user_u_mode: ";
-        std::cout << user_u_mode << "\n";
-    } else {
-        std::cout << "[FIELDCOLORDEBUG] did not find user_u_mode\n";
-    }
+    // // get user-defined u max
+    // std::vector<SExpr*> uFieldValS = args[0]->tree().recursiveFind("uFieldVal");
+    // if (uFieldValS.size() != 0) {
+    //     SExpr* s = uFieldValS.at(uFieldValS.size()-1);
+    //     user_u_mode = s->get(1)->valueAsInt();
+    //     std::cout << "[FIELDCOLORDEBUG] Found user_u_mode: ";
+    //     std::cout << user_u_mode << "\n";
+    // } else {
+    //     std::cout << "[FIELDCOLORDEBUG] did not find user_u_mode\n";
+    // }
 
-    // get u UV threshold from slider
-    std::vector<SExpr*> uUVThresholdS = args[0]->tree().recursiveFind("uUVThresh");
-    if (uUVThresholdS.size() != 0) {
-        SExpr* s = uUVThresholdS.at(uUVThresholdS.size()-1);
-        uUV_threshold_width = s->get(1)->valueAsInt();
-        std::cout << "[FIELDCOLORDEBUG] Found uUV_threshold_width: ";
-        std::cout << uUV_threshold_width << "\n";
-    } else {
-        std::cout << "[FIELDCOLORDEBUG] did not find uUV_threshold_width\n";
-    }
+    // // get u UV threshold from slider
+    // std::vector<SExpr*> uUVThresholdS = args[0]->tree().recursiveFind("uUVThresh");
+    // if (uUVThresholdS.size() != 0) {
+    //     SExpr* s = uUVThresholdS.at(uUVThresholdS.size()-1);
+    //     uUV_threshold_width = s->get(1)->valueAsInt();
+    //     std::cout << "[FIELDCOLORDEBUG] Found uUV_threshold_width: ";
+    //     std::cout << uUV_threshold_width << "\n";
+    // } else {
+    //     std::cout << "[FIELDCOLORDEBUG] did not find uUV_threshold_width\n";
+    // }
 
-    // get v UV threshold from slider
-    std::vector<SExpr*> vUVThresholds = args[0]->tree().recursiveFind("vUVThresh");
-    if (vUVThresholds.size() != 0) {
-        SExpr* s = vUVThresholds.at(vUVThresholds.size()-1);
-        vUV_threshold_width = s->get(1)->valueAsInt();
-        std::cout << "[FIELDCOLORDEBUG] Found vUV_threshold_width: ";
-        std::cout << vUV_threshold_width << "\n";
-    } else {
-        std::cout << "[FIELDCOLORDEBUG] did not find vUV_threshold_width\n";
-    }
-
-
+    // // get v UV threshold from slider
+    // std::vector<SExpr*> vUVThresholds = args[0]->tree().recursiveFind("vUVThresh");
+    // if (vUVThresholds.size() != 0) {
+    //     SExpr* s = vUVThresholds.at(vUVThresholds.size()-1);
+    //     vUV_threshold_width = s->get(1)->valueAsInt();
+    //     std::cout << "[FIELDCOLORDEBUG] Found vUV_threshold_width: ";
+    //     std::cout << vUV_threshold_width << "\n";
+    // } else {
+    //     std::cout << "[FIELDCOLORDEBUG] did not find vUV_threshold_width\n";
+    // }
 
 
-    int GREEN_THRESHOLD = (user_u_mode == 0) ? findMaxKeyOfMap(&all_pixel_u_vals) : user_u_mode;
-    // NAIVE APPROACH
-    // traverse each pixel in the image; if it is below a certain threshold, assume green
+
+
+    // int GREEN_THRESHOLD = (user_u_mode == 0) ? findMaxKeyOfMap(&all_pixel_u_vals) : user_u_mode;
+    // // NAIVE APPROACH
+    // // traverse each pixel in the image; if it is below a certain threshold, assume green
+    // // for (int y = 0; y < fieldUImageLite.height(); y++) {
+    // //     for (int x = 0; x < fieldUImageLite.width(); x++) {
+
+    // //         int uVal = *(fieldUImageLite.pixelAddr(x,y));   
+    // //         if (uVal < GREEN_THRESHOLD) {
+    // //             *(fieldUImageLite.pixelAddr(x,y)) = (uint8_t)(0);
+    // //         }         
+    // //     }
+    // // }
+
+    // // SLIGHTLY BETTER? ??? ?? 
+    // int mostCommonUVal = (user_u_mode == 0) ? findMaxKeyOfMap(&all_pixel_u_vals) : user_u_mode;
+    // std::cout << "[FIELDCOLORDEBUG] Most common u val: " << mostCommonUVal << "\n";
+
     // for (int y = 0; y < fieldUImageLite.height(); y++) {
     //     for (int x = 0; x < fieldUImageLite.width(); x++) {
 
     //         int uVal = *(fieldUImageLite.pixelAddr(x,y));   
-    //         if (uVal < GREEN_THRESHOLD) {
+    //         int vVal = *vImageLite.pixelAddr(x,y);
+
+    //         if (std::abs(uVal - mostCommonUVal) <= u_threshold_width) {
     //             *(fieldUImageLite.pixelAddr(x,y)) = (uint8_t)(0);
+
+    //             // add to the mask of v values
+    //             if (v_values_in_u_mask.count(vVal))
+    //                 v_values_in_u_mask[vVal]++;
+    //             else
+    //                 v_values_in_u_mask.insert(std::pair<int, int>(vVal, 1));
     //         }         
     //     }
-    // }
+    // }    
 
-    // SLIGHTLY BETTER? ??? ?? 
-    int mostCommonUVal = (user_u_mode == 0) ? findMaxKeyOfMap(&all_pixel_u_vals) : user_u_mode;
-    std::cout << "[FIELDCOLORDEBUG] Most common u val: " << mostCommonUVal << "\n";
+    // // WITH WEIGHTS
+    // float mostCommonUValFloat = (user_u_mode == 0) ? findMaxKeyOfMapFloat(&all_pixel_u_vals_float_count) : (float)user_u_mode;
+    // std::cout << "[FIELDCOLORDEBUG] Most common float u val: " << mostCommonUValFloat << "\n";
 
-    for (int y = 0; y < fieldUImageLite.height(); y++) {
-        for (int x = 0; x < fieldUImageLite.width(); x++) {
+    // for (int y = 0; y < fieldUImageLiteFloat.height(); y++) {
+    //     for (int x = 0; x < fieldUImageLiteFloat.width(); x++) {
 
-            int uVal = *(fieldUImageLite.pixelAddr(x,y));   
-            int vVal = *vImageLite.pixelAddr(x,y);
+    //         float uVal = (float) *(fieldUImageLiteFloat.pixelAddr(x,y));   
+    //         if (std::abs(uVal - mostCommonUValFloat) <= u_weighted_threshold_width) {
+    //             *(fieldUImageLiteFloat.pixelAddr(x,y)) = (uint8_t)(0);
+    //         }         
+    //     }
+    // }    
 
-            if (std::abs(uVal - mostCommonUVal) <= u_threshold_width) {
-                *(fieldUImageLite.pixelAddr(x,y)) = (uint8_t)(0);
+    // // return the green field color
+    // Log* fieldURet = new Log();
+    // setLogImageDataInShort(fieldURet, &fieldUImageLite, width, height);
+    // rets.push_back(fieldURet);
 
-                // add to the mask of v values
-                if (v_values_in_u_mask.count(vVal))
-                    v_values_in_u_mask[vVal]++;
-                else
-                    v_values_in_u_mask.insert(std::pair<int, int>(vVal, 1));
-            }         
-        }
-    }    
+    // // -------------
+    // // Return the u whole field histogram vals
+    // int U_MIN_T = 10;
+    // Log* u_field_ret = new Log();
+    // u_field_ret->setData(compressIntMapToString(all_pixel_u_vals, U_MIN_T));
+    // rets.push_back(u_field_ret);
 
-    // WITH WEIGHTS
-    float mostCommonUValFloat = (user_u_mode == 0) ? findMaxKeyOfMapFloat(&all_pixel_u_vals_float_count) : (float)user_u_mode;
-    std::cout << "[FIELDCOLORDEBUG] Most common float u val: " << mostCommonUValFloat << "\n";
+    // // return the green field color with weighted function
+    // Log* fieldUFloatRet = new Log();
+    // setLogImageDataInShort(fieldUFloatRet, &fieldUImageLiteFloat, width, height);
+    // rets.push_back(fieldUFloatRet);
 
-    for (int y = 0; y < fieldUImageLiteFloat.height(); y++) {
-        for (int x = 0; x < fieldUImageLiteFloat.width(); x++) {
+    // // -------------
+    // // FIELD COLOR AGAIN with V FILTER
+    // // apply the v filter to the filtered u's
+    // int mostCommonVVal = findMaxKeyOfMap(&v_values_in_u_mask);
+    // std::cout << "[FIELDCOLORDEBUG] Most common v val in u vals: " << mostCommonUVal << "\n";
 
-            float uVal = (float) *(fieldUImageLiteFloat.pixelAddr(x,y));   
-            if (std::abs(uVal - mostCommonUValFloat) <= u_weighted_threshold_width) {
-                *(fieldUImageLiteFloat.pixelAddr(x,y)) = (uint8_t)(0);
-            }         
-        }
-    }    
+    // for (int y = 0; y < fieldUVImageLite.height(); y++) {
+    //     for (int x = 0; x < fieldUVImageLite.width(); x++) {
 
-    // return the green field color
-    Log* fieldURet = new Log();
-    setLogImageDataInShort(fieldURet, &fieldUImageLite, width, height);
-    rets.push_back(fieldURet);
+    //         int uVal = *(fieldUVImageLite.pixelAddr(x,y));   
+    //         int vVal = *vImageLite.pixelAddr(x,y);
 
-    // -------------
-    // Return the u whole field histogram vals
-    int U_MIN_T = 10;
-    Log* u_field_ret = new Log();
-    u_field_ret->setData(compressIntMapToString(all_pixel_u_vals, U_MIN_T));
-    rets.push_back(u_field_ret);
+    //         if (std::abs(uVal - mostCommonUVal) <= uUV_threshold_width &&
+    //             std::abs(vVal - mostCommonVVal) <= vUV_threshold_width) {
+    //             *(fieldUVImageLite.pixelAddr(x,y)) = (uint8_t)(0);
+    //         }         
+    //     }
+    // } 
 
-    // return the green field color with weighted function
-    Log* fieldUFloatRet = new Log();
-    setLogImageDataInShort(fieldUFloatRet, &fieldUImageLiteFloat, width, height);
-    rets.push_back(fieldUFloatRet);
+    // // ------------------------
+    // // Return uv histogram vals
+    // Log* uv_field_ret = new Log();
+    // uv_field_ret->setData(compressIntMapToString(v_values_in_u_mask));
+    // rets.push_back(uv_field_ret);
 
-    // -------------
-    // FIELD COLOR AGAIN with V FILTER
-    // apply the v filter to the filtered u's
-    int mostCommonVVal = findMaxKeyOfMap(&v_values_in_u_mask);
-    std::cout << "[FIELDCOLORDEBUG] Most common v val in u vals: " << mostCommonUVal << "\n";
+    // // return the green field color with weighted function
+    // Log* fieldUVRet = new Log();
+    // setLogImageDataInShort(fieldUVRet, &fieldUVImageLite, width, height);
+    // rets.push_back(fieldUVRet);
 
-    for (int y = 0; y < fieldUVImageLite.height(); y++) {
-        for (int x = 0; x < fieldUVImageLite.width(); x++) {
+    // // ------------------------
+    // // Return all pixel yuv histogram vals
+    // // Log* allPixYuvRet = new Log();
+    // // std::string all_pix_yuv_buf;
+    // // // int u_line_val_buf[u_line_vals.size() * 4]; 
+    // // std::map<yuv_struct, int>::iterator it_all_pix;
+    // // for ( it_all_pix = all_pixels_yuv.begin(); it_all_pix != all_pixels_yuv.end(); it_all_pix++ ) {
 
-            int uVal = *(fieldUVImageLite.pixelAddr(x,y));   
-            int vVal = *vImageLite.pixelAddr(x,y);
+    // //     yuv_struct pixYuv = it_all_pix->first;
+    // //     int y = pixYuv.y;
+    // //     int u = pixYuv.u;
+    // //     int v = pixYuv.v;
+    // //     int count = it_all_pix->second;
+    // //     endswap<int>(&y);
+    // //     endswap<int>(&u);
+    // //     endswap<int>(&v);
+    // //     endswap<int>(&count);
 
-            if (std::abs(uVal - mostCommonUVal) <= uUV_threshold_width &&
-                std::abs(vVal - mostCommonVVal) <= vUV_threshold_width) {
-                *(fieldUVImageLite.pixelAddr(x,y)) = (uint8_t)(0);
-            }         
-        }
-    } 
-
-    // ------------------------
-    // Return uv histogram vals
-    Log* uv_field_ret = new Log();
-    uv_field_ret->setData(compressIntMapToString(v_values_in_u_mask));
-    rets.push_back(uv_field_ret);
-
-    // return the green field color with weighted function
-    Log* fieldUVRet = new Log();
-    setLogImageDataInShort(fieldUVRet, &fieldUVImageLite, width, height);
-    rets.push_back(fieldUVRet);
-
-    // ------------------------
-    // Return all pixel yuv histogram vals
-    // Log* allPixYuvRet = new Log();
-    // std::string all_pix_yuv_buf;
-    // // int u_line_val_buf[u_line_vals.size() * 4]; 
-    // std::map<yuv_struct, int>::iterator it_all_pix;
-    // for ( it_all_pix = all_pixels_yuv.begin(); it_all_pix != all_pixels_yuv.end(); it_all_pix++ ) {
-
-    //     yuv_struct pixYuv = it_all_pix->first;
-    //     int y = pixYuv.y;
-    //     int u = pixYuv.u;
-    //     int v = pixYuv.v;
-    //     int count = it_all_pix->second;
-    //     endswap<int>(&y);
-    //     endswap<int>(&u);
-    //     endswap<int>(&v);
-    //     endswap<int>(&count);
-
-    //     all_pix_yuv_buf.append((const char*) &y, sizeof(int));
-    //     all_pix_yuv_buf.append((const char*) &u, sizeof(int));
-    //     all_pix_yuv_buf.append((const char*) &v, sizeof(int));
-    //     all_pix_yuv_buf.append((const char*) &count, sizeof(int));
-    // }
-    // allPixYuvRet->setData(all_pix_yuv_buf);
-    // rets.push_back(allPixY
+    // //     all_pix_yuv_buf.append((const char*) &y, sizeof(int));
+    // //     all_pix_yuv_buf.append((const char*) &u, sizeof(int));
+    // //     all_pix_yuv_buf.append((const char*) &v, sizeof(int));
+    // //     all_pix_yuv_buf.append((const char*) &count, sizeof(int));
+    // // }
+    // // allPixYuvRet->setData(all_pix_yuv_buf);
+    // // rets.push_back(allPixY
     
     return 0;
 }
