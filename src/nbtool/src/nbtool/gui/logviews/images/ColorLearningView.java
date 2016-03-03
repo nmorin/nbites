@@ -71,6 +71,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
     private JSlider uUVFieldThreshSlider;
     private JTextField uTextField;
     private JTextField yMinTextField;
+    private JTextField saveFileNameTextField;
     private JCheckBox saveUVStateCheckBox;
     private JCheckBox viewToggle;
     private JCheckBox viewToggle2;
@@ -83,6 +84,8 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	int FIELD_COLOR_MODE = 2;
 	int LINE_COLOR_MODE = 3;
 	int VIEW_MODE = 1;
+
+	int ORG_IMG_SCALE_FACTOR = 2;
 
 	boolean SAVE_UV_STATE = false;
 
@@ -297,8 +300,8 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		int width = 0, height = 0;
 
 		if (original_image != null) {
-			width = original_image.getWidth() / 2;
-			height = original_image.getHeight() / 2;
+			width = original_image.getWidth() / ORG_IMG_SCALE_FACTOR;
+			height = original_image.getHeight() / ORG_IMG_SCALE_FACTOR;
 			g.drawImage(original_image, 0, 0, width, height, null);
 		}
 
@@ -342,12 +345,17 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		if (!yMinTextField.getText().equals("") && !yMinTextField.getText().equals("y min")) 
 			yMinVal = Integer.parseInt(yMinTextField.getText());
 
+		String saveFileName = "";
+		if (!saveFileNameTextField.getText().equals("") && !saveFileNameTextField.getText().equals("csv file name")) 
+			saveFileName = saveFileNameTextField.getText();
+
 		SExpr newFieldParams = SExpr.newList(
 			SExpr.newKeyValue("uThreshold", fieldUThreshSlider.getValue()),
 			SExpr.newKeyValue("uWeightedThreshold", fieldUWeightedThreshSlider.getValue()),
 			SExpr.newKeyValue("uUVThresh", uUVFieldThreshSlider.getValue()),
 			SExpr.newKeyValue("vUVThresh", vUVFieldThreshSlider.getValue()),
 			SExpr.newKeyValue("uFieldVal", uFieldVal),
+			SExpr.newKeyValue("saveFileName", saveFileName),
 			SExpr.newKeyValue("yMinVal", yMinVal)
 		);
 
@@ -415,6 +423,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 
 		uTextField = new JTextField("u max", 4);
 		yMinTextField = new JTextField("y min", 4);
+		saveFileNameTextField = new JTextField("csv file name", 15);
 		repaintButton = new JButton("Repaint");
         repaintButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) { 
@@ -422,7 +431,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
         }});
 
         add(uTextField);
-        // add(repaintButton);
+        add(saveFileNameTextField);
 
 	    controlPanel = new JPanel();
 	    add(controlPanel);
@@ -434,6 +443,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	    controlPanel.add(yMinTextField);
 	    // uTextField.setBounds(10, 50, 60, 20);
 	    controlPanel.add(repaintButton);
+	    controlPanel.add(saveFileNameTextField);
 	}
 
 	@Override
@@ -457,7 +467,9 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 
 	@Override
 	public void ioReceived(IOInstance inst, int ret, Log... out) {
-		if (out.length > 0) {
+		// TODO put in named constants instead of magic numbers... :/
+
+		if (out.length > 0 && this.log.primaryFrom().equals("camera_TOP")) {
             UV8image u8 = new UV8image(320, 240, out[0].bytes, true, false);
             this.u_img = u8.toBufferedImage();
 
@@ -482,32 +494,39 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	        // Get y histogram vals -- lines
 			y_line_vals = new TreeMap<Integer, Integer>();
 	        setHistogramVals(y_line_vals, out[6].bytes);
+	    }
+	    else if (out.length > 0 && this.log.primaryFrom().equals("camera_BOT")) {
+	    	System.out.println("[COLORLEARN DEBUG] Bottom camera output!");
+	    	UV8image u8 = new UV8image(160, 120, out[0].bytes, true, false);
+            this.u_img = u8.toBufferedImage();
 
-	  //       // get "green" image
-			// UV8image greenImg = new UV8image(320, 240, out[7].bytes, true, true);
-   //          this.green_img = greenImg.toBufferedImage();
+            UV8image v8 = new UV8image(160, 120, out[1].bytes, false, false);
+            this.v_img = v8.toBufferedImage();
 
-   //          // get all pixel u histogram values
-	  //       u_all_vals = new TreeMap<Integer, Integer>();
-	  //       setHistogramVals(u_all_vals, out[8].bytes);
+            Y16image yImg = new Y16image(160, 120, out[2].bytes);
+            this.y_img = yImg.toBufferedImage();
 
-	  //       // get "green" image with weighted func
-			// UV8image greenWeightedImg = new UV8image(320, 240, out[9].bytes, true, true);
-   //          this.green_weighted_img = greenWeightedImg.toBufferedImage();
+            UV8image altImg = new UV8image(160, 120, out[3].bytes, true, false);
+            this.alt_img = altImg.toBufferedImage();
 
-   //          // get all pixel uv histogram values
-	  //       uv_all_vals = new TreeMap<Integer, Integer>();
-	  //       setHistogramVals(uv_all_vals, out[10].bytes);
+            // Line histogram data:
+        	// Get u histogram vals -- lines
+	        u_line_vals = new TreeMap<Integer, Integer>();
+	        setHistogramVals(u_line_vals, out[4].bytes);
 
-	  //       // get "green" image with both u and v filters
-			// UV8image greenUVImage = new UV8image(320, 240, out[11].bytes, true, true);
-   //          this.green_uv_img = greenUVImage.toBufferedImage();
+	        // Get v histogram vals -- lines
+			v_line_vals = new TreeMap<Integer, Integer>();
+	        setHistogramVals(v_line_vals, out[5].bytes);      
+
+	        // Get y histogram vals -- lines
+			y_line_vals = new TreeMap<Integer, Integer>();
+	        setHistogramVals(y_line_vals, out[6].bytes);
+
 
 	    }
         else {
 			System.out.println("ERROR no output received");
         }
-		// this.img = Utility.biFromLog(out[0]);
 		repaint();
 	}
 
@@ -517,7 +536,28 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	}
 
 	@Override
-	public void mouseDragged(MouseEvent e) {}
+	public void mouseDragged(MouseEvent e) {
+		int SELECT_SIZE = 10;
+
+		int col = (e.getX()*original_image.getWidth() / (original_image.getWidth() / ORG_IMG_SCALE_FACTOR));
+		int row = e.getY()*original_image.getHeight() / (original_image.getHeight() / ORG_IMG_SCALE_FACTOR);
+		if ((col < 0 + SELECT_SIZE || row < 0 + SELECT_SIZE || 
+			col >= original_image.getWidth() - SELECT_SIZE || 
+			row >= original_image.getHeight() - SELECT_SIZE)) {
+			return;
+		}
+
+		int r = 250;
+		int color = r << 16;
+		for (int i = -SELECT_SIZE; i <= SELECT_SIZE; i++) {
+			for (int j = -SELECT_SIZE; j <= SELECT_SIZE; j++) {
+				original_image.setRGB(col + i, row + j, Color.red.getRGB());
+			}
+		}
+		
+		repaint();
+
+	}
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
