@@ -236,7 +236,14 @@ void VisionModule::run_()
 
         // Run edge detection
         PROF_ENTER2(P_EDGE_TOP, P_EDGE_BOT, i==0)
-        edgeDetector[i]->edgeDetect(greenImage, *(edges[i]));
+
+        // NOTE TODO DEBUG
+        // NOT USING GREEN
+        // FOR TESTING PURPOSES
+        // DON'T LEAVE LIKE THIS!!!!!!!!!!!!!!!!
+        // BAD! VERY BAD
+        ImageLiteU8 falseGreenImage;
+        edgeDetector[i]->edgeDetect(falseGreenImage, *(edges[i]));
         PROF_EXIT2(P_EDGE_TOP, P_EDGE_BOT, i==0)
         times[i][4] = timer.end();
 

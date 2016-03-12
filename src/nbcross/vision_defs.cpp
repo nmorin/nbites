@@ -845,14 +845,15 @@ std::string compressIntMapToString(std::map<int, int> &values, int min = -1, std
     std::ofstream output;
     int sum = 0;
     int itemCount = 0;
+    int val, count;
 
     if (!fileName.empty()) {
         output.open(fileName);
     }
     for ( it = values.begin(); it != values.end(); it++ ) {
 
-        int val = it->first;
-        int count = it->second;
+        val = it->first;
+        count = it->second;
 
         if (!fileName.empty()) {
             output << val << "," << count << std::endl;
@@ -867,12 +868,34 @@ std::string compressIntMapToString(std::map<int, int> &values, int min = -1, std
 
         val_buffer.append((const char*) &val, sizeof(int));
         val_buffer.append((const char*) &count, sizeof(int));
-
+        
+        endswap<int>(&val);
+        endswap<int>(&count);
     }
 
     if (!fileName.empty()) {
+        // Average
         int avg = itemCount == 0 ? 0 : sum / itemCount;
+
+        // Standard deviation
+        int differenceCount = 0;
+        int diff;
+        for (it = values.begin(); it != values.end(); it++) {
+            val = it->first;
+            count = it->second;
+
+            diff = std::pow(val - avg, 2);
+            diff = diff*count;
+            differenceCount += diff;
+
+
+        }
+        int stdDev = itemCount == 0 ? 0 : differenceCount / itemCount;
+
         output << std::endl << "Average," << avg << std::endl;
+        output << std::endl << "StdDev," << stdDev << std::endl;
+        output << std::endl << "Pixel Count," << itemCount << std::endl;
+
         output.close();
     }
     return val_buffer;
@@ -920,8 +943,6 @@ int ColorLearnTest_func() {
     } else {
         std::cout << "Could not find height in description\n";
     }
-
-    std::cout << " HEIGHT: " << height << " WIDTH " << width << std::endl;
 
     imageSizeCheck(topCamera, width, height);
 
