@@ -102,8 +102,8 @@ public class FrontEndView extends ViewParent implements IOFirstResponder {
         // Init and add white sliders
         wDarkU  = new JSlider(JSlider.HORIZONTAL, -100, 100, 0);
         wDarkV  = new JSlider(JSlider.HORIZONTAL, -100, 100, 0);
-        wLightU = new JSlider(JSlider.HORIZONTAL, -100, 100, 0);
-        wLightV = new JSlider(JSlider.HORIZONTAL, -100, 100, 0);
+        wLightU = new JSlider(JSlider.HORIZONTAL, -100, 100, 0); 
+       wLightV = new JSlider(JSlider.HORIZONTAL, -100, 100, 0);
         wFuzzyU = new JSlider(JSlider.HORIZONTAL, -100, 100, 0);
         wFuzzyV = new JSlider(JSlider.HORIZONTAL, -100, 100, 0);
 
@@ -203,7 +203,6 @@ public class FrontEndView extends ViewParent implements IOFirstResponder {
         replace them. Call nbfunction with updated log description.
     */
     public void adjustParams() {
-
         // This is called when the sliders are initialized, so dont run if it's first load,
         //  or if any values are zero b/c devide by zero error in frontEnd processing
         if (firstLoad)

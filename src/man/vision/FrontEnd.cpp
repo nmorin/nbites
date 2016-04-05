@@ -186,12 +186,6 @@ void ImageFrontEnd::run(const YuvLite& src, const Colors* colors, uint8_t* color
 
   fast(false);
 
-  // if (fast())
-  //   std::cout << "[DEBUG RUNFRONTEND] running fast\n";
-  // else
-  //   std::cout << "Not running fast\n";
-
-
   if (fast())
     _time = man::vision::_acquire_image(src.pixelAddr(), dstBase.pitch(),
                                         dstBase.height(), src.pitch(),

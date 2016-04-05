@@ -8,6 +8,7 @@
 #include "ParamReader.h"
 #include "NBMath.h"
 #include "vision/Vision.h"
+#include "Statistics.h"
 
 #include <cstdlib>
 #include <netinet/in.h>
@@ -19,6 +20,7 @@
 #include <map>
 #include <cmath>
 #include <fstream>
+#include <streambuf>
 
 using nblog::Log;
 using nblog::SExpr;
@@ -482,6 +484,41 @@ int Vision_func() {
     return 0;
 }
 
+std::string getStringFromTxtFile(std::string path) 
+{
+
+    std::ifstream t(path);
+    std::string str((std::istreambuf_iterator<char>(t)),
+                 std::istreambuf_iterator<char>());
+
+    // std::ifstream t(path);
+    // std::string str;
+
+    // t.seekg(0, std::ios::end);   
+    // str.reserve(t.tellg());
+    // t.seekg(0, std::ios::beg);
+
+    // str.assign((std::istreambuf_iterator<char>(t)),
+    //             std::istreambuf_iterator<char>());
+    return str;
+
+    // std::ifstream textFile;
+    // textFile.open(path);
+
+    // // Get size of file
+    // textFile.seekg (0, textFile.end);
+    // long size = (long)textFile.tellg();
+    // textFile.seekg(0);
+
+    // // Read file into buffer and convert to string
+    // char* buff = new char[size];
+    // textFile.read(buff, size);
+    // std::string sexpText(buff);
+
+    // textFile.close();
+    // return (const std::string)sexpText;
+}
+
 int CameraCalibration_func() {
     printf("CameraCalibrate_func()\n");
 
@@ -843,62 +880,74 @@ std::string compressIntMapToString(std::map<int, int> &values, int min = -1, std
     std::string val_buffer;
     std::map<int, int>::iterator it;
     std::ofstream output;
-    int sum = 0;
-    int itemCount = 0;
+    Statistics *newStat;
     int val, count;
 
     if (!fileName.empty()) {
         output.open(fileName);
+        newStat = new Statistics(values);
     }
-    for ( it = values.begin(); it != values.end(); it++ ) {
 
+    for ( it = values.begin(); it != values.end(); it++ ) {
         val = it->first;
         count = it->second;
 
         if (!fileName.empty()) {
             output << val << "," << count << std::endl;
-            itemCount += count;
-            sum += (val*count);
         }
 
-        if (count < min)
-            continue;
         endswap<int>(&val);
         endswap<int>(&count);
 
         val_buffer.append((const char*) &val, sizeof(int));
         val_buffer.append((const char*) &count, sizeof(int));
         
-        endswap<int>(&val);
-        endswap<int>(&count);
     }
 
     if (!fileName.empty()) {
-        // Average
-        int avg = itemCount == 0 ? 0 : sum / itemCount;
-
-        // Standard deviation
-        int differenceCount = 0;
-        int diff;
-        for (it = values.begin(); it != values.end(); it++) {
-            val = it->first;
-            count = it->second;
-
-            diff = std::pow(val - avg, 2);
-            diff = diff*count;
-            differenceCount += diff;
-
-
-        }
-        int stdDev = itemCount == 0 ? 0 : differenceCount / itemCount;
-
-        output << std::endl << "Average," << avg << std::endl;
-        output << std::endl << "StdDev," << stdDev << std::endl;
-        output << std::endl << "Pixel Count," << itemCount << std::endl;
-
         output.close();
     }
     return val_buffer;
+}
+
+void saveStatsToFile(Statistics* stats, std::string fileName, bool topCamera, std::string colorString) {
+    std::ofstream output;
+    output.open(fileName, std::ios::out | std::ios::app );
+
+    output << std::endl << "Average," << stats->getAvg() << std::endl;
+    output << std::endl << "StdDev," << stats->getStdDev() << std::endl;
+    output << std::endl << "Pixel Count," << stats->getCount() << std::endl;
+
+    // Get color parameters
+    SExpr* colors = nblog::SExpr::read(colorString);
+    std::cout << "[SAVEDEBUG] " << colorString << std::endl;
+    SExpr* paramsUsed;
+    if (topCamera) {
+        paramsUsed = colors->get(1)->find("Top")->get(1);
+    } else {
+        paramsUsed = colors->get(1)->find("Bottom")->get(1);
+    }
+
+    colors = paramsUsed->get(0)->get(1);
+    output << std::endl << "COLOR PARAMS WHITE" << std::endl;
+    output << "dark_u," << std::stof(colors->get(0)->get(1)->serialize()) << std::endl;
+    output << "dark_v," << std::stof(colors->get(1)->get(1)->serialize()) << std::endl;
+    output << "light_u," << std::stof(colors->get(2)->get(1)->serialize()) << std::endl;
+    output << "light_v," << std::stof(colors->get(3)->get(1)->serialize()) << std::endl;
+    output << "fuzzy_u," << std::stof(colors->get(4)->get(1)->serialize()) << std::endl;
+    output << "fuzzy_v," << std::stof(colors->get(5)->get(1)->serialize()) << std::endl;
+
+    colors = paramsUsed->get(1)->get(1);
+    output << std::endl << "COLOR PARAMS GREEN" << std::endl;
+    output << "dark_u," << std::stof(colors->get(0)->get(1)->serialize()) << std::endl;
+    output << "dark_v," << std::stof(colors->get(1)->get(1)->serialize()) << std::endl;
+    output << "light_u," << std::stof(colors->get(2)->get(1)->serialize()) << std::endl;
+    output << "light_v," << std::stof(colors->get(3)->get(1)->serialize()) << std::endl;
+    output << "fuzzy_u," << std::stof(colors->get(4)->get(1)->serialize()) << std::endl;
+    output << "fuzzy_v," << std::stof(colors->get(5)->get(1)->serialize()) << std::endl;
+
+    output.close();
+
 }
 
 void setLogImageDataInShort(Log* logRet, man::vision::ImageLiteU8 *image, int width, int height) {
@@ -984,10 +1033,6 @@ int ColorLearnTest_func() {
 
     // run module
     module.run();
-
-    // - - - - - - -  -  - - - - - --  this was setup
-    bool test = realImage.pixelExists(19, 123);
-    std::cout << "TEST TEST : " << test << std::endl;
 
     // get field line list
     man::vision::ImageFrontEnd* frontEnd = module.getFrontEnd(topCamera);
@@ -1091,11 +1136,11 @@ int ColorLearnTest_func() {
     // perform check: if pixel exists
     // then use pDist(x, y) and test if positive; will be positive if the point is
     // on the brighter side of the line
-    std::cout << "imageLite height: " << liteHeight << " width: " << liteWidth << std::endl;
+    // std::cout << "imageLite height: " << liteHeight << " width: " << liteWidth << std::endl;
 
     int lineCenterY = liteHeight / 2;
     int lineCenterX = liteWidth / 2;
-    std::cout << "lineCenterX: " << lineCenterX << " lineCenterY: " << lineCenterY << std::endl;
+    // std::cout << "lineCenterX: " << lineCenterX << " lineCenterY: " << lineCenterY << std::endl;
 
     struct yuv_struct {
         yuv_struct(int y_, int u_, int v_) {
@@ -1182,15 +1227,17 @@ int ColorLearnTest_func() {
     }
 
     // get y min cut off value 
+    bool saveFile = false;
     std::string saveFileName = "";
     std::vector<SExpr*> saveFileNameVec = args[0]->tree().recursiveFind("saveFileName");
     if (saveFileNameVec.size() != 0) {
         SExpr* s = saveFileNameVec.at(saveFileNameVec.size()-1);
-        saveFileName = "/home/nicolemorin/Desktop/test_data/";
+        saveFileName = "/home/nicolemorin/Desktop/test_data/new_with_params/";
         saveFileName += s->get(1)->value();
         // saveFileName += ".csv";
         std::cout << "[FIELDCOLORDEBUG] SAVE FILE NAME = ";
         std::cout << saveFileName << "\n";
+        saveFile = true;
     } else {
         std::cout << "[FIELDCOLORDEBUG] did not find SaveFILENAME\n";
     }
@@ -1201,11 +1248,26 @@ int ColorLearnTest_func() {
     setLogImageDataInShort(linePixRet, &uImageLite, width, height);
     rets.push_back(linePixRet);
 
+    // Generate statistics
+    Statistics *yStat = new Statistics(y_line_vals);
+    Statistics *uStat = new Statistics(u_line_vals);
+    Statistics *vStat = new Statistics(v_line_vals);
+
+    std::string colorPath, colorString;
+    // Color params
+    if (saveFile) {
+        colorPath = "/home/nicolemorin/nbites/src/man/config/colorParams.txt";
+        colorString = getStringFromTxtFile(colorPath);
+    }
+
+
     // ------------------------
     // Return u histogram vals
     Log* u_line_ret = new Log();
     std::string uSaveFileName = saveFileName + "_u.csv";
     u_line_ret->setData(compressIntMapToString(u_line_vals, -1, uSaveFileName));
+    if (saveFile)
+        saveStatsToFile(uStat, uSaveFileName, topCamera, colorString);
     rets.push_back(u_line_ret);
         
     // ------------------------
@@ -1213,27 +1275,18 @@ int ColorLearnTest_func() {
     Log* v_line_ret = new Log();
     std::string vSaveFileName = saveFileName + "_v.csv";
     v_line_ret->setData(compressIntMapToString(v_line_vals, -1, vSaveFileName));
+    if (saveFile)
+        saveStatsToFile(vStat, vSaveFileName, topCamera, colorString);
     rets.push_back(v_line_ret);
 
     // ------------------------
     // Return y histogram vals
 
-    // get y min cut off value 
-    int yMin = -1;
-    std::vector<SExpr*> yMinValS = args[0]->tree().recursiveFind("yMinVal");
-    if (yMinValS.size() != 0) {
-        SExpr* s = yMinValS.at(yMinValS.size()-1);
-        yMin = s->get(1)->valueAsInt();
-        std::cout << "[FIELDCOLORDEBUG] Found yMin: ";
-        std::cout << yMin << "\n";
-    } else {
-        std::cout << "[FIELDCOLORDEBUG] did not find yMin\n";
-    }
-
-
     Log* y_line_ret = new Log();
     std::string ySaveFileName = saveFileName + "_y.csv";
     y_line_ret->setData(compressIntMapToString(y_line_vals, -1, ySaveFileName));
+    if (saveFile)
+        saveStatsToFile(yStat, ySaveFileName, topCamera, colorString);
     rets.push_back(y_line_ret);
 
     return 0;
