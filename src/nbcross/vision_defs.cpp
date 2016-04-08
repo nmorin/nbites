@@ -910,13 +910,22 @@ std::string compressIntMapToString(std::map<int, int> &values, int min = -1, std
     return val_buffer;
 }
 
-void saveStatsToFile(Statistics* stats, std::string fileName, bool topCamera, std::string colorString) {
+void saveStatsToFile(Statistics* stats, std::string fileName, std::string title = "") {
     std::ofstream output;
     output.open(fileName, std::ios::out | std::ios::app );
 
-    output << std::endl << "Average," << stats->getAvg() << std::endl;
-    output << std::endl << "StdDev," << stats->getStdDev() << std::endl;
-    output << std::endl << "Pixel Count," << stats->getCount() << std::endl;
+    output << std::endl << std::endl << title;
+    output << std::endl << "Average," << stats->getAvg();
+    output << std::endl << "StdDev," << stats->getStdDev();
+    output << std::endl << "Pixel Count," << stats->getCount();
+
+    output.close();
+
+}
+
+void saveCameraParamsToFile(std::string fileName, bool topCamera, std::string colorString) {
+    std::ofstream output;
+    output.open(fileName, std::ios::out | std::ios::app );
 
     // Get color parameters
     SExpr* colors = nblog::SExpr::read(colorString);
@@ -1267,7 +1276,7 @@ int ColorLearnTest_func() {
     std::string uSaveFileName = saveFileName + "_u.csv";
     u_line_ret->setData(compressIntMapToString(u_line_vals, -1, uSaveFileName));
     if (saveFile)
-        saveStatsToFile(uStat, uSaveFileName, topCamera, colorString);
+        saveStatsToFile(uStat, uSaveFileName);
     rets.push_back(u_line_ret);
         
     // ------------------------
@@ -1276,7 +1285,7 @@ int ColorLearnTest_func() {
     std::string vSaveFileName = saveFileName + "_v.csv";
     v_line_ret->setData(compressIntMapToString(v_line_vals, -1, vSaveFileName));
     if (saveFile)
-        saveStatsToFile(vStat, vSaveFileName, topCamera, colorString);
+        saveStatsToFile(vStat, vSaveFileName);
     rets.push_back(v_line_ret);
 
     // ------------------------
@@ -1286,8 +1295,16 @@ int ColorLearnTest_func() {
     std::string ySaveFileName = saveFileName + "_y.csv";
     y_line_ret->setData(compressIntMapToString(y_line_vals, -1, ySaveFileName));
     if (saveFile)
-        saveStatsToFile(yStat, ySaveFileName, topCamera, colorString);
+        saveStatsToFile(yStat, ySaveFileName);
     rets.push_back(y_line_ret);
+
+    std::string allSaveFileName = saveFileName + "_STATS AND PARAMS TOGETHER.csv";
+    if (saveFile) {
+        saveStatsToFile(yStat, allSaveFileName, "Y STATS");
+        saveStatsToFile(uStat, allSaveFileName, "U STATS");
+        saveStatsToFile(vStat, allSaveFileName, "V STATS");
+        saveCameraParamsToFile(allSaveFileName, topCamera, colorString);
+    }
 
     return 0;
 }

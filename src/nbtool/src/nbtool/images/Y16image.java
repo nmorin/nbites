@@ -12,7 +12,6 @@ public final class Y16image extends ImageParent {
 
 	public BufferedImage toBufferedImage() {
    	    BufferedImage ret = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
-		System.out.println("height " + height + " width " + width);
 
 
 		for (int r = 0; r < height; r++) {
