@@ -571,7 +571,7 @@ int CameraCalibration_func() {
 
         man::vision::FieldHomography* fh = module.getFieldHomography(top);
         man::vision::HoughLineList* lineList = module.getHoughLines(top);
-        man::vision::FieldLineList* fieldLineList = module.getFieldLines(topCamera);
+        man::vision::FieldLineList* fieldLineList = module.getFieldLines(top);
         printf("LOG has %d hough lines, %d field lines\n",
                lineList->size(), fieldLineList->size());
 
