@@ -17,6 +17,7 @@
 #include "RobotObstacle.h"
 #include "InertialState.pb.h"
 #include "VisionRobot.pb.h"
+#include "ColorLearner.h"
 
 
 namespace man {
@@ -51,6 +52,7 @@ public:
     GoalboxDetector* getBox(bool topCamera = true) const { return boxDetector[!topCamera]; }
     CornerDetector* getCorners(bool topCamera = true) const { return cornerDetector[!topCamera]; }
     CenterCircleDetector* getCCD(bool topCamera = true) const {return centerCircleDetector[!topCamera]; }
+    ColorLearner* getColorLearner(bool topCamera = true) const { return colorLearner[!topCamera]; }
 
 #ifdef OFFLINE
 	void setDebugDrawingParameters(nblog::SExpr* debugParams);
@@ -58,6 +60,7 @@ public:
     
     // For use by vision_defs
     void setColorParams(Colors* colors, bool topCamera);
+    Colors* getColorParams(bool topCamera);
     const std::string getStringFromTxtFile(std::string path);
     Colors* getColorsFromLisp(nblog::SExpr* colors, int camera);
     void setCalibrationParams(std::string robotName);
@@ -93,6 +96,7 @@ private:
     CornerDetector* cornerDetector[2];
     CenterCircleDetector* centerCircleDetector[2];
     BallDetector* ballDetector[2];
+    ColorLearner* colorLearner[2];
 
     bool blackStar_;
 

@@ -87,6 +87,7 @@ VisionModule::VisionModule(int wd, int ht, std::string robotName)
         ballDetector[i] = new BallDetector(homography[i], field, i == 0);
         boxDetector[i] = new GoalboxDetector();
         centerCircleDetector[i] = new CenterCircleDetector();
+        colorLearner[i] = new ColorLearner();
 
         if (i == 0) {
           hough[i] = new HoughSpace(wd / 2, ht / 2);
@@ -133,6 +134,7 @@ VisionModule::~VisionModule()
         delete cornerDetector[i];
         delete centerCircleDetector[i];
         delete ballDetector[i];
+        delete colorLearner[i];
     }
 	delete field;
 }
@@ -183,6 +185,8 @@ void VisionModule::run_()
         ImageLiteU8 whiteImage(frontEnd[i]->whiteImage());
         ImageLiteU8 greenImage(frontEnd[i]->greenImage());
         ImageLiteU8 orangeImage(frontEnd[i]->orangeImage());
+        ImageLiteU8 uImage(frontEnd[i]->uImage());
+        ImageLiteU8 vImage(frontEnd[i]->vImage());
 
         times[i][0] = timer.end();
 
@@ -285,6 +289,10 @@ void VisionModule::run_()
         ballDetected |= ballDetector[i]->findBall(orangeImage, kinematics[i]->wz0());
         PROF_EXIT2(P_BALL_TOP, P_BALL_BOT, i==0)
         times[i][11] = timer.end();
+
+        // TODO Do profiling later
+        Colors* colorLearnRet = colorLearner[i]->run(fieldLines[i], i==0, colorParams[i], uImage, vImage);
+        setColorParams(colorLearnRet, i == 0);
 
         PROF_EXIT2(P_VISION_TOP, P_VISION_BOT, i==0)
 #ifdef USE_LOGGING
@@ -511,6 +519,10 @@ void VisionModule::setColorParams(Colors* colors, bool topCamera)
 { 
     delete colorParams[!topCamera];
     colorParams[!topCamera] = colors;
+}
+
+Colors* VisionModule::getColorParams(bool topCamera) {
+    return colorParams[!topCamera];
 }
 
 const std::string VisionModule::getStringFromTxtFile(std::string path) 
