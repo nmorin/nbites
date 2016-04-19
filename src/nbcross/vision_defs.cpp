@@ -488,7 +488,8 @@ int CameraCalibration_func() {
     man::vision::VisionModule& module = getModuleRef("");
 
     // Repeat for each log
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < args.size(); i++) {
+        printf("LOG (%d of %z)\n", i, args.size());
         module.reset();
         
         Log* l = new Log(args[i]);
@@ -499,6 +500,8 @@ int CameraCalibration_func() {
 
         // Determine description
         bool top = l->description().find("camera_TOP") != std::string::npos;
+
+        printf("LOG is %s\n", top ? "TOP" : "BOT");
         
         int width = 2*atoi(l->tree().find("contents")->get(1)->
                                         find("width")->get(1)->value().c_str());
@@ -543,9 +546,9 @@ int CameraCalibration_func() {
         }
 
         // If log includes "BlackStar," set flag
-        std::vector<SExpr*> blackStarVec = args[0]->tree().recursiveFind("BlackStar");
-        if (blackStarVec.size() != 0)
-            module.blackStar(true);
+//        std::vector<SExpr*> blackStarVec = args[0]->tree().recursiveFind("BlackStar");
+//        if (blackStarVec.size() != 0)
+        module.blackStar(true);
         
         // Create messages
         messages::YUVImage image(buf, width, height, width);
@@ -567,13 +570,17 @@ int CameraCalibration_func() {
         module.run();
 
         man::vision::FieldHomography* fh = module.getFieldHomography(top);
+        man::vision::HoughLineList* lineList = module.getHoughLines(top);
+        man::vision::FieldLineList* fieldLineList = module.getFieldLines(topCamera);
+        printf("LOG has %d hough lines, %d field lines\n",
+               lineList->size(), fieldLineList->size());
 
         double rollBefore, tiltBefore, rollAfter, tiltAfter;
 
         rollBefore = fh->roll();
         tiltBefore = fh->tilt();
 
-        std::cout << "Calibrating log " << i+1 << ": "; 
+        std::cout << "Calibrating log " << i << ": ";
 
         bool success = fh->calibrateFromStar(*module.getFieldLines(top));
 
@@ -587,20 +594,16 @@ int CameraCalibration_func() {
         }
     }
 
-    if (failures > 4) {
-        // Handle failure
-        printf("Failed calibration %d times\n", failures);
-        rets.push_back(new Log("(failure)"));
-    } else {
-        printf("Success calibrating %d times\n", 7 - failures);
+    printf("Failed calibration %d times\n", failures);
 
-        totalR /= (args.size() - failures);
-        totalT /= (args.size() - failures);
+    printf("Success calibrating %z times\n", args.size() - failures);
 
-        // Pass back averaged offsets to Tool
-        std::string sexp = "((roll " + std::to_string(totalR) + ")(tilt " + std::to_string(totalT) + "))";
-        rets.push_back(new Log(sexp));
-    }
+    totalR /= (args.size() - failures);
+    totalT /= (args.size() - failures);
+
+    // Pass back averaged offsets to Tool
+    std::string sexp = "((roll " + std::to_string(totalR) + ")(tilt " + std::to_string(totalT) + "))";
+    rets.push_back(new Log(sexp));
 }
 
 

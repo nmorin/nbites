@@ -58,8 +58,7 @@ const std::vector<CrossFunc> FUNCS = {
     
 #ifndef __APPLE__
     CrossFunc("Vision", Vision_func, {"YUVImage"}),
-    CrossFunc("CameraCalibration", CameraCalibration_func, {"YUVImage", "YUVImage", "YUVImage", 
-                                                "YUVImage", "YUVImage", "YUVImage", "YUVImage"}),
+    CrossFunc("CameraCalibration", CameraCalibration_func, {}),
     CrossFunc("Synthetics", Synthetics_func, {"SyntheticParams"}),
     CrossFunc("Scratch", Scratch_func, {})
 #endif

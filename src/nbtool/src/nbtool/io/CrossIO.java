@@ -99,6 +99,8 @@ public class CrossIO {
 		}
 		
 		public boolean accepts(CrossCall call) {
+			if (name.equals("CameraCalibration")) return true;
+			
 			if (call.function != this)
 				return false;
 			
@@ -242,7 +244,9 @@ public class CrossIO {
 						dos.writeInt(1);
 						dos.flush();
 						
+						
 						dos.writeInt(functions.indexOf(call.function));
+						dos.writeInt(call.arguments.length);
 						
 						for (Log l : call.arguments) {
 							CommonIO.writeLog(dos, l);
@@ -251,7 +255,6 @@ public class CrossIO {
 												
 						final int ret = dis.readInt();
 						int num_out = dis.readInt();
-						
 
 						final Log[] outs = new Log[num_out];
 						for (int i = 0; i < num_out; ++i) {
