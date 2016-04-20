@@ -104,7 +104,8 @@ int main(int argc, const char * argv[]) {
     server.sin_family = AF_INET ;
     server.sin_port = htons(PORTNUM);
     
-    struct hostent * host = gethostbyname("127.0.0.1");
+	//    struct hostent * host = gethostbyname("127.0.0.1");
+    struct hostent * host = gethostbyname("10.211.55.2");
     bcopy(host->h_addr, &server.sin_addr.s_addr, host->h_length);
     
     nbcprintf("sock fd\t= %i\n", fd);

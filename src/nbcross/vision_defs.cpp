@@ -178,9 +178,9 @@ int Vision_func() {
 	}
 
     // If log includes "BlackStar," set flag
-    std::vector<SExpr*> blackStarVec = args[0]->tree().recursiveFind("BlackStar");
-    if (blackStarVec.size() != 0)
-        module.blackStar(true);
+    //std::vector<SExpr*> blackStarVec = args[0]->tree().recursiveFind("BlackStar");
+    //if (blackStarVec.size() != 0)
+    module.blackStar(true);
     
     // Run it!
     module.run();
@@ -497,7 +497,7 @@ int CameraCalibration_func() {
 
     // Repeat for each log
     for (int i = 0; i < args.size(); i++) {
-        printf("LOG (%d of %z)\n", i, args.size());
+        printf("LOG (%d of %d)\n", i, args.size());
         module.reset();
         
         Log* l = new Log(args[i]);
@@ -582,7 +582,7 @@ int CameraCalibration_func() {
 
         man::vision::FieldHomography* fh = module.getFieldHomography(top);
         man::vision::HoughLineList* lineList = module.getHoughLines(top);
-        man::vision::FieldLineList* fieldLineList = module.getFieldLines(topCamera);
+        man::vision::FieldLineList* fieldLineList = module.getFieldLines(top);
         printf("LOG has %d hough lines, %d field lines\n",
                lineList->size(), fieldLineList->size());
 
@@ -607,7 +607,7 @@ int CameraCalibration_func() {
 
     printf("Failed calibration %d times\n", failures);
 
-    printf("Success calibrating %z times\n", args.size() - failures);
+    printf("Success calibrating %d times\n", args.size() - failures);
 
     totalR /= (args.size() - failures);
     totalT /= (args.size() - failures);
