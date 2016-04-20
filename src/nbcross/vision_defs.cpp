@@ -487,7 +487,7 @@ int Vision_func() {
 int CameraCalibration_func() {
     printf("CameraCalibrate_func()\n");
 
-    bumpLineFitThreshold();
+    bumpLineFitThreshold((double) 0.70);
 
     int failures = 0;
     double totalR = 0;
