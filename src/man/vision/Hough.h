@@ -32,6 +32,9 @@ namespace vision {
 // used as a weight in a weighted linear regression that is used to update the line's
 // parameters (R,T). Adjustment can be run multiple times with different parameters.
 // Best practice is to run twice, with tighter parameters for the second tme.
+
+extern double START_LINE_FIT_THRESHOLD;
+
 struct AdjustParams
 {
   FuzzyThr angleThr;            // radians
@@ -42,7 +45,7 @@ struct AdjustParams
   float lineEndWeight;
 
   // Discard if this is >= 0 and RMS fit error above this
-  double fitThresold;
+  double fitThreshold;
 
   // Discard if adjusted score < this threshold
   double scoreThreshold;

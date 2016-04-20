@@ -17,9 +17,6 @@
 
 #include "DebugConfig.h"
 
-//#define GAMECONTROLLER_DATA_PORT       3838
-//#define GAMECONTROLLER_RETURN_PORT     3939
-
 namespace man {
 
 namespace comm {
@@ -42,9 +39,9 @@ void GameConnect::setUpSocket()
     _socket->setBlocking(false);
     _socket->setBroadcast(false);
 
-    _socket->bind("", GAMECONTROLLER_DATA_PORT); // Listen on the GC port.
+    _socket->bind("", GAMECONTROLLER_PORT); // Listen on the GC port.
 
-    _socket->setTarget("255.255.255.255", GAMECONTROLLER_DATA_PORT);
+    _socket->setTarget("255.255.255.255", GAMECONTROLLER_PORT);
 }
 
 void GameConnect::handle(portals::OutPortal<messages::GameState>& out,
@@ -96,7 +93,7 @@ void GameConnect::handle(portals::OutPortal<messages::GameState>& out,
 
         inet_ntop(AF_INET, &((struct sockaddr_in*)&from)->sin_addr,
                   &destination[0], INET_ADDRSTRLEN);
-        _socket->setTarget(&destination[0], GAMECONTROLLER_RETURN_PORT);
+        _socket->setTarget(&destination[0], GAMECONTROLLER_PORT);
         _socket->setBroadcast(false);
 
         in.latch();

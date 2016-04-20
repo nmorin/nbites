@@ -260,7 +260,16 @@ void VisionModule::run_()
 
         // Run edge detection
         PROF_ENTER2(P_EDGE_TOP, P_EDGE_BOT, i==0)
+#ifdef OFFLINE
+        if (blackStar) {
+            ImageLiteU8 nullImage{};
+            edgeDetector[i]->edgeDetect(nullImage, *(edges[i]));
+        } else {
+            edgeDetector[i]->edgeDetect(greenImage, *(edges[i]));
+        }
+#else
         edgeDetector[i]->edgeDetect(greenImage, *(edges[i]));
+#endif
         PROF_EXIT2(P_EDGE_TOP, P_EDGE_BOT, i==0)
         times[i][4] = timer.end();
 
