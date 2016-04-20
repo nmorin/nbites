@@ -2,6 +2,7 @@ package nbtool.gui.logviews.images;
 
 import java.awt.Graphics;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseListener;
@@ -111,30 +112,38 @@ public class Calibration3View extends ViewParent implements IOFirstResponder {
     }
     
     public void paintComponent(Graphics g) {
+    	Font f = g.getFont();
+    	Font calFont = f.deriveFont( (float) f.getSize() * 1.5f);
+    	g.setFont(calFont);
     	
     	if (calibrationSuccess) {
     		g.setColor(Color.GREEN);
     		g.drawString("calibrationSuccess", originalImage.getWidth(), 10);
+    	} else {
+    		g.setColor(Color.RED);
+    		g.drawString("calibrationFailure", originalImage.getWidth(), 10);
     	}
+    	
+    	g.setFont(f);
     	
         if (edgeImage != null) { 
             g.drawImage(originalImage, 0, 0, displayw, displayh, null);
             g.drawImage(edgeImage, 0, displayh + buffer, displayw, displayh, null);
 
-            g.setColor(new Color(90, 130, 90));
-            g.fillRect(displayw + buffer, 0, fieldw, fieldh);
-
-            int[] xPoints1 = {0 + fx0, 0 + fx0, fieldw/2 + fx0};
-            int[] yPoints1 = {2, fieldh, fieldh};
-            int[] xPoints2 = {fieldw + fx0, fieldw/2 + fx0, fieldw + fx0};
-            int[] yPoints2 = {2, fieldh, fieldh};
-            int n = 3;
-            g.setColor(new Color(46, 99, 28));
-            g.fillPolygon(xPoints1, yPoints1, n);
-            g.fillPolygon(xPoints2, yPoints2, n);
-
-            g.setColor(Color.lightGray);
-            g.fillOval(fxc - 30, fyc - 20, 60, 40);
+//            g.setColor(new Color(90, 130, 90));
+//            g.fillRect(displayw + buffer, 0, fieldw, fieldh);
+//
+//            int[] xPoints1 = {0 + fx0, 0 + fx0, fieldw/2 + fx0};
+//            int[] yPoints1 = {2, fieldh, fieldh};
+//            int[] xPoints2 = {fieldw + fx0, fieldw/2 + fx0, fieldw + fx0};
+//            int[] yPoints2 = {2, fieldh, fieldh};
+//            int n = 3;
+//            g.setColor(new Color(46, 99, 28));
+//            g.fillPolygon(xPoints1, yPoints1, n);
+//            g.fillPolygon(xPoints2, yPoints2, n);
+//
+//            g.setColor(Color.lightGray);
+//            g.fillOval(fxc - 30, fyc - 20, 60, 40);
 
             // Get hough line data from buffer
             for (int i = 0; i < lines.size(); i += 10) {
