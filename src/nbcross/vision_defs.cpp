@@ -712,6 +712,9 @@ int calibration3_func() {
     // Run it!
     module.run();
 
+    man::vision::FieldHomography* fh = module.getFieldHomography(topCamera);
+    bool success = fh->calibrateFromStar(*module.getFieldLines(topCamera));
+
     // -----------
     //   Y IMAGE
     // -----------
@@ -842,7 +845,7 @@ int calibration3_func() {
     Log* lineRet = new Log();
     std::string lineBuf;
 
-    bool debugLines = true;
+    bool debugLines = false;
     if (debugLines)
     std::cout << std::endl << "Hough lines in image coordinates:" << std::endl;
 
@@ -935,79 +938,7 @@ int calibration3_func() {
     lineRet->setData(lineBuf);
     rets.push_back(lineRet);
 
-    //-----------
-    //  BALL
-    //-----------
-    man::vision::BallDetector* detector = module.getBallDetector(topCamera);
-
-    Log* ballRet = new Log();
-    std::vector<man::vision::Ball> balls = detector->getBalls();
-    std::list<man::vision::Blob> blobs = detector->getBlobber()->blobs;
-
-    SExpr allBalls;
-    int count = 0;
-    for (auto i=balls.begin(); i!=balls.end(); i++) {
-        SExpr ballTree = treeFromBall(*i);
-        SExpr next = SExpr::keyValue("ball" + std::to_string(count), ballTree);
-        allBalls.append(next);
-        count++;
-    }
-    count = 0;
-    for (auto i=blobs.begin(); i!=blobs.end(); i++) {
-        SExpr blobTree = treeFromBlob(*i);
-        SExpr next = SExpr::keyValue("blob" + std::to_string(count), blobTree);
-        allBalls.append(next);
-        count++;
-    }
-
-    ballRet->setTree(allBalls);
-    rets.push_back(ballRet);
-
-    //---------------
-    // Center Circle
-    //---------------
-
-    man::vision::CenterCircleDetector* ccd = module.getCCD(topCamera);
-    Log* ccdRet = new Log();
-    std::string pointsBuf;
-
-    std::vector<std::pair<double, double>> points = ccd->getPotentials();
-    for (std::pair<double, double> p : points) {
-        endswap<double>(&(p.first));
-        endswap<double>(&(p.second));
-        pointsBuf.append((const char*) &(p.first), sizeof(double));
-        pointsBuf.append((const char*) &(p.second), sizeof(double));
-    }
-
-    // Add 0,0 point if cc if off so tool doesn't display a rejected one
-    std::pair<double, double> zero(0.0, 0.0);
-    if (!ccd->on()) {
-        pointsBuf.append((const char*) &(zero.first), sizeof(double));
-        pointsBuf.append((const char*) &(zero.second), sizeof(double));
-    }
-
-    ccdRet->setData(pointsBuf);
-    rets.push_back(ccdRet);
-
-    std::cout << "Debug image" << std::endl;
-    //-------------------
-    //  DEBUG IMAGE
-    //-------------------
-    Log* debugImage = new Log();
-    int debugImageLength = (width / 2) * (height / 2);
-
-    // Create temp buffer and fill with debug image
-    uint8_t debBuf[debugImageLength];
-    memcpy(debBuf, module.getDebugImage(topCamera)->pixArray(), debugImageLength);
-    
-    // Convert to string and set log
-    std::string debBuffer((const char*)debBuf, debugImageLength);
-    debugImage->setData(debBuffer);
-    
-    rets.push_back(debugImage);
-    
-    return 0;
-
+    return (success) ? 7 : 0;
 }
 
 

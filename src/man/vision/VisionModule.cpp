@@ -231,7 +231,6 @@ void VisionModule::run_()
 
         times[i][1] = timer.end();
 
-
         // Approximate brightness gradient
         PROF_ENTER2(P_GRAD_TOP, P_GRAD_BOT, i==0)
         edgeDetector[i]->gradient(yImage);
