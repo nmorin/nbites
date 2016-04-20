@@ -260,7 +260,8 @@ void VisionModule::run_()
         // Run edge detection
         PROF_ENTER2(P_EDGE_TOP, P_EDGE_BOT, i==0)
 #ifdef OFFLINE
-        if (blackStar) {
+        if (blackStar_) {
+	    printf("\nUSING NULL IMAGE FOR EDGE DETECTION THROWOUTS\n\n");
             ImageLiteU8 nullImage{};
             edgeDetector[i]->edgeDetect(nullImage, *(edges[i]));
         } else {
