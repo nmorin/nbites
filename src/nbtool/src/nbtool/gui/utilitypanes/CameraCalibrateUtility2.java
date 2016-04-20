@@ -178,6 +178,8 @@ public class CameraCalibrateUtility2 extends UtilityParent {
 					}
 				}
 				
+				sessionSizeLabel.setText("total logs " + accepted.size());
+				
 				// Fetch name of robot
                 SExpr name = accepted.get(0).tree().find("from_address");
                 if (!name.exists()) {
