@@ -112,6 +112,8 @@ public class Calibration3View extends ViewParent implements IOFirstResponder {
 	}
 
 	public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+
 		Font f = g.getFont();
 		Font calFont = f.deriveFont( (float) f.getSize() * 1.5f);
 		g.setFont(calFont);
