@@ -15,11 +15,13 @@ namespace vision {
 
 	ColorLearner::~ColorLearner() { }
 
-	Colors* ColorLearner::run(FieldLineList* fieldLines, bool topCamera, 
-		Colors* colors, ImageLiteU8 uImage, ImageLiteU8 vImage)
+	HRColors* ColorLearner::run(FieldLineList* fieldLines, bool topCamera, 
+		HRColors* colors, ImageLiteU8 uImage, ImageLiteU8 vImage)
 	{
 
 		std::cout << "[COLORLEARNER DEBUG] Entering ColorLearner.run()\n";
+		if (topCamera) { std::cout << "[COLORLEARNER DEBUG] TOPCAMERA\n"; }
+		else { std::cout << "[COLORLEARNER DEBUG] BOTTOMCAMERA\n"; }
 		// prep
 		int lineCenterY = uImage.height() / 2;
 		int lineCenterX = uImage.width() / 2;
@@ -68,22 +70,65 @@ namespace vision {
 		}
 
 		// Create statistics
-		Statistics *uStat = new Statistics(uLineVals);
-		Statistics *vStat = new Statistics(vLineVals);
+		StatsColor *uStat = new StatsColor(uLineVals);
+		StatsColor *vStat = new StatsColor(vLineVals);
 		double uAvg = uStat->getAvg();
-		double vAvg = uStat->getAvg();
+		double vAvg = vStat->getAvg();
+		int uMin = uStat->getMin();
+		int uMax = uStat->getMax();
+		int vMin = vStat->getMin();
+		int vMax = vStat->getMax();
 
-		
+		std::cout << "[COLORLEARNER DEBUG] uStats for WHITE: \n";
+		uStat->print();
+		std::cout << "[COLORLEARNER DEBUG] vStats for WHITE: \n";
+		vStat->print();
+
+		std::cout << "[COLORLEARNER DEBUG] uAvg UVSCALE for WHITE: " << mapToUVScale(uAvg) << "\n";
+		std::cout << "[COLORLEARNER DEBUG] vAvg UVSCALE for WHITE: " << mapToUVScale(vAvg) << "\n";
+
+		std::cout << "[COLORLEARNER DEBUG] uMin UVSCALE for WHITE: " << mapToUVScale(uMin) << "\n";
+		std::cout << "[COLORLEARNER DEBUG] uMax UVSCALE for WHITE: " << mapToUVScale(uMax) << "\n\n";
+		std::cout << "[COLORLEARNER DEBUG] vMin UVSCALE for WHITE: " << mapToUVScale(vMin) << "\n";
+		std::cout << "[COLORLEARNER DEBUG] vMax UVSCALE for WHITE: " << mapToUVScale(vMax) << "\n";
+
+
+		std::cout << "_________________________________\n";
+
+		std::cout << "[COLORLEARNER DEBUG] Original params: \n";
+		colors->print();
+		std::cout << "_________________________________\n";
+		std::cout << "FOR STAT GATHERING: \n";
+
 
 		// Adjust color parameters of visionModule
 
-		Colors* ret = colors; 
+		HRColors* ret = colors; //new man::vision::HRColors; //new man::vision::Colors;
+		// ret->setWhite(0.3, 0.3, 0.3, 0.3, 0.3, 0.3);
+		// ret->setOrange(0.3, 0.3, 0.3, 0.3, 0.3, 0.3);
+		// ret->setGreen(0.3, 0.3, 0.3, 0.3, 0.3, 0.3);
+		// TODO adjust for top and bottom camera
+		// ret->white.load(float darkU0, float darkV0, float lightU0, 
+		// 	float lightV0, float fuzzyU, float fuzzyV);
+		// ret->green.load(float darkU0, float darkV0, float lightU0, 
+		// 	float lightV0, float fuzzyU, float fuzzyV);
+		// ret->orange.load(float darkU0, float darkV0, float lightU0, 
+		// 	float lightV0, float fuzzyU, float fuzzyV);
 
+		std::cout << "[COLORLEARNER DEBUG] Exiting ColorLearner.run()\n";
 
-
+		std::cout << "**************************************\n";
 
 		return ret;
 	}
+
+	// Maps from a 0-255 value to a -0.5-0.5 value
+	float ColorLearner::mapToUVScale(int uv) {
+		float ret = ((float)uv) / 255;
+		return ret - 0.5;
+	}
+
+
 
 // 	bool BallDetector::findBall(ImageLiteU8 orange, double cameraHeight)
 // 	{

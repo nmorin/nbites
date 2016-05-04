@@ -13,7 +13,7 @@
 #include "FrontEnd.h"
 #include "Vision.h"
 #include "Hough.h"
-#include "Statistics.h"
+#include "StatsColor.h"
 
 
 namespace man {
@@ -23,8 +23,9 @@ namespace man {
 		public:
 			ColorLearner();
 			~ColorLearner();
-			Colors* run(FieldLineList* fieldLines, bool topCamera, Colors* colors, 
+			HRColors* run(FieldLineList* fieldLines, bool topCamera, HRColors* colors, 
 				ImageLiteU8 uImage, ImageLiteU8 vImage);
+			float mapToUVScale(int uv);
 
 // #ifdef OFFLINE
 // #endif

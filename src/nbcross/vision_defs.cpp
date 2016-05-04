@@ -8,7 +8,7 @@
 #include "ParamReader.h"
 #include "NBMath.h"
 #include "vision/Vision.h"
-#include "Statistics.h"
+#include "vision/StatsColor.h"
 
 #include <cstdlib>
 #include <netinet/in.h>
@@ -876,23 +876,27 @@ float calcWeightedGreenUVal(int u, int standard_u_green_val) {
     return ((float)1 / (error*error + 1));
 }
 
+
 std::string compressIntMapToString(std::map<int, int> &values, int min = -1, std::string fileName = "") {
     std::string val_buffer;
     std::map<int, int>::iterator it;
     std::ofstream output;
-    Statistics *newStat;
     int val, count;
+    bool savingFile = false;
 
-    if (!fileName.empty()) {
+    if (!fileName.empty() && fileName.length() > 10) {
+        savingFile = true;
+    }
+
+    if (savingFile) {
         output.open(fileName);
-        newStat = new Statistics(values);
     }
 
     for ( it = values.begin(); it != values.end(); it++ ) {
         val = it->first;
         count = it->second;
 
-        if (!fileName.empty()) {
+        if (savingFile) {
             output << val << "," << count << std::endl;
         }
 
@@ -904,13 +908,13 @@ std::string compressIntMapToString(std::map<int, int> &values, int min = -1, std
         
     }
 
-    if (!fileName.empty()) {
+    if (savingFile) {
         output.close();
     }
     return val_buffer;
 }
 
-void saveStatsToFile(Statistics* stats, std::string fileName, std::string title = "") {
+void saveStatsToFile(StatsColor* stats, std::string fileName, std::string title = "") {
     std::ofstream output;
     output.open(fileName, std::ios::out | std::ios::app );
 
@@ -1040,8 +1044,15 @@ int ColorLearnTest_func() {
     }
     module.jointsIn.setMessage(jointsMessage);
 
+    std::cout << "\n\n\n\n[VDEF] RUN MODULE FIRST TIME\n\n\n\n";
     // run module
     module.run();
+    std::cout << "\n\n\n\n[VDEF] RUN MODULE SECOND TIME\n\n\n\n";
+    // Print out original color params
+    module.run();
+
+    // Print out new ones
+
 
     // get field line list
     man::vision::ImageFrontEnd* frontEnd = module.getFrontEnd(topCamera);
@@ -1050,7 +1061,6 @@ int ColorLearnTest_func() {
     // ---------------
     //   U IMAGE
     // ---------------
-    std::cout << "[UV IMAGE TEST] Beg of get u image\n";
 
     Log* uRet = new Log();
     int uLength = (width / 4) * (height / 2);
@@ -1065,12 +1075,10 @@ int ColorLearnTest_func() {
 
     rets.push_back(uRet);
 
-    std::cout << "[UV IMAGE TEST] End of get u image\n";
 
     // ---------------
     //   V IMAGE
     // ---------------
-    std::cout << "[UV IMAGE TEST] Beg of v image\n";
 
     Log* vRet = new Log();
     int vLength = (width / 4) * (height / 2);
@@ -1085,7 +1093,6 @@ int ColorLearnTest_func() {
 
     rets.push_back(vRet);
 
-    std::cout << "[UV IMAGE TEST] End of get u image\n";
 
     // -----------
     //   Y IMAGE
@@ -1138,8 +1145,8 @@ int ColorLearnTest_func() {
 
     // Get field line list
     man::vision::FieldLineList* fieldLineList = module.getFieldLines(topCamera);
-    std::cout << "Found field line list\n";
-    std::cout << "Size of fieldLineList: " << (*fieldLineList).size() << std::endl;
+    // std::cout << "Found field line list\n";
+    // std::cout << "Size of fieldLineList: " << (*fieldLineList).size() << std::endl;
 
     // iterate over every pixel in image
     // perform check: if pixel exists
@@ -1229,26 +1236,93 @@ int ColorLearnTest_func() {
                     
                     // make pixel darker just for debug viewing
                     *(uImageLite.pixelAddr(x,y)) = (uint8_t)(0);
+                    // std::cout << "UImaGE LITE x = " << x << " Y EQUALS " << y << "\n";
 
                 } 
             }
         }
     }
 
-    // get y min cut off value 
+
+
+
+
+    // USE GREEN ---------------------------
+
+// USE GREEN
+    bool useGreen = false;
+    std::string pixString = "";
+    std::vector<SExpr*> useGreenVec = args[0]->tree().recursiveFind("useGreen");
+    if (useGreenVec.size() != 0) {
+        SExpr* s = useGreenVec.at(useGreenVec.size()-1);
+        pixString += s->get(1)->value();
+        // std::cout << "[FIELDCOLORDEBUG] PIX STRING = " << pixString << "\n";
+        useGreen = true;
+    } else {
+        std::cout << "[FIELDCOLORDEBUG] did not find USEGREEN\n";
+    }
+
+
+    std::map<int, int> u_green_vals, v_green_vals, y_green_vals;
+    // GET GREEN VALS
+    int beginNumIndex = 0;
+    int xVal, yVal;
+    for (int i = 0; i < pixString.length(); i++) {
+        if (pixString[i] == ':') {
+            xVal = std::stoi(pixString.substr(beginNumIndex, i));
+            beginNumIndex = i+1;
+        } else if (pixString[i] == ' ') {
+            yVal = std::stoi(pixString.substr(beginNumIndex, i));
+            beginNumIndex = i+1;
+
+            // std::cout << "FOUND PIX AT: x=" << xVal << " y= " << yVal << "\n";
+            
+
+            int u_val = *uImageLite.pixelAddr(xVal,yVal);
+            int v_val = *vImageLite.pixelAddr(xVal,yVal);
+            int y_val = *yImageLite.pixelAddr(xVal,yVal);
+            if (u_green_vals.count(u_val))
+                    u_green_vals[u_val]++;
+            else
+                u_green_vals.insert(std::pair<int, int>(u_val, 1));
+
+            if (v_green_vals.count(v_val))
+                v_green_vals[v_val]++;
+            else
+                v_green_vals.insert(std::pair<int, int>(v_val, 1));
+
+            if (y_green_vals.count(y_val))
+                y_green_vals[y_val]++;
+            else
+                y_green_vals.insert(std::pair<int, int>(y_val, 1));
+
+            *(uImageLite.pixelAddr(xVal,yVal)) = (uint8_t)(215);
+
+            
+        }
+    }
+
+
+
+
+
+
+    // Save csv file 
     bool saveFile = false;
     std::string saveFileName = "";
     std::vector<SExpr*> saveFileNameVec = args[0]->tree().recursiveFind("saveFileName");
     if (saveFileNameVec.size() != 0) {
+
         SExpr* s = saveFileNameVec.at(saveFileNameVec.size()-1);
-        saveFileName = "/home/nicolemorin/Desktop/test_data/new_with_params/";
+        saveFileName = "/home/nicolemorin/Desktop/test_data/with_green/";
         saveFileName += s->get(1)->value();
+
         // saveFileName += ".csv";
-        std::cout << "[FIELDCOLORDEBUG] SAVE FILE NAME = ";
+        // std::cout << "[FIELDCOLORDEBUG] SAVE FILE NAME = ";
         std::cout << saveFileName << "\n";
         saveFile = true;
     } else {
-        std::cout << "[FIELDCOLORDEBUG] did not find SaveFILENAME\n";
+        // std::cout << "[FIELDCOLORDEBUG] did not find SaveFILENAME\n";
     }
 
     // ------------------------
@@ -1258,9 +1332,9 @@ int ColorLearnTest_func() {
     rets.push_back(linePixRet);
 
     // Generate statistics
-    Statistics *yStat = new Statistics(y_line_vals);
-    Statistics *uStat = new Statistics(u_line_vals);
-    Statistics *vStat = new Statistics(v_line_vals);
+    StatsColor *yStat = new StatsColor(y_line_vals);
+    StatsColor *uStat = new StatsColor(u_line_vals);
+    StatsColor *vStat = new StatsColor(v_line_vals);
 
     std::string colorPath, colorString;
     // Color params
@@ -1300,11 +1374,162 @@ int ColorLearnTest_func() {
 
     std::string allSaveFileName = saveFileName + "_STATS AND PARAMS TOGETHER.csv";
     if (saveFile) {
-        saveStatsToFile(yStat, allSaveFileName, "Y STATS");
-        saveStatsToFile(uStat, allSaveFileName, "U STATS");
-        saveStatsToFile(vStat, allSaveFileName, "V STATS");
+        saveStatsToFile(yStat, allSaveFileName, "WHITE Y STATS");
+        saveStatsToFile(uStat, allSaveFileName, "WHITE U STATS");
+        saveStatsToFile(vStat, allSaveFileName, "WHITE V STATS");
         saveCameraParamsToFile(allSaveFileName, topCamera, colorString);
     }
+
+//     // USE GREEN ---------------------------
+
+// // USE GREEN
+//     bool useGreen = false;
+//     std::string pixString = "";
+//     std::vector<SExpr*> useGreenVec = args[0]->tree().recursiveFind("useGreen");
+//     if (useGreenVec.size() != 0) {
+//         SExpr* s = useGreenVec.at(useGreenVec.size()-1);
+//         pixString += s->get(1)->value();
+//         // std::cout << "[FIELDCOLORDEBUG] PIX STRING = " << pixString << "\n";
+//         useGreen = true;
+//     } else {
+//         std::cout << "[FIELDCOLORDEBUG] did not find USEGREEN\n";
+//     }
+
+
+//     std::map<int, int> u_green_vals, v_green_vals, y_green_vals;
+//     // GET GREEN VALS
+//     int beginNumIndex = 0;
+//     int xVal, yVal;
+//     for (int i = 0; i < pixString.length(); i++) {
+//         if (pixString[i] == ':') {
+//             xVal = std::stoi(pixString.substr(beginNumIndex, i));
+//             beginNumIndex = i+1;
+//         } else if (pixString[i] == ' ') {
+//             yVal = std::stoi(pixString.substr(beginNumIndex, i));
+//             beginNumIndex = i+1;
+
+//             std::cout << "FOUND PIX AT: x=" << xVal << " y= " << yVal << "\n";
+
+//             int u_val = *uImageLite.pixelAddr(xVal,yVal);
+//             int v_val = *vImageLite.pixelAddr(xVal,yVal);
+//             int y_val = *yImageLite.pixelAddr(xVal,yVal);
+//             if (u_green_vals.count(u_val))
+//                     u_green_vals[u_val]++;
+//                 else
+//                     u_green_vals.insert(std::pair<int, int>(u_val, 1));
+
+//                 if (v_green_vals.count(v_val))
+//                     v_green_vals[v_val]++;
+//                 else
+//                     v_green_vals.insert(std::pair<int, int>(v_val, 1));
+
+//                 if (y_green_vals.count(y_val))
+//                     y_green_vals[y_val]++;
+//                 else
+//                     y_green_vals.insert(std::pair<int, int>(y_val, 1));
+
+
+//             *(uImageLite.pixelAddr(xVal,yVal)) = (uint8_t)(0);
+//         }
+//     }
+
+
+// ------------------------
+
+    // Generate statistics
+    StatsColor *greenYStat = new StatsColor(y_green_vals);
+    StatsColor *greenUStat = new StatsColor(u_green_vals);
+    StatsColor *greenVStat = new StatsColor(v_green_vals);
+
+    // Return GREEN u histogram vals
+    // Log* u_line_ret = new Log();
+    std::string greenUSaveFileName = saveFileName + "GREEN_u.csv";
+    // u_line_ret->setData(compressIntMapToString(u_line_vals, -1, uSaveFileName));
+    compressIntMapToString(u_green_vals, -1, greenUSaveFileName);
+    if (saveFile)
+        saveStatsToFile(greenUStat, greenUSaveFileName);
+    // rets.push_back(u_line_ret);
+
+    std::string greenVSaveFileName = saveFileName + "GREEN_v.csv";
+    compressIntMapToString(v_green_vals, -1, greenVSaveFileName);
+    if (saveFile)
+        saveStatsToFile(greenVStat, greenVSaveFileName);
+
+    std::string greenYSaveFileName = saveFileName + "GREEN_y.csv";
+    compressIntMapToString(y_green_vals, -1, greenYSaveFileName);
+    if (saveFile)
+        saveStatsToFile(greenYStat, greenYSaveFileName);
+
+    std::string allSaveFileNameGreen = saveFileName + "_STATS_AND_PARAMS_TOGETHER_GREEN.csv";
+    if (saveFile) {
+        saveStatsToFile(greenYStat, allSaveFileNameGreen, "GREEN Y STATS");
+        saveStatsToFile(greenUStat, allSaveFileNameGreen, "GREEN U STATS");
+        saveStatsToFile(greenVStat, allSaveFileNameGreen, "GREEN V STATS");
+        saveCameraParamsToFile(allSaveFileNameGreen, topCamera, colorString);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // ---------------
+    //   U IMAGE
+    // ---------------
+
+    // Log* uRet = new Log();
+    // int uLength = (width / 4) * (height / 2);
+
+    // // Create temp buffer and fill with white image 
+    // uint8_t uBuf[uLength];
+    // memcpy(uBuf, frontEnd->uImage().pixelAddr(), uLength);
+
+    // // Convert to string and set log
+    // std::string uBuffer((const char*)uBuf, uLength);
+    // uRet->setData(uBuffer);
+
+    // rets.push_back(uRet);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     return 0;
 }

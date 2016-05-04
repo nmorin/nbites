@@ -51,6 +51,7 @@ VisionModule::VisionModule(int wd, int ht, std::string robotName)
     //      removed in C++11.
     for (int i = 0; i < 2; i++) {
         colorParams[i] = getColorsFromLisp(colors, i);
+        hrColors[i] = getHRColorsFromLisp(colors, i);
         frontEnd[i] = new ImageFrontEnd();
         edgeDetector[i] = new EdgeDetector();
         edges[i] = new EdgeList(32000);
@@ -118,6 +119,7 @@ VisionModule::~VisionModule()
 {
     for (int i = 0; i < 2; i++) {
         delete colorParams[i];
+        delete hrColors[i];
         delete frontEnd[i];
         delete edgeDetector[i];
         delete edges[i];
@@ -291,8 +293,9 @@ void VisionModule::run_()
         times[i][11] = timer.end();
 
         // TODO Do profiling later
-        Colors* colorLearnRet = colorLearner[i]->run(fieldLines[i], i==0, colorParams[i], uImage, vImage);
-        setColorParams(colorLearnRet, i == 0);
+        hrColors[i] = colorLearner[i]->run(fieldLines[i], i==0, hrColors[i], uImage, vImage);
+        Colors* learnedParams = getColorsFromHRColors(hrColors[i]);
+        setColorParams(learnedParams, i == 0);
 
         PROF_EXIT2(P_VISION_TOP, P_VISION_BOT, i==0)
 #ifdef USE_LOGGING
@@ -525,6 +528,15 @@ Colors* VisionModule::getColorParams(bool topCamera) {
     return colorParams[!topCamera];
 }
 
+HRColors* VisionModule::getHRColors(bool topCamera) {
+    return hrColors[!topCamera];
+}
+
+void VisionModule::setHRColors(HRColors* colors, bool topCamera) {
+    delete hrColors[!topCamera];
+    hrColors[!topCamera] = colors;
+}
+
 const std::string VisionModule::getStringFromTxtFile(std::string path) 
 {
     std::ifstream textFile;
@@ -602,6 +614,77 @@ Colors* VisionModule::getColorsFromLisp(nblog::SExpr* colors, int camera)
     colors = params->get(2)->get(1);
 
     ret->orange.load(std::stof(colors->get(0)->get(1)->serialize()),
+                     std::stof(colors->get(1)->get(1)->serialize()),
+                     std::stof(colors->get(2)->get(1)->serialize()),
+                     std::stof(colors->get(3)->get(1)->serialize()),
+                     std::stof(colors->get(4)->get(1)->serialize()),
+                     std::stof(colors->get(5)->get(1)->serialize()));
+
+    return ret;
+}
+
+Colors* VisionModule::getColorsFromHRColors(HRColors* colors) {
+    Colors* ret = new man::vision::Colors;
+
+    ret->white. load(colors->white[0],
+                     colors->white[1],
+                     colors->white[2],
+                     colors->white[3],
+                     colors->white[4],
+                     colors->white[5]);
+
+    ret->green. load(colors->green[0],
+                     colors->green[1],
+                     colors->green[2],
+                     colors->green[3],
+                     colors->green[4],
+                     colors->green[5]);
+
+    ret->orange. load(colors->orange[0],
+                     colors->orange[1],
+                     colors->orange[2],
+                     colors->orange[3],
+                     colors->orange[4],
+                     colors->orange[5]);
+
+    return ret;
+
+}
+
+HRColors* VisionModule::getHRColorsFromLisp(nblog::SExpr* colors, int camera) 
+{
+    HRColors* ret = new man::vision::HRColors;
+    nblog::SExpr* params;
+
+    if (camera == 0) {
+        params = colors->get(1)->find("Top")->get(1);
+    } else if (camera == 1) {
+        params = colors->get(1)->find("Bottom")->get(1);
+    } else {
+        params = colors->get(1);
+    }
+
+    colors = params->get(0)->get(1);
+
+    ret->setWhite(std::stof(colors->get(0)->get(1)->serialize()),
+                     std::stof(colors->get(1)->get(1)->serialize()),
+                     std::stof(colors->get(2)->get(1)->serialize()),
+                     std::stof(colors->get(3)->get(1)->serialize()),
+                     std::stof(colors->get(4)->get(1)->serialize()),
+                     std::stof(colors->get(5)->get(1)->serialize()));
+
+    colors = params->get(1)->get(1);
+
+    ret->setGreen(std::stof(colors->get(0)->get(1)->serialize()),
+                     std::stof(colors->get(1)->get(1)->serialize()),
+                     std::stof(colors->get(2)->get(1)->serialize()),
+                     std::stof(colors->get(3)->get(1)->serialize()),
+                     std::stof(colors->get(4)->get(1)->serialize()),
+                     std::stof(colors->get(5)->get(1)->serialize()));
+
+    colors = params->get(2)->get(1);
+
+    ret->setOrange(std::stof(colors->get(0)->get(1)->serialize()),
                      std::stof(colors->get(1)->get(1)->serialize()),
                      std::stof(colors->get(2)->get(1)->serialize()),
                      std::stof(colors->get(3)->get(1)->serialize()),

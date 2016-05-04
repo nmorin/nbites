@@ -48,7 +48,7 @@ import nbtool.io.CrossIO.CrossCall;
 import nbtool.io.CrossIO.CrossFunc;
 import nbtool.io.CrossIO.CrossInstance;
 
-public class ColorLearningView extends ViewParent implements MouseMotionListener, IOFirstResponder {
+public class ColorLearningView extends ViewParent implements MouseMotionListener, MouseListener, IOFirstResponder {
 	// output images and original image
 	BufferedImage u_img;
 	BufferedImage v_img;
@@ -64,6 +64,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	TreeMap<Integer, Integer> uv_all_vals;
 	TreeMap<Integer, Integer> v_line_vals;
 	TreeMap<Integer, Integer> y_line_vals;
+	ArrayList<Point> greenPixels;
 
     private JSlider fieldUThreshSlider;
     private JSlider fieldUWeightedThreshSlider;
@@ -76,6 +77,7 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
     private JCheckBox viewToggle;
     private JCheckBox viewToggle2;
     private JButton repaintButton;
+    // private JButton processGreenButton;
     private JPanel controlPanel;
 
 	// private String label = null;
@@ -349,15 +351,42 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		if (!saveFileNameTextField.getText().equals("") && !saveFileNameTextField.getText().equals("csv file name")) 
 			saveFileName = saveFileNameTextField.getText();
 
-		SExpr newFieldParams = SExpr.newList(
-			SExpr.newKeyValue("uThreshold", fieldUThreshSlider.getValue()),
-			SExpr.newKeyValue("uWeightedThreshold", fieldUWeightedThreshSlider.getValue()),
-			SExpr.newKeyValue("uUVThresh", uUVFieldThreshSlider.getValue()),
-			SExpr.newKeyValue("vUVThresh", vUVFieldThreshSlider.getValue()),
-			SExpr.newKeyValue("uFieldVal", uFieldVal),
-			SExpr.newKeyValue("saveFileName", saveFileName),
-			SExpr.newKeyValue("yMinVal", yMinVal)
+		String pixList = "";
+		if (!greenPixels.isEmpty()) {
+			Point pnt;
+			
+			for (int i = 0; i < greenPixels.size(); i++) {
+				pnt = greenPixels.get(i);
+				pixList += pnt.x + ":" + pnt.y + " ";
+			}
+		}
+		SExpr newFieldParams;
+		if (!saveFileName.equals("") && greenPixels.isEmpty()) {
+			newFieldParams = SExpr.newList(
+				SExpr.newKeyValue("saveFileName", saveFileName),
+				SExpr.newKeyValue("yMinVal", yMinVal)//,
+				// SExpr.newKeyValue("useGreen", pixList)
+			);
+		} else if (!greenPixels.isEmpty() && saveFileName.equals("")) {
+			newFieldParams = SExpr.newList(
+				// SExpr.newKeyValue("saveFileName", saveFileName),
+				SExpr.newKeyValue("yMinVal", yMinVal),
+				SExpr.newKeyValue("useGreen", pixList)
+			);
+		} else if (!greenPixels.isEmpty() && !saveFileName.equals("")) {
+			System.out.println("[COLOR DEBUG] BOTH WERE TRUE, saving and green pixels");
+			newFieldParams = SExpr.newList(
+				SExpr.newKeyValue("saveFileName", saveFileName),
+				SExpr.newKeyValue("useGreen", pixList)
+			);
+		}
+		else {
+			newFieldParams = SExpr.newList(
+			SExpr.newKeyValue("yMinVal", yMinVal)//,
+			// SExpr.newKeyValue("useGreen", pixList)
 		);
+		}
+		
 
 		SExpr oldFieldParams = this.log.tree().find("fieldParams");
 		if (oldFieldParams.exists()) {
@@ -373,6 +402,9 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		super();
 		setLayout(null);
 		this.addMouseMotionListener(this);
+		this.addMouseListener(this);
+
+		greenPixels = new ArrayList<>();
 
 		ChangeListener slide = new ChangeListener(){
 	        public void stateChanged(ChangeEvent e) {
@@ -444,6 +476,8 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 	    // uTextField.setBounds(10, 50, 60, 20);
 	    controlPanel.add(repaintButton);
 	    controlPanel.add(saveFileNameTextField);
+
+
 	}
 
 	@Override
@@ -535,9 +569,15 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		return false;
 	}
 
+
 	@Override
-	public void mouseDragged(MouseEvent e) {
-		int SELECT_SIZE = 10;
+	public void mousePressed(MouseEvent e) {
+
+		int SELECT_SIZE = 2;
+
+
+		int origX = e.getX()/ (original_image.getWidth()) / ORG_IMG_SCALE_FACTOR;
+		int origY = e.getY()/ (original_image.getHeight()) / ORG_IMG_SCALE_FACTOR;
 
 		int col = (e.getX()*original_image.getWidth() / (original_image.getWidth() / ORG_IMG_SCALE_FACTOR));
 		int row = e.getY()*original_image.getHeight() / (original_image.getHeight() / ORG_IMG_SCALE_FACTOR);
@@ -552,6 +592,56 @@ public class ColorLearningView extends ViewParent implements MouseMotionListener
 		for (int i = -SELECT_SIZE; i <= SELECT_SIZE; i++) {
 			for (int j = -SELECT_SIZE; j <= SELECT_SIZE; j++) {
 				original_image.setRGB(col + i, row + j, Color.red.getRGB());
+				
+				
+			}
+		}
+		Point pix = new Point(origX, origY);
+		if (!greenPixels.contains(pix)) {
+			greenPixels.add(pix);
+		}
+
+	}
+
+    public void mouseReleased(MouseEvent e) {
+    }
+
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    public void mouseExited(MouseEvent e) {
+    }
+
+    public void mouseClicked(MouseEvent e) {
+    }
+
+	@Override
+	public void mouseDragged(MouseEvent e) {
+
+		int SELECT_SIZE = 5;
+
+		int col = (e.getX()*original_image.getWidth() / (original_image.getWidth() / ORG_IMG_SCALE_FACTOR));
+		int row = e.getY()*original_image.getHeight() / (original_image.getHeight() / ORG_IMG_SCALE_FACTOR);
+
+		int origX = e.getX(); /// (original_image.getWidth()) / ORG_IMG_SCALE_FACTOR;
+		int origY = e.getY(); /// (original_image.getHeight()) / ORG_IMG_SCALE_FACTOR;
+
+		if ((col < 0 + SELECT_SIZE || row < 0 + SELECT_SIZE || 
+			col >= original_image.getWidth() - SELECT_SIZE || 
+			row >= original_image.getHeight() - SELECT_SIZE)) {
+			return;
+		}
+
+		int r = 250;
+		int color = r << 16;
+		for (int i = -SELECT_SIZE; i <= SELECT_SIZE; i++) {
+			for (int j = -SELECT_SIZE; j <= SELECT_SIZE; j++) {
+				original_image.setRGB(col + i, row + j, Color.red.getRGB());
+				// System.out.println("origX: " + origX + " origY: " + origY);
+				Point pix = new Point(origX+i, origY+j);
+				if (!greenPixels.contains(pix)) {
+					greenPixels.add(pix);
+				}
 			}
 		}
 		

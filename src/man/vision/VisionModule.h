@@ -61,8 +61,12 @@ public:
     // For use by vision_defs
     void setColorParams(Colors* colors, bool topCamera);
     Colors* getColorParams(bool topCamera);
+    void setHRColors(HRColors* colors, bool topCamera);
+    Colors* getColorsFromHRColors(HRColors* colors);
+    HRColors* getHRColors(bool topCamera);
     const std::string getStringFromTxtFile(std::string path);
     Colors* getColorsFromLisp(nblog::SExpr* colors, int camera);
+    HRColors* getHRColorsFromLisp(nblog::SExpr* colors, int camera);
     void setCalibrationParams(std::string robotName);
     void setCalibrationParams(int camera, std::string robotName);
     void setCalibrationParams(CalibrationParams* params, bool topCamera);
@@ -97,6 +101,7 @@ private:
     CenterCircleDetector* centerCircleDetector[2];
     BallDetector* ballDetector[2];
     ColorLearner* colorLearner[2];
+    HRColors* hrColors[2];
 
     bool blackStar_;
 

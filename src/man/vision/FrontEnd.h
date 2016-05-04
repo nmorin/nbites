@@ -125,6 +125,72 @@ struct ColorParams
   void load(float darkU0, float darkV0, float lightU0, float lightV0, float fuzzyU, float fuzzyV);
 };
 
+struct HRColors {
+  float white[6];
+  float green[6];
+  float orange[6];
+
+  HRColors() {}
+
+  void setWhite(float params[6]) {
+    for (int i = 0; i < 6; i++) {
+      white[i] = params[i];
+    }
+  }
+
+  void setGreen(float params[6]) {
+    for (int i = 0; i < 6; i++) {
+      green[i] = params[i];
+    }
+  }
+
+  void setOrange(float params[6]) {
+    for (int i = 0; i < 6; i++) {
+      orange[i] = params[i];
+    }
+  }
+
+  void setWhite(float darkU0, float darkV0, float lightU0, float lightV0, float fuzzyU, float fuzzyV) {
+    white[0] = darkU0;
+    white[1] = darkV0;
+    white[2] = lightU0;
+    white[3] = lightV0;
+    white[4] = fuzzyU;
+    white[5] = fuzzyV;
+  }
+
+  void setGreen(float darkU0, float darkV0, float lightU0, float lightV0, float fuzzyU, float fuzzyV) {
+    green[0] = darkU0;
+    green[1] = darkV0;
+    green[2] = lightU0;
+    green[3] = lightV0;
+    green[4] = fuzzyU;
+    green[5] = fuzzyV;
+  }
+
+  void setOrange(float darkU0, float darkV0, float lightU0, float lightV0, float fuzzyU, float fuzzyV) {
+    orange[0] = darkU0;
+    orange[1] = darkV0;
+    orange[2] = lightU0;
+    orange[3] = lightV0;
+    orange[4] = fuzzyU;
+    orange[5] = fuzzyV;
+  }
+
+  void print() {
+    std::cout << "WHITE: ";
+    for (int i = 0; i < 6; i++) {
+      std::cout << white[i] << " ";
+    }
+    std::cout << "\nGREEN: ";
+    for (int i = 0; i < 6; i++) {
+      std::cout << green[i] << " ";
+    }
+    std::cout << "\n";
+    
+  }
+};
+
 // A complete set of color parameters
 struct Colors
 {
