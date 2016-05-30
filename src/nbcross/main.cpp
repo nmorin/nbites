@@ -105,6 +105,7 @@ int main(int argc, const char * argv[]) {
     server.sin_port = htons(PORTNUM);
     
     struct hostent * host = gethostbyname("127.0.0.1");
+//    struct hostent * host = gethostbyname("10.211.55.2");
     bcopy(host->h_addr, &server.sin_addr.s_addr, host->h_length);
     
     nbcprintf("sock fd\t= %i\n", fd);
@@ -155,15 +156,16 @@ int main(int argc, const char * argv[]) {
         uint32_t findex;
         CHECK_RET(recv_exact(fd, 4, &findex, MAX_WAIT));
         findex = ntohl(findex);
+
+        uint32_t nargs;
+        CHECK_RET(recv_exact(fd, 4, &nargs, MAX_WAIT));
+        nargs = ntohl(nargs);
     
         assert(findex >= 0);
-        assert(findex < FUNCS.size());
-        
         assert(args.size() == 0);
         assert(rets.size() == 0);
         
-        int na = (int) FUNCS[findex].args.size();
-        
+        int na = nargs;
         for (int i = 0; i < na; ++i) {
             
             Log * recvd = Log::recv(fd, MAX_WAIT);
@@ -176,18 +178,17 @@ int main(int argc, const char * argv[]) {
                 return 1;
             }
             
-            std::string type = contents->get(1)->find(nblog::CONTENT_TYPE_S)->get(1)->value();
-            if (type != NBCROSS_WILDCARD_TYPE && FUNCS[findex].args[i] != NBCROSS_WILDCARD_TYPE) {
-                if (type != FUNCS[findex].args[i]) {
-                    printf("arg %i [%s] did NOT match type=%s!\n", i, type.c_str(), FUNCS[findex].args[i].c_str());
-                    return 1;
-                }
-            }
-            
+//            std::string type = contents->get(1)->find(nblog::CONTENT_TYPE_S)->get(1)->value();
+//            if (type != NBCROSS_WILDCARD_TYPE && FUNCS[findex].args[i] != NBCROSS_WILDCARD_TYPE) {
+//                if (type != FUNCS[findex].args[i]) {
+//                    printf("arg %i [%s] did NOT match type=%s!\n", i, type.c_str(), FUNCS[findex].args[i].c_str());
+//                    return 1;
+//                }
+//            }
+
             args.push_back(recvd);
         }
         
-        assert(args.size() == FUNCS[findex].args.size());
         nbcprintf("calling function [%s]", FUNCS[findex].name.c_str());
         nbcprintbreak();
         

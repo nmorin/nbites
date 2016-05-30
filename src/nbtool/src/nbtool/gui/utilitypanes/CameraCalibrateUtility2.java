@@ -154,9 +154,11 @@ public class CameraCalibrateUtility2 extends UtilityParent {
 				String cameraString = (String) cameraBox.getSelectedItem();
 				String searchText = String.format("(from camera_%s)", cameraString);
 				
-				for (Log log : using.logs_ALL) {
-					if (log.description().indexOf(searchText) >= 0) {
-						accepted.add(log);
+				for (Session s : SessionMaster.INST.sessions) {
+					for (Log l : s.logs_ALL) {
+						if (l != null && l.description().indexOf(searchText) >= 0) {
+							accepted.add(l);
+						}
 					}
 				}
 				
@@ -175,6 +177,8 @@ public class CameraCalibrateUtility2 extends UtilityParent {
 						}
 					}
 				}
+				
+				sessionSizeLabel.setText("total logs " + accepted.size());
 				
 				// Fetch name of robot
                 SExpr name = accepted.get(0).tree().find("from_address");
@@ -208,8 +212,7 @@ public class CameraCalibrateUtility2 extends UtilityParent {
                     	return;
                     }
                     
-                    Log[] seven = accepted.subList(0, 7).toArray(new Log[0]);
-                    CrossCall call = new CrossCall(this, func, seven);
+                    CrossCall call = new CrossCall(this, func, accepted.toArray(new Log[0]));
                     assert(ci.tryAddCall(call));
                 }
 				

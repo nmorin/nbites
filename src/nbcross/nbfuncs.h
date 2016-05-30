@@ -45,6 +45,7 @@ int CrossBright_func();
 #ifndef __APPLE__
 int Vision_func();
 int CameraCalibration_func();
+int calibration3_func();
 int Synthetics_func();
 int Scratch_func();
 #endif
@@ -58,10 +59,10 @@ const std::vector<CrossFunc> FUNCS = {
     
 #ifndef __APPLE__
     CrossFunc("Vision", Vision_func, {"YUVImage"}),
-    CrossFunc("CameraCalibration", CameraCalibration_func, {"YUVImage", "YUVImage", "YUVImage", 
-                                                "YUVImage", "YUVImage", "YUVImage", "YUVImage"}),
+    CrossFunc("CameraCalibration", CameraCalibration_func, {}),
     CrossFunc("Synthetics", Synthetics_func, {"SyntheticParams"}),
-    CrossFunc("Scratch", Scratch_func, {})
+    CrossFunc("Scratch", Scratch_func, {}),
+    CrossFunc("calibration3", calibration3_func, {"YUVImage"})
 #endif
 };
 

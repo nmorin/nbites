@@ -13,6 +13,7 @@ import nbtool.gui.logviews.images.LineView;
 import nbtool.gui.logviews.images.DebugImageView;
 import nbtool.gui.logviews.images.YUVExplore;
 import nbtool.gui.logviews.images.BasicLineView;
+import nbtool.gui.logviews.images.Calibration3View;
 import nbtool.gui.logviews.images.ImageView;
 import nbtool.gui.logviews.images.ZoomImageView;
 import nbtool.gui.logviews.images.BallView;
@@ -77,7 +78,8 @@ public class NBConstants {
 	private static Map<String, Class<? extends ViewParent>[]> setupPossible() {
 		Map<String, Class<? extends ViewParent>[]> map = new HashMap<String, Class<? extends ViewParent>[]>();
 		
-		map.put("YUVImage", new Class[]{ImageView.class, ZoomImageView.class, FrontEndView.class, LineView.class, BallView.class, DebugImageView.class, YUVExplore.class});
+		map.put("YUVImage", new Class[]{ImageView.class, ZoomImageView.class, FrontEndView.class,
+				LineView.class, BallView.class, DebugImageView.class, Calibration3View.class});
 		map.put("STATS", new Class[]{BotStatsView.class});
 		map.put("prot-RobotLocation", new Class[]{FieldView.class});
 		map.put(DEFAULT_S, new Class[]{DefaultView.class});

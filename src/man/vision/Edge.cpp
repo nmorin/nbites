@@ -246,6 +246,8 @@ uint32_t EdgeDetector::gradient(const ImageLiteU16& source)
 // *                  *
 // ********************
 
+    // TODO_SILVER_STAR
+
 uint32_t EdgeDetector::edgeDetect(const ImageLiteU8& green, EdgeList& edgeList)
 {
   static int8_t edgeDirCorrection[64] =
