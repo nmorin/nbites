@@ -1060,7 +1060,7 @@ HoughSpace::HoughSpace(int maxImageWd, int maxImageHt)
 
 HoughSpace::~HoughSpace()
 {
-  delete[] spaceBlock;
+    //delete[] spaceBlock;
   delete[] runs;
 }
 

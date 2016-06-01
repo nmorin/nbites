@@ -11,6 +11,7 @@ import nbtool.gui.logviews.fieldLocation.FieldView;
 import nbtool.gui.logviews.images.EdgeView;
 import nbtool.gui.logviews.images.LineView;
 import nbtool.gui.logviews.images.DebugImageView;
+import nbtool.gui.logviews.images.YUVExplore;
 import nbtool.gui.logviews.images.BasicLineView;
 import nbtool.gui.logviews.images.Calibration3View;
 import nbtool.gui.logviews.images.ImageView;
