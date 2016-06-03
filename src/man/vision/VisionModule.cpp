@@ -63,7 +63,7 @@ VisionModule::VisionModule(int wd, int ht, std::string robotName)
 #ifdef OFFLINE
 		// Get the appropriate amount of space for the Debug Image
 		if (i == 0) {
-			debugSpace[0] = (uint8_t *)malloc(wd * ht * sizeof(uint8_t));
+			debugSpace[0] = (uint8_t *)malloc(wd * ht * 2 * sizeof(uint8_t));
 		} else {
 			debugSpace[1] = (uint8_t *)malloc((wd / 2) * (ht / 2) * sizeof(uint8_t));
 		}
@@ -154,12 +154,10 @@ void VisionModule::run_()
 
     bool ballDetected = false;
 
-
     // Time vision module
     double topTimes[12];
     double bottomTimes[12];
     double* times[2] = { topTimes, bottomTimes };
-
 
     // Loop over top and bottom image and run line detection system
     for (int i = 0; i < images.size(); i++) {
@@ -176,21 +174,46 @@ void VisionModule::run_()
 
         HighResTimer timer;
 
+/* The color image in the Front End, built from the color table, is
+ * optional. When we run the tool offline, we assume that we have
+ * the color image, which causes errors when accessing other images.
+ * For reference, this is in vision_defs, part of nbcross, where we
+ * run our instance of the vision module. For the time being,
+ * we are creating a fake color table when running offline
+ * so that our code will not crash in other places - namely accessing
+ * other images / information from the vision func of nbcross.
+ * This should later be fixed so that the "segmented image" is always
+ * the last part of the SExpr built in the vision func. This will
+ * affect how many views of the tool access their data. */
+#ifdef OFFLINE
+        uint8_t* fakeColorTableBytes = new uint8_t[1<<21];
+#endif
 
         // Run front end
         PROF_ENTER2(P_FRONT_TOP, P_FRONT_BOT, i==0)
+#ifdef OFFLINE
+        frontEnd[i]->run(yuvLite, colorParams[i], fakeColorTableBytes);
+#else
         frontEnd[i]->run(yuvLite, colorParams[i]);
+#endif
         PROF_EXIT2(P_FRONT_TOP, P_FRONT_BOT, i==0)
         ImageLiteU16 yImage(frontEnd[i]->yImage());
         ImageLiteU8 whiteImage(frontEnd[i]->whiteImage());
         ImageLiteU8 greenImage(frontEnd[i]->greenImage());
         ImageLiteU8 orangeImage(frontEnd[i]->orangeImage());
 
+/* Delete these fake bytes after we've run the front end so that we
+ * don't have a memory leak. */
+#ifdef OFFLINE
+        delete[] fakeColorTableBytes;
+#endif
+
         times[i][0] = timer.end();
 
-
         // Offset to hackily adjust tilt for high-azimuth error
-        double azOffset = azimuth_m * fabs(kinematics[i]->azimuth()) + azimuth_b;
+        double azOffset = 0;
+        if (name != "ringo")
+            azOffset = azimuth_m * fabs(kinematics[i]->azimuth()) + azimuth_b;
 
         // Calculate kinematics and adjust homography
         if (jointsIn.message().has_head_yaw()) {
@@ -201,7 +224,6 @@ void VisionModule::run_()
             homography[i]->roll(calibrationParams[i]->getRoll());
 
             homography[i]->tilt(kinematics[i]->tilt() + calibrationParams[i]->getTilt() + azOffset);
-
 #ifndef OFFLINE
             homography[i]->azimuth(kinematics[i]->azimuth());
 #endif
@@ -249,7 +271,7 @@ void VisionModule::run_()
         times[i][5] = timer.end();
 
         // Find world coordinates for hough lines
-        houghLines[i]->mapToField(*(homography[i]));
+        houghLines[i]->mapToField(*(homography[i]), *field);
         times[i][6] = timer.end();
 
         // Find world coordinates for rejected edges
@@ -594,7 +616,6 @@ Colors* VisionModule::getColorsFromLisp(nblog::SExpr* colors, int camera)
     return ret;
 }
 
-
 void VisionModule::setCalibrationParams(std::string robotName) 
 {
     setCalibrationParams(0, robotName);
@@ -609,6 +630,10 @@ void VisionModule::setCalibrationParams(int camera, std::string robotName)
         if (robotName == "she-hulk")
             robotName = "shehulk";
     }
+
+    // Set local private variable
+    name = robotName;
+
     if (robotName == "") {
         return;
     }
